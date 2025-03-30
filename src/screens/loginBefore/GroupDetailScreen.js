@@ -1,64 +1,227 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { CustomButton } from '../../components/CustomButton';
 import CommonTag from '../../components/CommonTag';
-import { BLACK_COLOR, PINK_DARK_COLOR, WHITE_COLOR } from '../../constants/colors';
+import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, WHITE_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
-import { sub } from 'framer-motion/client';
+import { instance } from '../../api/axiosInstance';
 
 const GroupDetailScreen = ({ route, navigation }) => {
-  // 임시 데이터
-  const groupData = {
-    title: '배드민턴 모임',
-    image: require('../../../assets/images/groups/tennis.png'),
-    currentCount: 15,
-    maxCount: 20,
-    description: '안녕하세요! 배드민턴 모임입니다!\n매주 배드민턴 치는 모임!! 배드민턴 초보도 환영합니다 :)',
-    subCategory: '#배드민턴',
-    tags: ['INFP', '실내/야외'],
-    schedules: [
-      {
-        title: '복약점 캠핑',
-        time: '10:00 ~ 12:00',
-        address: '경기 이천시 부발읍 무촌리',
-        date: '2025.03.09 ~ 2025.03.11',
-        participants: 5
-      },
-      {
-        title: '설봉산 등산',
-        time: '10:00 ~ 12:00',
-        address: '경기도 이천시 설봉산부근',
-        date: '2025.03.19',
-        participants: 5
-      }
-    ]
-  };
+  const { groupId } = route.params;
+  const [groupData, setGroupData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showMemberList, setShowMemberList] = useState(false);
+  const [memberList, setMemberList] = useState([]);
+  const [searchKeyword, setSearchKeyword] = useState('');
 
-  const schedule = {
-    schedules: [
-        {
-          title: '친구야 놀자',
-          time: '10:00 ~ 12:00',
-          address: '경기 이천시 창전동 CGV',
-          date: '2025.04.11 ~ 2025.04.15',
-          participants: 5
-        },
-        {
-          title: '면접 스터디',
-          time: '10:00 ~ 12:00',
-          address: '서울시 강남구 중앙정보처리학원',
-          date: '2025.04.12',
-          participants: 5
-        }
-      ]
-  }
+  useEffect(() => {
+    const fetchGroupDetail = async () => {
+      try {
+        const response = await instance.get(`/groups/${groupId}`);
+        console.log('API Response:', response.data.data);
+        setGroupData(response.data.data);
+      } catch (error) {
+        console.error('Error fetching group details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroupDetail();
+  }, [groupId]);
 
   const handleWithdraw = () => {
-    navigation.navigate('Main');
+    Alert.alert(
+      "모임 탈퇴",
+      "정말 모임을 탈퇴하시겠습니까?",
+      [
+        {
+          text: "취소",
+          style: "cancel"
+        },
+        {
+          text: "확인",
+          onPress: async () => {
+            try {
+              await instance.delete(`/groups/${groupId}/leave`);
+              // 탈퇴 성공 시 이전 화면으로 이동
+              navigation.goBack();
+            } catch (error) {
+              console.error('Error leaving group:', error);
+              Alert.alert(
+                "탈퇴 실패",
+                "모임 탈퇴 중 오류가 발생했습니다."
+              );
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleJoin = async () => {
+    try {
+      const response = await instance.post(`/groups/${groupId}/join`);
+      
+      if (response.status === 200) {
+        Alert.alert(
+          "가입 완료",
+          "모임 가입이 완료되었습니다.",
+          [
+            {
+              text: "확인",
+              onPress: async () => {
+                // 가입 성공 시 그룹 정보 새로고침
+                const updatedGroupResponse = await instance.get(`/groups/${groupId}`);
+                setGroupData(updatedGroupResponse.data.data);
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      if (error.response) {
+        // 서버에서 오는 에러 메시지 처리
+        switch(error.response.data.code) {
+          case 'GROUP_JOIN_GENDER_MISMATCH':
+            Alert.alert("가입 실패", "성별 조건이 맞지 않아 가입할 수 없습니다.");
+            break;
+          case 'GROUP_JOIN_AGE_MISMATCH':
+            Alert.alert("가입 실패", "나이 조건이 맞지 않아 가입할 수 없습니다.");
+            break;
+          case 'GROUP_JOIN_MEMBER_FULL':
+            Alert.alert("가입 실패", "모임 정원이 가득 찼습니다.");
+            break;
+          default:
+            Alert.alert("가입 실패", "가입 중 오류가 발생했습니다.");
+        }
+      } else {
+        Alert.alert("네트워크 오류", "네트워크 연결을 확인해주세요.");
+      }
+      console.error('Error joining group:', error);
+    }
   };
 
   const handleBoard = () => {
-    navigation.navigate('Board');
+    navigation.navigate('Board', { groupId: groupId });
+  };
+
+  const fetchMemberList = async (keyword = '') => {
+    try {
+      const response = await instance.get(`/groups/${groupId}/memberlist${keyword ? `?keyword=${keyword}` : ''}`);
+      setMemberList(response.data.data);
+    } catch (error) {
+      console.error('Error fetching member list:', error);
+      Alert.alert('오류', '회원 목록을 불러오는데 실패했습니다.');
+    }
+  };
+
+  const handleMemberListPress = () => {
+    setShowMemberList(true);
+    fetchMemberList();
+  };
+
+  const handleSearch = (text) => {
+    setSearchKeyword(text);
+    fetchMemberList(text);
+  };
+
+  if (loading || !groupData) {
+    return <View style={commonStyles.container}><Text>Loading...</Text></View>;
+  }
+
+  console.log('Schedules:', groupData.schedules);
+  
+  const activeSchedules = groupData.schedules?.filter(
+    schedule => schedule.state === 'SCHEDULE_ACTIVE'
+  ) || [];
+
+  const pastSchedules = groupData.schedules?.filter(
+    schedule => schedule.state === 'SCHEDULE_COMPLETED'
+  ) || [];
+
+  console.log('Active Schedules:', activeSchedules);
+  console.log('Past Schedules:', pastSchedules);
+
+  const renderActionButton = () => {
+    if (groupData.myRole === 'GROUP_LEADER') {
+      return (
+        <CustomButton 
+          title="게시판"
+          style={{
+            ...styles.button,
+            backgroundColor: PINK_DARK_COLOR,
+            borderColor: BLACK_COLOR,
+            paddingVertical: 4,
+            paddingHorizontal: 16,
+          }}
+          onPress={handleBoard}
+        />
+      );
+    } else if (groupData.myRole === 'GROUP_MEMBER') {
+      return (
+        <CustomButton 
+          title="게시판"
+          style={{
+            ...styles.button,
+            backgroundColor: PINK_DARK_COLOR,
+            borderColor: BLACK_COLOR,
+            paddingVertical: 4,
+            paddingHorizontal: 16,
+          }}
+          onPress={handleBoard}
+        />
+      );
+    } else {
+      return (
+        <CustomButton 
+          title="가입하기"
+          style={{
+            ...styles.button,
+            backgroundColor: PINK_DARK_COLOR,
+            borderColor: BLACK_COLOR,
+            paddingVertical: 4,
+            paddingHorizontal: 16,
+          }}
+          onPress={handleJoin}
+        />
+      );
+    }
+  };
+
+  const renderBottomButton = () => {
+    if (groupData.myRole === 'GROUP_LEADER') {
+      return (
+        <CustomButton 
+          title="삭제하기"
+          style={{
+            ...styles.button,
+            backgroundColor: 'red',
+            borderColor: BLACK_COLOR,
+            marginBottom: 0,
+            paddingVertical: 4,
+            paddingHorizontal: 16,
+          }}
+          onPress={handleWithdraw}
+        />
+      );
+    } else if (groupData.myRole === 'GROUP_MEMBER') {
+      return (
+        <CustomButton 
+          title="탈퇴하기"
+          style={{
+            ...styles.button,
+            backgroundColor: 'red',
+            borderColor: BLACK_COLOR,
+            marginBottom: 0,
+            paddingVertical: 4,
+            paddingHorizontal: 16,
+          }}
+          onPress={handleWithdraw}
+        />
+      );
+    }
+    return null;
   };
 
   return (
@@ -67,71 +230,68 @@ const GroupDetailScreen = ({ route, navigation }) => {
         style={{ width: '100%', flex: 1 }}
         contentContainerStyle={{ 
           flexGrow: 1,
-          paddingBottom: 40,
-          paddingHorizontal: 5,
+          paddingBottom: 150,
+          paddingHorizontal: 15,
         }}
       >
         {/* 모임 기본 정보 */}
         <View style={[styles.groupInfoCard, commonShadow.mainShadow]}>
           <View style={styles.imageContainer}>
-            <Image source={groupData.image} style={styles.groupImage} />
+            <Image 
+              source={{ uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${groupData.image}` }}
+              style={styles.groupImage}
+            />
           </View>
           <View style={styles.titleContainer}>
-            <Text style={styles.groupTitle}>{groupData.title}</Text>
-            <Text style={styles.memberCount}>{groupData.currentCount}/{groupData.maxCount}</Text>
+            <Text style={styles.groupTitle}>{groupData.name}</Text>
+            <Text style={styles.memberCount}>{groupData.memberCount}/{groupData.maxMemberCount}</Text>
           </View>
-          <Text style={styles.description}>{groupData.description}</Text>
+          <Text style={styles.description}>{groupData.introduction}</Text>
           <View style={styles.bottomContainer}>
             <View style={styles.tagContainer}>
               <CommonTag
                 key={-1}
-                name={groupData.subCategory}
+                name={`#${groupData.subCategoryName}`}
                 size={7.4}
                 color={BLACK_COLOR}
                 showCloseButton={false}
-                containerStyle={{ backgroundColor: '#EEE333', borderColor: BLACK_COLOR, borderWidth: 0.6, marginRight: -1 }} // Reduced margin
+                containerStyle={{ backgroundColor: '#EEE333', borderColor: BLACK_COLOR, borderWidth: 0.6, marginRight: -1 }}
               />
-              {groupData.tags.map((tag, index) => (
+              {[...(groupData.tags.mood || []), ...(groupData.tags.MBTI || [])].map((tag, index) => (
                 <CommonTag
                   key={index}
                   name={tag}
                   size={8}
                   color={BLACK_COLOR}
                   showCloseButton={false}
-                  containerStyle={{ backgroundColor: '#E6E6FA', marginRight: -1}} // Reduced margin
+                  containerStyle={{ backgroundColor: '#E6E6FA', marginRight: -1 }}
                 />
               ))}
             </View>
-            <View style={styles.participantIcons}>
-              {[...Array(5)].map((_, i) => (
+            <TouchableOpacity 
+              style={styles.participantIcons}
+              onPress={handleMemberListPress}
+            >
+              {groupData.members.slice(0, 5).map((member, i) => (
                 <View key={i} style={styles.participantIcon}>
                   <Image 
-                    source={require('../../../assets/images/groups/tennis.png')}
+                    source={{ uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${member.image}` }}
                     style={styles.participantImage}
                   />
                 </View>
               ))}
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* 가입하기 / 게시판 버튼 */}
-        <CustomButton 
-          title="게시판"
-          style={{
-            ...styles.button,
-            backgroundColor: PINK_DARK_COLOR,
-            borderColor: BLACK_COLOR, 
-            paddingVertical: 4, 
-            paddingHorizontal: 16, 
-          }}
-        />
+        {/* 액션 버튼 */}
+        {renderActionButton()}
 
         {/* 소개글 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>소개글</Text>
           <Text style={styles.description}>
-             {groupData.description}
+             {groupData.introduction}
           </Text>
         </View>
 
@@ -139,64 +299,155 @@ const GroupDetailScreen = ({ route, navigation }) => {
         <View>
           <Text style={styles.sectionTitle}>모임 일정</Text>
           <Text style={styles.subTitle}>일정 예정</Text>
-          {schedule.schedules.map((schedule, index) => (
-            <View key={index} style={[styles.scheduleCard, styles.sectionboard]}>
-              <Text style={styles.scheduleTitle}>{schedule.title}</Text>
-              <Text style={styles.scheduleInfo}>시간: {schedule.time}</Text>
-              <Text style={styles.scheduleInfo}>장소: {schedule.address}</Text>
-              <View style={styles.scheduleFooter}>
-                <View style={styles.participantIcons}>
-                  {[...Array(5)].map((_, i) => (
-                    <View key={i} style={styles.participantIcon}>
-                      <Image 
-                        source={require('../../../assets/images/groups/tennis.png')}
-                        style={styles.participantImage}
-                      />
+          {activeSchedules.length > 0 ? (
+            activeSchedules.map((schedule, index) => (
+              <View key={index} style={[styles.scheduleCard, styles.sectionboard]}>
+                <View style={styles.scheduleHeader}>
+                  <View style={styles.titleWrapper}>
+                    <View style={[styles.statusDot, { 
+                      backgroundColor: schedule.scheduleStatus === 'SINGLE' ? GREEN_LIGHT_COLOR 
+                        : schedule.scheduleStatus === 'CONTINUOUS' ? PINK_LIGHT_COLOR 
+                        : YELLOW_LIGHT_COLOR
+                    }]} />
+                    <Text style={styles.scheduleTitle}>{schedule.scheduleName}</Text>
+                    <Text style={styles.scheduleType}>
+                      {schedule.scheduleStatus === 'SINGLE' ? '단일 모임' 
+                        : schedule.scheduleStatus === 'CONTINUOUS' ? '연속 모임' 
+                        : '정기 모임'}
+                    </Text>
+                  </View>
+                  {groupData.myRole === 'GROUP_LEADER' && (
+                    <View style={styles.scheduleActions}>
+                      <TouchableOpacity style={[styles.smallButton, commonShadow.mainShadow]}>
+                        <Text style={styles.smallButtonText}>상세</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={[styles.smallButton, { backgroundColor: '#FFE5E5' }, commonShadow.mainShadow]}>
+                        <Text style={styles.smallButtonText}>취소</Text>
+                      </TouchableOpacity>
                     </View>
-                  ))}
+                  )}
                 </View>
-                <Text style={styles.scheduleDate}>{schedule.date}</Text> 
+                {schedule.scheduleStatus === 'CONTINUOUS' ? (
+                  <View style={styles.timeContainer}>
+                    <View style={styles.timeRow}>
+                      <Text style={styles.timeLabel}>시작</Text>
+                      <Text style={styles.timeValue}>{schedule.startTime.substring(0, 5)}</Text>
+                    </View>
+                    <View style={styles.timeRow}>
+                      <Text style={styles.timeLabel}>종료</Text>
+                      <Text style={styles.timeValue}>{schedule.endTime.substring(0, 5)}</Text>
+                    </View>
+                  </View>
+                ) : (
+                  <Text style={styles.scheduleInfo}>시간: {schedule.startTime.substring(0, 5)} ~ {schedule.endTime.substring(0, 5)}</Text>
+                )}
+                <Text style={styles.scheduleInfo}>장소: {schedule.address}</Text>
+                <View style={styles.scheduleFooter}>
+                  <View style={styles.participantIcons}>
+                    {schedule.members.slice(0, 5).map((member, i) => (
+                      <View key={i} style={styles.participantIcon}>
+                        <Image 
+                          source={{ uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${member.image}` }}
+                          style={styles.participantImage}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                  <Text style={styles.scheduleDate}>
+                    {schedule.startDate === schedule.endDate 
+                      ? schedule.startDate
+                      : `${schedule.startDate} ~ ${schedule.endDate}`}
+                  </Text>
+                </View>
               </View>
+            ))
+          ) : (
+            <View style={[styles.scheduleBox, styles.sectionboard]}>
+              <Text style={styles.noSchedule}>예정된 일정이 없습니다.</Text>
             </View>
-          ))}
-          {/* <View style={[styles.scheduleBox, styles.sectionboard]}>
-            <Text style={styles.noSchedule}>예정된 일정이 없습니다.</Text>
-          </View> */}
+          )}
+          
           <Text style={styles.subTitle}>일정 내역</Text>
-          {groupData.schedules.map((schedule, index) => (
-            <View key={index} style={[styles.scheduleCard, styles.sectionboard]}>
-              <Text style={styles.scheduleTitle}>{schedule.title}</Text>
-              <Text style={styles.scheduleInfo}>시간: {schedule.time}</Text>
-              <Text style={styles.scheduleInfo}>장소: {schedule.address}</Text>
-              <View style={styles.scheduleFooter}>
-                <View style={styles.participantIcons}>
-                  {[...Array(5)].map((_, i) => (
-                    <View key={i} style={styles.participantIcon}>
-                      <Image 
-                        source={require('../../../assets/images/groups/tennis.png')}
-                        style={styles.participantImage}
-                      />
-                    </View>
-                  ))}
+          {pastSchedules.length > 0 ? (
+            pastSchedules.map((schedule, index) => (
+              <View key={index} style={[styles.scheduleCard, styles.sectionboard]}>
+                <Text style={styles.scheduleTitle}>{schedule.scheduleName}</Text>
+                <Text style={styles.scheduleInfo}>시간: {schedule.startTime.substring(0, 5)} ~ {schedule.endTime.substring(0, 5)}</Text>
+                <Text style={styles.scheduleInfo}>장소: {schedule.address}</Text>
+                <View style={styles.scheduleFooter}>
+                  <View style={styles.participantIcons}>
+                    {schedule.members.slice(0, 5).map((member, i) => (
+                      <View key={i} style={styles.participantIcon}>
+                        <Image 
+                          source={{ uri: 'http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080' + member.image }}
+                          style={styles.participantImage}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                  <Text style={styles.scheduleDate}>
+                    {schedule.startDate === schedule.endDate 
+                      ? schedule.startDate
+                      : `${schedule.startDate} ~ ${schedule.endDate}`}
+                  </Text>
                 </View>
-                <Text style={styles.scheduleDate}>{schedule.date}</Text>
               </View>
+            ))
+          ) : (
+            <View style={[styles.scheduleBox, styles.sectionboard]}>
+              <Text style={styles.noSchedule}>일정 내역이 없습니다.</Text>
             </View>
-          ))}
+          )}
         </View>
-        {/* 탈퇴하기 버튼 */}
-        <CustomButton 
-          title="탈퇴하기"
-          style={{
-            ...styles.button,
-            backgroundColor: 'red',
-            borderColor: BLACK_COLOR, 
-            marginBottom: 40,
-            paddingVertical: 4, 
-            paddingHorizontal: 16, 
-          }}
-          onPress={handleWithdraw}
-        />
+
+        {/* 하단 버튼 */}
+        {renderBottomButton()}
+
+        {/* Member List Modal */}
+        <Modal
+          visible={showMemberList}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowMemberList(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>회원 리스트</Text>
+                <TouchableOpacity 
+                  style={styles.closeButton}
+                  onPress={() => setShowMemberList(false)}
+                >
+                  <Text style={styles.closeButtonText}>×</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.searchContainer}>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="닉네임 검색"
+                  value={searchKeyword}
+                  onChangeText={handleSearch}
+                />
+              </View>
+
+              <ScrollView style={styles.memberListContainer}>
+                {memberList.map((member, index) => (
+                  <View key={index} style={styles.memberItem}>
+                    <View style={styles.memberImageContainer}>
+                      <Image
+                        source={{ uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${member.image}` }}
+                        style={styles.memberImage}
+                      />
+                      <View style={[styles.statusDot, { backgroundColor: member.status === 'ONLINE' ? '#4CAF50' : '#999999' }]} />
+                    </View>
+                    <Text style={styles.memberName}>{member.nickname}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </View>
   );
@@ -213,9 +464,9 @@ const styles = StyleSheet.create({
   },
   groupInfoCard: {
     backgroundColor: WHITE_COLOR,
-    padding: 15,
-    marginBottom: 15,
-    borderRadius: 20,
+    padding: 10,
+    marginBottom: 12,
+    borderRadius: 10,
     width: '100%',
   },
   imageContainer: {
@@ -235,7 +486,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   groupTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: BLACK_COLOR,
     flex: 1,
@@ -243,11 +494,11 @@ const styles = StyleSheet.create({
   },
   memberCount: {
     fontSize: 13,
-    color: '#666666',
+    color: BLACK_COLOR,
   },
   description: {
-    fontSize: 13,
-    color: '#666666',
+    fontSize: 10,
+    color: BLACK_COLOR,
     lineHeight: 18,
     width: '100%',
     marginBottom: 8,
@@ -283,26 +534,87 @@ const styles = StyleSheet.create({
   },
   scheduleBox: {
     backgroundColor: WHITE_COLOR,
-    padding: 12,
+    padding: 50,
     marginBottom: 15,
-    borderRadius: 20,
+    borderRadius: 10,
   },
   noSchedule: {
     textAlign: 'center',
     color: '#999999',
-    fontSize: 13,
+    fontSize: 10,
   },
   scheduleCard: {
     backgroundColor: WHITE_COLOR,
     padding: 12,
     marginBottom: 12,   
-    borderRadius: 20,
+    borderRadius: 10,
+    width: '100%',
+  },
+  scheduleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  scheduleActions: {
+    flexDirection: 'row',
+    gap: 4,
+    marginLeft: 8,
+  },
+  smallButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    backgroundColor: '#E6E6FA',
+    borderWidth: 0.5,
+    borderColor: BLACK_COLOR,
+    minWidth: 32,
+  },
+  smallButtonText: {
+    fontSize: 10,
+    color: BLACK_COLOR,
+    textAlign: 'center',
+    fontWeight: 'bold', // Increased font weight
+  },
+  titleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 3,
+    marginTop: 4,
   },
   scheduleTitle: {
     fontSize: 13,
     fontWeight: 'bold',
     color: BLACK_COLOR,
-    marginBottom: 4,
+    marginRight: 1,
+  },
+  scheduleType: {
+    fontSize: 7,
+    color: '#666666',
+  },
+  timeContainer: {
+    marginTop: 4,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  timeLabel: {
+    fontSize: 12,
+    color: '#666666',
+    width: 30,
+  },
+  timeValue: {
+    fontSize: 12,
+    color: '#666666',
+    marginLeft: 4,
   },
   scheduleInfo: {
     fontSize: 12,
@@ -342,6 +654,83 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 20,
     paddingVertical: 12,
+    width: '100%',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: WHITE_COLOR,
+    borderRadius: 10,
+    width: '90%',
+    maxHeight: '80%',
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: BLACK_COLOR,
+  },
+  closeButton: {
+    padding: 5,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: BLACK_COLOR,
+  },
+  searchContainer: {
+    marginBottom: 15,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: '#DDDDDD',
+    borderRadius: 8,
+    padding: 8,
+    fontSize: 14,
+  },
+  memberListContainer: {
+    maxHeight: '80%',
+  },
+  memberItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  memberImageContainer: {
+    position: 'relative',
+    marginRight: 12,
+  },
+  memberImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: BLACK_COLOR,
+  },
+  statusDot: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: WHITE_COLOR,
+  },
+  memberName: {
+    fontSize: 14,
+    color: BLACK_COLOR,
   },
 });
 
