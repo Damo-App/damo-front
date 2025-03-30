@@ -12,7 +12,7 @@ export const getCurrentUser = async () => {
   console.log("token:", token);
 
   if (!token || !memberId) {
-    console.error("Missing token or memberId");
+    // console.error("Missing token or memberId");
     return null;
   }
 
@@ -26,14 +26,14 @@ export const getCurrentUser = async () => {
   } catch (error) {
     if (error.response?.status === 404) {
       console.error(`User with ID ${memberId} not found.`);
-      return null; // Handle user not found gracefully
+      return null; 
     } else if (error.response?.status === 401) {
       await AsyncStorage.multiRemove(["memberId", "accessToken"]);
       console.error("Unauthorized access, clearing storage.");
       return null;
     } else {
       console.error("Failed to get current user:", error.message || error.response?.data);
-      throw error; // Rethrow other errors
+      throw error; 
     }
   }
 };
