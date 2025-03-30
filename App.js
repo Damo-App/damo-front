@@ -3,8 +3,13 @@ import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AppNavigator from './src/navigation/AppNavigator';
 import {  AuthProvider } from './src/contexts/AuthProvider';
-import { View, Text } from 'react-native';
+import { View, Text, LogBox } from 'react-native';
 import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
+
+// defaultProps 관련 경고 메시지 무시
+LogBox.ignoreLogs([
+  'Support for defaultProps will be removed from function components',
+]);
 
 // 커스텀 토스트 구성
 const toastConfig = {
