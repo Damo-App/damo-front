@@ -25,6 +25,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserListScreen from '../screens/admin/UserListScreen';
 import GroupListScreen from '../screens/loginBefore/GroupListScreen';
 import CreateGroupScreen from '../screens/loginAfter/CreateGroupScreen';
+import GroupDetailScreen from '../screens/loginBefore/GroupDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -112,6 +113,15 @@ const Stack = createStackNavigator();
                 <Stack.Screen name="내 모임 조회" component={MyGroupsScreen} />
                 <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
                 <Stack.Screen name="비밀번호 변경" component={ChangePWScreen} />
+                <Stack.Screen
+                name="GroupDetail"
+                component={GroupDetailScreen}
+                options={{
+                  headerTitle: '모임 상세',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
               </>
             )}
           </>

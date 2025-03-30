@@ -20,7 +20,7 @@ export const useUser = () => {
     staleTime: Infinity,
   });
 
-  console.log("console.log(user)================= ",user);
+  // console.log("console.log(user)================= ",user);
 
   const loginMutation = useMutation({
     mutationFn: userService.loginUser,
