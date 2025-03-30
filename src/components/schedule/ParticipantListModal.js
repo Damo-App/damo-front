@@ -1,36 +1,49 @@
-import React from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity, FlatList, Image, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Modal, StyleSheet, TouchableOpacity, FlatList, Image, TextInput, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { BLACK_COLOR, WHITE_COLOR, PRIMARY_BTN_COLOR } from '../../constants/colors';
+import { getScheduleParticipants } from '../../api/mutations/scheduleService';
 
-/**
- *   ParticipantItem
- * - 개별 참가자 정보를 렌더링하는 컴포넌트
- * - 프로필 이미지, 닉네임 표시
- */
 const ParticipantItem = ({ participant }) => {
   return (
     <View style={styles.participantItem}>
-        {/* 프로필 이미지 (없으면 기본 이미지) */}
       <Image 
-        source={participant.profileImage ? { uri: participant.profileImage } : require('../../../assets/images/mypage/user.png')} 
+        source={participant.image ? { uri: participant.image } : require('../../../assets/images/mypage/user.png')} 
         style={styles.profileImage} 
       />
       <View style={styles.participantInfo}>
         <Text style={styles.participantName}>
-          <Text style={styles.dot}>●</Text> 닉네임: {participant.nickname}
+          <Text style={styles.dot}>●</Text> 닉네임: {participant.name}
         </Text>
       </View>
     </View>
   );
 };
 
-/**
- *   ParticipantListModal
- * - 참여 회원 리스트를 모달로 보여주는 컴포넌트
- * - FlatList로 참가자 나열 + 검색창 포함
- */
-const ParticipantListModal = ({ visible, onClose, participants }) => {
+const ParticipantListModal = ({ visible, onClose, scheduleId }) => {
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [filteredParticipants, setFilteredParticipants] = useState([]);
+
+  const fetchParticipants = async (keyword = '') => {
+    try {
+      const response = await getScheduleParticipants(scheduleId, keyword);
+      setFilteredParticipants(response.data);
+    } catch (error) {
+      console.error('참여자 조회 실패:', error);
+      Alert.alert('에러', '참여자 정보를 불러오는 데 실패했습니다.');
+    }
+  };
+
+  useEffect(() => {
+    if (visible) {
+      fetchParticipants();
+    }
+  }, [visible]);
+
+  const handleSearch = () => {
+    fetchParticipants(searchKeyword);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -46,19 +59,26 @@ const ParticipantListModal = ({ visible, onClose, participants }) => {
               <Icon name="close" size={24} color={BLACK_COLOR} />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.searchContainer}>
             <Icon name="search" size={20} color="#888" style={styles.searchIcon} />
             <TextInput 
               style={styles.searchInput} 
               placeholder="회원 닉네임으로 검색해주세요." 
               placeholderTextColor="#888"
+              value={searchKeyword}
+              onChangeText={setSearchKeyword}
+              onSubmitEditing={handleSearch}
+              returnKeyType="search"
             />
+            <TouchableOpacity onPress={handleSearch}>
+              <Icon name="search" size={24} color={BLACK_COLOR} />
+            </TouchableOpacity>
           </View>
-          
+
           <FlatList
-            data={participants}
-            keyExtractor={(item) => item.id.toString()}
+            data={filteredParticipants}
+            keyExtractor={(item) => item.memberId.toString()}
             renderItem={({ item }) => <ParticipantItem participant={item} />}
             style={styles.participantList}
           />
@@ -148,9 +168,9 @@ const styles = StyleSheet.create({
   },
   dot: {
     fontSize: 8,
-    color: PRIMARY_BTN_COLOR,
+    color: "#4CAF50",
     marginRight: 4,
   },
 });
 
-export default ParticipantListModal; 
+export default ParticipantListModal;

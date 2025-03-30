@@ -222,7 +222,16 @@ const SchedulePost = ({ navigation, route }) => {
       console.log('일정 생성 성공:', result);
       
       Alert.alert('성공', '일정이 생성되었습니다.', [
-        { text: '확인', onPress: () => navigation.goBack() }
+        { 
+          text: '확인', 
+          onPress: () => {
+            // 해당 모임의 일정 페이지로 이동
+            navigation.navigate('GroupDetailScreen', {
+              groupId: groupId,
+              initialTab: 'schedule' // 일정 탭으로 바로 이동하도록 파라미터 추가
+            });
+          }
+        }
       ]);
       
     } catch (error) {
