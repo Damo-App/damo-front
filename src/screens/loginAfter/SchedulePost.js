@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import InputWithLabel from '../../components/InputWithLabel';
 import { PRIMARY_BACK_COLOR, BLACK_COLOR, WHITE_COLOR } from '../../constants/colors';
 
@@ -10,7 +10,10 @@ import DropdownModal from '../../components/schedule/DropdownModal';
 import AddressSearchModal from '../../components/schedule/AddressSearchModal';
 import AddressInput from '../../components/schedule/AddressInput';
 
-const SchedulePost = ({ navigation }) => {
+// API 서비스 임포트
+import { createSchedule, getScheduleStatus, convertDaysOfWeek, formatDateTime } from '../../api/mutations/scheduleService';
+
+const SchedulePost = ({ navigation, route }) => {
   // 상태 관리
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -33,13 +36,20 @@ const SchedulePost = ({ navigation }) => {
   const [showDropdown, setShowDropdown] = useState('');
   
   // 장소 정보
-  const [location, setLocation] = useState('');
+  const [maxMembers, setMaxMembers] = useState('');
   const [address, setAddress] = useState('');
   const [detailAddress, setDetailAddress] = useState('');
   const [postcode, setPostcode] = useState('');
   
+  // 로딩 상태
+  const [isLoading, setIsLoading] = useState(false);
+  
   // 주소 검색 모달 상태
   const [showAddressModal, setShowAddressModal] = useState(false);
+
+  // route params에서 groupId 가져오기 (실제 구현 시 필요)
+  // 임시로 테스트용 그룹 ID 설정
+  const groupId = route?.params?.groupId || '1'; // 테스트용 기본값
 
   // 드롭다운 옵션 준비
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
@@ -111,37 +121,116 @@ const SchedulePost = ({ navigation }) => {
     setShowDropdown('');
   };
 
-  const handleSubmit = () => {
-    // 일정 등록 로직
-    const scheduleData = {
-      title,
-      description,
-      scheduleType: selectedOption,
-      location,
-      address,
-      detailAddress
-    };
-
-    // 일정 유형에 따라 다른 데이터 포함
-    if (selectedOption === '단일일정') {
-      scheduleData.date = { month: startMonth, day: startDay };
-    } else if (selectedOption === '연속일정') {
-      scheduleData.dateRange = { 
-        start: { month: startMonth, day: startDay },
-        end: { month: endMonth, day: endDay }
-      };
-    } else if (selectedOption === '정기일정') {
-      scheduleData.repeatingDays = selectedDays;
+  // 유효성 검사 함수
+  const validateForm = () => {
+    if (!title.trim()) {
+      Alert.alert('알림', '일정 이름을 입력해주세요.');
+      return false;
     }
+    
+    if (!description.trim()) {
+      Alert.alert('알림', '일정 소개글을 입력해주세요.');
+      return false;
+    }
+    
+    if (startMonth === 'MM' || startDay === 'DD' || startHour === 'hh' || startMinute === 'mm') {
+      Alert.alert('알림', '시작 날짜와 시간을 선택해주세요.');
+      return false;
+    }
+    
+    if (selectedOption !== '단일일정' && (endMonth === 'MM' || endDay === 'DD')) {
+      Alert.alert('알림', '종료 날짜를 선택해주세요.');
+      return false;
+    }
+    
+    if (endHour === 'hh' || endMinute === 'mm') {
+      Alert.alert('알림', '종료 시간을 선택해주세요.');
+      return false;
+    }
+    
+    if (selectedOption === '정기일정' && selectedDays.length === 0) {
+      Alert.alert('알림', '요일을 하나 이상 선택해주세요.');
+      return false;
+    }
+    
+    if (!maxMembers || isNaN(parseInt(maxMembers))) {
+      Alert.alert('알림', '유효한 모집 인원 수를 입력해주세요.');
+      return false;
+    }
+    
+    if (!address.trim()) {
+      Alert.alert('알림', '장소를 선택해주세요.');
+      return false;
+    }
+    
+    return true;
+  };
 
-    // 시간 정보 추가
-    scheduleData.timeRange = { 
-      start: { hour: startHour, minute: startMinute },
-      end: { hour: endHour, minute: endMinute }
-    };
-
-    console.log(scheduleData);
-    // navigation.goBack();
+  const handleSubmit = async () => {
+    // 유효성 검사
+    if (!validateForm()) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // API 요청 데이터 준비
+      const currentYear = new Date().getFullYear(); // 현재 년도
+      const scheduleStatus = getScheduleStatus(selectedOption);
+      
+      // 시작 날짜/시간 포맷팅
+      const startSchedule = formatDateTime(
+        currentYear.toString(), 
+        startMonth, 
+        startDay, 
+        startHour, 
+        startMinute
+      );
+      
+      // 종료 날짜/시간 포맷팅
+      const endSchedule = formatDateTime(
+        currentYear.toString(), 
+        selectedOption === '단일일정' ? startMonth : endMonth, 
+        selectedOption === '단일일정' ? startDay : endDay, 
+        endHour, 
+        endMinute
+      );
+      
+      // 요일 변환 (정기일정일 경우만)
+      const daysOfWeek = selectedOption === '정기일정' ? convertDaysOfWeek(selectedDays) : undefined;
+      
+      // 요청 데이터 구성
+      const requestData = {
+        scheduleName: title,
+        scheduleContent: description,
+        scheduleStatus: scheduleStatus,
+        startSchedule: startSchedule,
+        endSchedule: endSchedule,
+        address: address,
+        subAddress: detailAddress,
+        maxMemberCount: parseInt(maxMembers)
+      };
+      
+      // 정기일정인 경우에만 요일 정보 추가
+      if (scheduleStatus === 'RECURRING') {
+        requestData.daysOfWeek = daysOfWeek;
+      }
+      
+      console.log('일정 생성 요청:', requestData);
+      
+      // API 호출
+      const result = await createSchedule(groupId, requestData);
+      console.log('일정 생성 성공:', result);
+      
+      Alert.alert('성공', '일정이 생성되었습니다.', [
+        { text: '확인', onPress: () => navigation.goBack() }
+      ]);
+      
+    } catch (error) {
+      console.error('일정 생성 오류:', error);
+      Alert.alert('오류', '일정 생성 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // 현재 드롭다운에 표시할 옵션 결정
@@ -180,7 +269,7 @@ const SchedulePost = ({ navigation }) => {
           onChangeText={setTitle}
         />
 
-        {/* 일정 소개글 */}
+        {/* 일정 소개글 입력 필드 */}
         <View style={styles.inputGroup}>
           <InputWithLabel
             label={<Text style={styles.label}>일정 소개글</Text>}
@@ -191,13 +280,13 @@ const SchedulePost = ({ navigation }) => {
           />
         </View>
 
-        {/* 일정 유형 선택 */}
+        {/* 일정 유형 선택 컴포넌트 (단일/연속/정기) */}
         <ScheduleTypeSelector 
           selectedOption={selectedOption} 
           setSelectedOption={setSelectedOption} 
         />
 
-        {/* 일정 유형에 따른 날짜 선택 UI */}
+        {/* 일정 유형에 따른 날짜 및 시간 선택 UI */}
         <ScheduleDateSection 
           selectedOption={selectedOption}
           dates={{ startMonth, startDay, endMonth, endDay }}
@@ -208,23 +297,24 @@ const SchedulePost = ({ navigation }) => {
           dayOfWeekOptions={dayOfWeekOptions}
         />
 
-        {/* 모집 인원 */}
+        {/* 모집 인원 입력 필드 */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>모집 인원</Text>
           <InputWithLabel
             placeholder="모집 인원을 작성해주세요."
-            value={location}
-            onChangeText={setLocation}
+            value={maxMembers}
+            onChangeText={setMaxMembers}
+            keyboardType="numeric"
             label=""
           />
         </View>
 
-        {/* 장소 */}
+        {/* 장소 정보 입력 섹션 */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>장소</Text>
           <AddressInput 
-            address={address} 
-            onPress={handleAddressSearch} 
+            address={address}
+            onPress={handleAddressSearch}
           />
           <InputWithLabel
             placeholder="상세주소를 입력해주세요."
@@ -237,15 +327,16 @@ const SchedulePost = ({ navigation }) => {
         {/* 생성 버튼 */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
-            style={styles.submitButton} 
+            style={[styles.submitButton, isLoading && styles.disabledButton]}
             onPress={handleSubmit}
+            disabled={isLoading}
           >
-            <Text style={styles.buttonText}>생성</Text>
+            <Text style={styles.buttonText}>{isLoading ? '처리중...' : '생성'}</Text>
           </TouchableOpacity>
         </View>
       </View>
       
-      {/* 드롭다운 모달 */}
+      {/* 드롭다운 모달 컴포넌트 */}
       <DropdownModal 
         showDropdown={showDropdown}
         setShowDropdown={setShowDropdown}
@@ -253,7 +344,7 @@ const SchedulePost = ({ navigation }) => {
         handleSelectOption={handleSelectOption}
       />
       
-      {/* 주소 검색 모달 */}
+      {/* 주소 검색 모달 컴포넌트 */}
       <AddressSearchModal 
         showAddressModal={showAddressModal}
         setShowAddressModal={setShowAddressModal}
@@ -264,6 +355,9 @@ const SchedulePost = ({ navigation }) => {
   );
 };
 
+/**
+ * 스타일 정의
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -294,6 +388,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#cccccc',
   },
   buttonText: {
     fontSize: 14,
