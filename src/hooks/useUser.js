@@ -10,7 +10,7 @@ import { instance } from '../api/axiosInstance';
 
 export const useUser = () => {
   const queryClient = useQueryClient();
-  const { setIsLoggedIn } = useContext(AuthContext);
+  const { setIsLoggedIn, setIsAdmin } = useContext(AuthContext);
 
   // user 상태를 useQuery로 관리
   const { data: user, isLoading } = useQuery({
@@ -44,25 +44,25 @@ export const useUser = () => {
     [loginMutation]
   );
 
-  const logout = useCallback(async () => {
+  const logout = async (navigation) => {
     try {
-      await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'memberId', 'email']);
-      delete instance.defaults.headers.common['Authorization']; 
-      queryClient.invalidateQueries(['user']); 
-      queryClient.setQueryData(['user'], null);
-      setIsLoggedIn(false);
+      // AsyncStorage 초기화
+      await AsyncStorage.clear();
   
-      // 네비게이션 스택 초기화 및 로그인 화면으로 이동
-      const navigation = useNavigation();
+      // AuthContext 상태 초기화
+      setIsLoggedIn(false);
+      setIsAdmin(false);
+  
+      // 네비게이션 스택 리셋
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Login' }],
+        routes: [{ name: 'Login' }], // 로그인 화면으로 이동
       });
     } catch (error) {
-      console.error('Logout failed:', error);
-      throw error;
+      // console.error('Logout error:', error);
     }
-  }, [queryClient]);
+  };
+  
   
 
   return { user, login, logout, isLoading };

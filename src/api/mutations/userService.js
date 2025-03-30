@@ -38,8 +38,8 @@ export const loginUser = async (credentials) => {
 
     console.log("📥 Member Response:", memberResponse.data.data);
 
-    const email = memberResponse.data.data?.username || null;
-
+    const email = memberResponse.data.data?.email || null;
+ 
     if (!email) {
       throw new Error('회원 정보 조회에 실패하였습니다.');
     }
@@ -56,5 +56,25 @@ export const loginUser = async (credentials) => {
   } catch (error) {
     console.error('❌ Login failed:', error.response?.data || error.message);
     throw error;
+  }
+};
+
+//비밀번호 변경
+// 비밀번호 변경 API 호출
+export const patchUserPw = async (data) => {
+  try {
+    const response = await instance.patch('/members/password', data);
+    console.log("비밀번호 변경 완료:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("비밀번호 변경 실패:", error.message);
+    
+    Toast.show({
+      type: 'error',
+      text1: '비밀번호 변경 실패!',
+      text2: error.message,
+    });
+
+    throw error; // Re-throw error for handling in mutation
   }
 };
