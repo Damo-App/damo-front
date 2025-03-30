@@ -63,6 +63,7 @@ const MyPageScreen = () => {
           text="비밀번호 변경"
           style={[styles.menuBar, commonShadow.btnNoBdShadow]}
           iconWrapperStyle={{ backgroundColor: PRIMARY_BACK_COLOR }}
+          onPress={() => {navigation.navigate('비밀번호 변경')}}
         />
         <MenuBar
           image={require('../../../assets/images/mypage/mypageIcon5.png')}

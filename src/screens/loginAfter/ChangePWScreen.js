@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Text, View, StyleSheet } from "react-native";
 import InputWithLabel from "../../components/InputWithLabel";
 import PasswordInput from "../../components/PasswordInput";
 import { commonStyles } from "../../constants/styles";
 import { CustomButton } from "../../components/CustomButton";
 import { G_DARKER_COLOR } from "../../constants/colors";
+import { AuthContext } from "../../contexts/AuthProvider";
 
 // 비밀번호 유효성 검사 (영문+숫자+특수문자 조합, 8~20자)
 const isValidPassword = (password) => 
     /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[%,\$,#,@,!].*[%,\$,#,@,!])[A-Za-z\d%,\$,#,@,!]{8,20}$/.test(password);
 
-const ChangePWScreen = () => {
+const ChangePWScreen = ({ navigation }) => {
+   const {token} = useContext(AuthContext);
+   console.log("비밀번호 변경 token ==", token);
     const [oldPassword, setOldPassword] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
