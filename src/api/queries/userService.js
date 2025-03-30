@@ -8,23 +8,33 @@ export const getCurrentUser = async () => {
   const memberId = await AsyncStorage.getItem("memberId");
   const token = await AsyncStorage.getItem("accessToken");
 
-  console.log("memberId, token =============", memberId, token)
+  console.log("memberId:", memberId);
+  console.log("token:", token);
 
-  if (!token || !memberId) return null;
+  if (!token || !memberId) {
+    console.error("Missing token or memberId");
+    return null;
+  }
 
   try {
-    const response = await instance.get(`/users/${memberId}`, {
+    const response = await instance.get(`/members/${memberId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    console.log("Current User Data:", response.data.data);
     return response.data.data;
   } catch (error) {
-    console.error("Failed to get current user:", error);
-
-    // 401(Unauthorized)일 때만 AsyncStorage 초기화
-    if (error.response?.status === 401) {
-      await AsyncStorage.multiRemove(["memberId", "memberEmail", "accessToken"]);
+    if (error.response?.status === 404) {
+      console.error(`User with ID ${memberId} not found.`);
+      return null; // Handle user not found gracefully
+    } else if (error.response?.status === 401) {
+      await AsyncStorage.multiRemove(["memberId", "accessToken"]);
+      console.error("Unauthorized access, clearing storage.");
+      return null;
+    } else {
+      console.error("Failed to get current user:", error.message || error.response?.data);
+      throw error; // Rethrow other errors
     }
-    return null;
   }
 };
+

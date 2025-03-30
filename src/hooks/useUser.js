@@ -43,13 +43,19 @@ export const useUser = () => {
   );
 
   const logout = useCallback(async () => {
-    await AsyncStorage.multiRemove(["accessToken", "userId", "userEmail"]);
-    delete axios.defaults.headers.common["Authorization"];
-
-    queryClient.invalidateQueries(["user"]); // 로그아웃 후 user 데이터 삭제
-    queryClient.setQueryData(["user"], null); // user 상태를 null로 설정
-    setIsLoggedIn(false); // 로그아웃 시 상태 초기화
+    try {
+      await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'memberId', 'email']);
+      delete axios.defaults.headers.common['Authorization'];
+  
+      queryClient.invalidateQueries(['user']); // Clear user data from cache
+      queryClient.setQueryData(['user'], null); // Reset user state
+      setIsLoggedIn(false); // Update logged-in state
+    } catch (error) {
+      console.error('Logout failed:', error);
+      throw error;
+    }
   }, [queryClient]);
+  
 
   return { user, login, logout, isLoading };
 };

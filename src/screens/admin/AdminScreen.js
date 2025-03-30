@@ -13,9 +13,11 @@ const AdminScreen = () => {
 
   const handleLogout = async () => {
     try {
-      //const res = await instance.post('/auth/logout'); 
-      await logout();
-      navigation.navigate('Login');
+      await logout(); // Execute logout logic
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }], // Navigate to Login screen and reset stack
+      });
     } catch (error) {
       console.error('Logout failed:', error);
     }

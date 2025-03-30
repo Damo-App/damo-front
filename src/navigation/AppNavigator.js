@@ -67,9 +67,10 @@ const Stack = createStackNavigator();
     useEffect(() => {
       const checkAdmin = async () => {
         const email = await AsyncStorage.getItem('email');
-        console.log("관리자 페이지 확인중 ==", email)
         if (email === 'h4@gmail.com') {
           setIsAdmin(true);
+        } else {
+          setIsAdmin(false); // Reset admin state if email does not match
         }
       };
       checkAdmin();
