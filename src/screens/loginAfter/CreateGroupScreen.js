@@ -1,5 +1,5 @@
 import React, { useState , useEffect} from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from "react-native";
 import InputWithLabel from "../../components/InputWithLabel";
 import { CommonRadio } from "../../components/CommonRadio";
 import CommonTag from "../../components/CommonTag";
@@ -140,6 +140,8 @@ const CreateGroupScreen = () => {
     });
   };
 
+  const [profileImage, setProfileImage] = useState(null)
+
   const openGallery = async () => {
     // Request permission to access the media library
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -155,12 +157,13 @@ const CreateGroupScreen = () => {
       quality: 1,
     });
 
-    if (!result.canceled) {
-      console.log('Selected Image:', result.assets[0].uri);
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setProfileImage(result.assets[0].uri); // 선택한 이미지의 URI를 상태에 저장
+    } else {
+      console.log("이미지 선택이 취소되었습니다.");
     }
-    }
-
-  1
+  };
+  
   // 폼 유효성 검사
   useEffect(() => {
     const errors = {};
@@ -219,6 +222,15 @@ const CreateGroupScreen = () => {
           <>
           {/* 모임 대표 이미지 */}
           <Text style={styles.header}>모임 대표 이미지</Text>
+          <View style={styles.profilePosition}>
+          <TouchableOpacity style={styles.imageButton} onPress={openGallery}>
+        {profileImage ? (
+           <Image
+           source={{ uri: profileImage }}
+           style={styles.profileImage}
+           onError={(error) => console.log("이미지 로드 오류:", error.nativeEvent.error)}
+         />
+        ) : (
           <View style={styles.buttonContainer}>
             <CustomButton
               title="+"
@@ -226,8 +238,9 @@ const CreateGroupScreen = () => {
               style={styles.imageButton}
             />
           </View>
-
-  
+        )}
+      </TouchableOpacity>
+      </View>
             {/* 모임 이름 입력 */}
             <InputWithLabel
               label="모임 이름"
@@ -344,6 +357,7 @@ const CreateGroupScreen = () => {
           </View>}
 
 {/* 필수 태그 */}
+<Text style={styles.subTagStyle}>필수</Text>
 <View style={[styles.sectionContainer, { backgroundColor: PINK_DARK_COLOR }]}>
   <View style={styles.sectionHeader}>
     <Text style={styles.sectionTitle}>{sections[0].title}</Text>
@@ -382,6 +396,7 @@ const CreateGroupScreen = () => {
 </View>
 
 {/* 선택 태그 */}
+<Text style={styles.subTagStyle}>선택</Text>
 {sections.slice(1).map((section, index) => (
   <View key={section.title || index} style={[styles.sectionContainer, { backgroundColor: GREEN_LIGHT_COLOR }]}>
     <View style={styles.sectionHeader}>
@@ -453,12 +468,25 @@ const styles = StyleSheet.create({
     justifyContent: "center", // 세로축 중앙 정렬
     alignItems: "center", // 가로축 중앙 정렬
   },
+  subTagStyle: {
+    fontSize: 14,
+    fontWeight: 'bold'
+  },
   imageButton: {
-    width: 80, // 버튼 크기
-    height: 80,
-    borderRadius: 40, // 둥근 모양
+    width: 100, // 버튼 크기
+    height: 100,
+    borderRadius: 50, // 둥근 모양
     justifyContent: 'center',
     alignItems: 'center', // 텍스트 중앙 정렬,
+  },
+  profileImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 50,
+  },
+  profilePosition: {
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   sectionHeader: {
   flexDirection: 'row',
