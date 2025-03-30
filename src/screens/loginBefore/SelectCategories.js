@@ -9,14 +9,29 @@ import * as categoryService from '../../api/queries/categoryService'; // API ser
 import { commonCircle, commonStyles } from '../../constants/styles';
 import { AuthContext } from '../../contexts/AuthProvider'; 
 import { BLACK_COLOR, G_DARK_COLOR, G_DARKER_COLOR } from '../../constants/colors';
-
-const categories = [
-  '스포츠', '언어', '악기', '댄스', '반려동물',
-  '사교/인맥', '요리/레시피', '게임/오락', '사진/영상',
-  '독서', '노래', '자동차', '여행',
-];
+import Toast from 'react-native-toast-message';
 
 const SelectCategories = () => {
+  //DB에 저장되어 있는걸로 가져오기 (더미데이터 삭제)
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryService.categoriesList(); // 비동기로 데이터 가져오기
+        setCategories(data); // 가져온 데이터를 상태로 저장
+      } catch (error) {
+        Toast.error({
+          type: 'error',
+          text1: '카테고리 조회 실패패!',
+          text2: error.message,
+        })
+      }
+    };
+
+    fetchCategories();
+  }, []); // 컴포넌트가 마운트될 때 한 번 실행
+
   const [selectedCategories, setSelectedCategories] = useState([]);
   const { width } = Dimensions.get('window');
   const BUTTON_WIDTH = (width - 48) / 3 - 8;

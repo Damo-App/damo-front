@@ -23,6 +23,8 @@ import ChangePWScreen from '../screens/loginAfter/ChangePWScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserListScreen from '../screens/admin/UserListScreen';
+import GroupListScreen from '../screens/loginBefore/GroupListScreen';
+import CreateGroupScreen from '../screens/loginAfter/CreateGroupScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -46,7 +48,7 @@ const Stack = createStackNavigator();
           <>
           {/* options={{ headerShown: false }}  */}
             <Tab.Screen name="Main" component={MainScreen} />
-            <Tab.Screen name="Profile" component={ProfileScreen} />
+            <Tab.Screen name="모임 리스트" component={GroupListScreen} />
             <Tab.Screen name="Chat" component={ChatScreen} />
             <Tab.Screen name="MyPage" component={MyPageScreen} />
           </>
@@ -108,6 +110,7 @@ const Stack = createStackNavigator();
                 <Stack.Screen name="Chat" component={ChatScreen} />
                 <Stack.Screen name="ChatRooms" component={ChatRoomsScreen} />
                 <Stack.Screen name="내 모임 조회" component={MyGroupsScreen} />
+                <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
                 <Stack.Screen name="비밀번호 변경" component={ChangePWScreen} />
               </>
             )}

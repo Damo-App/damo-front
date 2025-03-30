@@ -7,6 +7,8 @@ import { commonStyles } from "../../constants/styles";
 import { CustomButton } from "../../components/CustomButton";
 import RNPickerSelect from 'react-native-picker-select';
 import { BLACK_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
+import { launchImageLibrary } from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 
 const CreateGroupScreen = () => {
   const [mandatoryTags, setMandatoryTags] = useState([]); // 필수 태그 상태
@@ -18,7 +20,6 @@ const CreateGroupScreen = () => {
   const [ageRestriction, setAgeRestriction] = useState("무관");
   const [startYear, setStartYear] = useState('2000');
   const [endYear, setEndYear] = useState('2005');
-
 
   const sections = [
     {
@@ -66,6 +67,28 @@ const CreateGroupScreen = () => {
       return newState;
     });
   };
+
+  const openGallery = async () => {
+    // Request permission to access the media library
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'We need access to your photos to proceed.');
+      return;
+    }
+
+    // Open the gallery
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      console.log('Selected Image:', result.assets[0].uri);
+    }
+  };
+
+
   return (
     <View style={[commonStyles.container, styles.container]}>
       <FlatList style={styles.flatContainer}
@@ -76,7 +99,7 @@ const CreateGroupScreen = () => {
           <View style={styles.buttonContainer}>
             <CustomButton
               title="+"
-              onPress={() => {}}
+              onPress={openGallery}
               style={styles.imageButton}
             />
           </View>
