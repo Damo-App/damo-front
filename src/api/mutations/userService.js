@@ -58,3 +58,23 @@ export const loginUser = async (credentials) => {
     throw error;
   }
 };
+
+//비밀번호 변경
+// 비밀번호 변경 API 호출
+export const patchUserPw = async (data) => {
+  try {
+    const response = await instance.patch('/members/password', data);
+    console.log("비밀번호 변경 완료:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("비밀번호 변경 실패:", error.message);
+    
+    Toast.show({
+      type: 'error',
+      text1: '비밀번호 변경 실패!',
+      text2: error.message,
+    });
+
+    throw error; // Re-throw error for handling in mutation
+  }
+};
