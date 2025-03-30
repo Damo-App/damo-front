@@ -38,8 +38,8 @@ export const loginUser = async (credentials) => {
 
     console.log("📥 Member Response:", memberResponse.data.data);
 
-    const email = memberResponse.data.data?.username || null;
-
+    const email = memberResponse.data.data?.email || null;
+ 
     if (!email) {
       throw new Error('회원 정보 조회에 실패하였습니다.');
     }

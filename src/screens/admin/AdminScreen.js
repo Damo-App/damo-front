@@ -11,13 +11,22 @@ const AdminScreen = () => {
   const navigation = useNavigation();
   const { logout } = useUser();
 
+  // const handleLogout = async () => {
+  //   try {
+  //     await logout(); 
+  //     navigation.reset({
+  //       index: 0,
+  //       routes: [{ name: 'Login' }],
+  //     });
+  //   } catch (error) {
+  //     console.error('Logout failed:', error);
+  //   }
+  // };
   const handleLogout = async () => {
     try {
-      await logout(); // Execute logout logic
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }], // Navigate to Login screen and reset stack
-      });
+      await logout(); // 로그아웃 실행
+      // navigation.navigate('Login'); // 로그아웃 후 로그인 화면으로 이동
+      navigation.navigate('Admin', { screen: 'Login' });
     } catch (error) {
       console.error('Logout failed:', error);
     }

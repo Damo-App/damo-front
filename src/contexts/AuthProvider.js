@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { instance } from '../api/axiosInstance';
 
 export const AuthContext = createContext();
 
@@ -8,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isCategorySelected, setIsCategorySelected] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [memberId, setMemberId] = useState(null); 
   const [token, setToken] = useState(null);
@@ -25,7 +27,7 @@ export const AuthProvider = ({ children }) => {
           const newAccessToken = response.data.accessToken;
           if (newAccessToken) {
             await AsyncStorage.setItem('accessToken', newAccessToken);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+            instance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
   
             const userDataString = await AsyncStorage.getItem('user');
             const userData = userDataString ? JSON.parse(userDataString) : null;
@@ -33,6 +35,7 @@ export const AuthProvider = ({ children }) => {
             if (userData) {
               setUser(userData);
               setIsLoggedIn(true);
+              setIsAdmin(userData.role === 'admin');
             }
           } else {
             throw new Error('Failed to refresh token');
@@ -49,6 +52,7 @@ export const AuthProvider = ({ children }) => {
           'isCategorySelected',
         ]);
         setIsLoggedIn(false);
+        setIsAdmin(false);
       } finally {
         setLoading(false);
       }
@@ -71,6 +75,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         isLoggedIn,
         setIsLoggedIn,
+        isAdmin,
         user,
         setUser,
         isCategorySelected,

@@ -22,6 +22,7 @@ import MyGroupsScreen from '../screens/loginAfter/MyGroupsScreen';
 import ChangePWScreen from '../screens/loginAfter/ChangePWScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import UserListScreen from '../screens/admin/UserListScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -83,7 +84,12 @@ const Stack = createStackNavigator();
         }
       >
         {isAdmin ? (
+          <>
+          {/* <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} /> */}
           <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="UserList" component={UserListScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          </>
         ) : (
           <>
             {!isLoggedIn ? (
