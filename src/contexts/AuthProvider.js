@@ -25,8 +25,8 @@ export const AuthProvider = ({ children }) => {
             setUser(userData);
             setIsLoggedIn(true);
             setIsCategorySelected(categoryStatus === 'true');
-            setMemberId(userData.memberId); // Set memberId
-            setToken(accessToken); // Set token
+            setMemberId(userData.memberId); 
+            setToken(accessToken); 
           } else {
             await AsyncStorage.multiRemove([
               'accessToken',
@@ -44,6 +44,14 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkLoginStatus();
+  }, []);
+
+  const checkStoredToken = async () => {
+    const storedToken = await AsyncStorage.getItem("accessToken");
+    console.log("저장된 토큰: ", storedToken);
+  };
+  useEffect(() => {
+      checkStoredToken();
   }, []);
 
   return (

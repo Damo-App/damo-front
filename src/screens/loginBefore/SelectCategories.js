@@ -29,21 +29,27 @@ const SelectCategories = () => {
 
   const isEditing = route.params?.isEditing || false;
 
-  // Fetch existing categories using custom hook
-  const { data: existingCategories, isLoading, error } = useCategories(memberId, token);
+  // const { data: existingCategories, isLoading, error } = useCategories(memberId, token);
+  const { data: existingCategories, isLoading, error } = useCategories(
+    isEditing && memberId ? memberId : null // 🔹 회원가입 시에는 호출하지 않음
+  );
 
-  // Update selected categories state when existing data is fetched
+  // useEffect(() => {
+  //   if (existingCategories && isEditing) {
+  //     const initialSelected = existingCategories.map((category) => {
+  //       const matchedCategory = categories.find((cat) => cat === category.name);
+  //       return matchedCategory || null;
+  //     }).filter(Boolean);
+  //     setSelectedCategories(initialSelected);
+  //   }
+  // }, [existingCategories, isEditing]);
+
   useEffect(() => {
-    if (existingCategories && isEditing) {
-      const initialSelected = existingCategories.map((category) => {
-        const matchedCategory = categories.find((cat) => cat === category.name);
-        return matchedCategory || null;
-      }).filter(Boolean);
-      setSelectedCategories(initialSelected);
+    if (isEditing && existingCategories) {
+      setSelectedCategories(existingCategories.map((cat) => cat.name));
     }
   }, [existingCategories, isEditing]);
 
-  // Toggle category selection
   const toggleCategory = (category) => {
     setSelectedCategories((prev) =>
       prev.includes(category)
@@ -52,7 +58,6 @@ const SelectCategories = () => {
     );
   };
 
-  // Mutation for updating categories
   const mutation = useMutation({
     mutationFn: categoryService.updateUserCategories,
     onSuccess: () => {
@@ -64,7 +69,7 @@ const SelectCategories = () => {
     },
   });
 
-  // Handle category update submission
+
   const handleEditCategorySelection = () => {
     const memberCategories = selectedCategories.map((categoryName) => {
       const categoryId = categories.indexOf(categoryName) + 1;
@@ -78,14 +83,12 @@ const SelectCategories = () => {
     <ScrollView contentContainerStyle={[styles.container, commonStyles.container]}>
       <View style={commonStyles.boxContainer}>
         <View>
-          {/* Loading and Error Handling */}
           {isLoading ? (
             <Text style={styles.noticeText}>Loading...</Text>
           ) : error ? (
             <Text style={styles.noticeText}>Failed to load data.</Text>
           ) : (
             <>
-              {/* Notice */}
               <View style={styles.noticeContainer}>
                 <View style={commonCircle.outer}>
                   <View style={commonCircle.inner}></View>
@@ -98,7 +101,6 @@ const SelectCategories = () => {
                 </Text>
               </View>
 
-              {/* Category List */}
               <View style={styles.categoryGrid}>
                 {categories.map((category, index) => (
                   <CategoryTag
@@ -123,8 +125,7 @@ const SelectCategories = () => {
             </>
           )}
         </View>
-
-        {/* Submit Button */}
+        
         <CustomButton 
           title="선택 완료"
           onPress={handleEditCategorySelection} 
