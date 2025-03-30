@@ -6,6 +6,7 @@ import CommonTag from "../../components/CommonTag";
 import { commonStyles } from "../../constants/styles";
 import { CustomButton } from "../../components/CustomButton";
 import RNPickerSelect from 'react-native-picker-select';
+import * as ImagePicker from 'expo-image-picker';
 import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
 import { instance } from "../../api/axiosInstance";
 
@@ -94,8 +95,8 @@ const CreateGroupScreen = () => {
   const [expandedSections, setExpandedSections] = useState([]); // 선택 태그 섹션 확장 여부
   const [value, setValue] = useState('');
 
-
   // 테스트 시 데이터 주입 가능하도록 빈 배열로 초기화
+
   const sections = [
     {
       title: "서브 카테고리",
@@ -138,6 +139,25 @@ const CreateGroupScreen = () => {
       return newSections;
     });
   };
+
+  const openGallery = async () => {
+    // Request permission to access the media library
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'We need access to your photos to proceed.');
+      return;
+    }
+
+    // Open the gallery
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      console.log('Selected Image:', result.assets[0].uri);
+
   
   // 폼 유효성 검사
   useEffect(() => {
@@ -185,6 +205,7 @@ const CreateGroupScreen = () => {
     } catch (error) {
       console.error('오류 발생:', error.response?.data || error.message);
       console.alert('오류', error.response?.data?.message || '서버 오류 발생');
+
     }
   };
 
@@ -199,7 +220,7 @@ const CreateGroupScreen = () => {
           <View style={styles.buttonContainer}>
             <CustomButton
               title="+"
-              onPress={() => {}}
+              onPress={openGallery}
               style={styles.imageButton}
             />
           </View>

@@ -5,10 +5,13 @@ import { commonStyles } from '../../constants/styles';
 import GroupListBox from '../../components/GroupListBox';
 import { CategoryIcon } from '../../components/CategoryIcon';
 import { commonShadow } from '../../constants/styles';
+import { useNavigation } from '@react-navigation/native';
 
 function GroupListScreen({navigation}) {
 
-   const groups = [
+  // const navigation = useNavigation();
+
+  const groups = [
     {
       id: '1',
       image: require('../../../assets/images/groups/tennis.png'),
@@ -112,6 +115,7 @@ function GroupListScreen({navigation}) {
       {/* 모임 생성 버튼 */}
       <CustomButton style={styles.createButton} 
         title="모임 생성하기"
+        onPress={()=>{navigation.navigate('CreateGroup')}}
       />
       {/* 그룹 리스트 */}
       <FlatList 
