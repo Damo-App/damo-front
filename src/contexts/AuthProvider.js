@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
     const checkLoginStatus = async () => {
       try {
         const refreshToken = await AsyncStorage.getItem('refreshToken');
+        console.log("AuthProvider refreshToken == ",refreshToken);
         if (refreshToken) {
           // Refresh 토큰을 사용하여 새로운 Access 토큰 발급
           const response = await instance.post('/auth/token/refresh', null, {
