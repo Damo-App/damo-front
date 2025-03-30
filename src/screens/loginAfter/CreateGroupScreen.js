@@ -157,8 +157,10 @@ const CreateGroupScreen = () => {
 
     if (!result.canceled) {
       console.log('Selected Image:', result.assets[0].uri);
+    }
+    }
 
-  
+  1
   // 폼 유효성 검사
   useEffect(() => {
     const errors = {};
