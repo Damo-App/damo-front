@@ -1,16 +1,29 @@
 import { instance } from '../axiosInstance';
 
-// 카테고리 데이터 가져오기 (GET 요청)
+//카테고리 전체 조회
+export const categoriesList = async () => {
+  try{
+    const response = await instance.get('/categories');
+    // console.log(response.data.data);
+    const categories = response.data.data.map(item => item.categoryName);
+    return(categories);
+  }catch(error){
+    throw error;
+  }
+}
+
+//해당 로그인 유저 카테고리 데이터 가져오기 (GET 요청)
 export const fetchCategories = async () => {
   try {
     const response = await instance.get(`/members/categories`);
     console.log(response.data.data);
-    return Array.isArray(response.data.data) ? response.data.data : []; // Ensure valid array
+    return Array.isArray(response.data.data) ? response.data.data : []; 
   } catch (error) {
     console.error('Error fetching categories:', error.response?.data || error.message);
-    return []; // Return empty array on error
+    return [];
   }
 };
+
 
 
 // 카테고리 수정하기 (PATCH 요청)
