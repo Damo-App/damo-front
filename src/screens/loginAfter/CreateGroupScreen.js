@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import InputWithLabel from "../../components/InputWithLabel";
 import { CommonRadio } from "../../components/CommonRadio";
@@ -6,65 +6,137 @@ import CommonTag from "../../components/CommonTag";
 import { commonStyles } from "../../constants/styles";
 import { CustomButton } from "../../components/CustomButton";
 import RNPickerSelect from 'react-native-picker-select';
-import { BLACK_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
-import { launchImageLibrary } from 'react-native-image-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
+import { instance } from "../../api/axiosInstance";
+
+// const [mandatoryTags, setMandatoryTags] = useState([]); // 필수 태그 상태
+// const [selectedTags, setSelectedTags] = useState([]); // 선택 태그 상태
+// const [groupName, setGroupName] = useState("");
+// const [description, setDescription] = useState("");
+// const [maxMembers, setMaxMembers] = useState("");
+// const [gender, setGender] = useState("무관");
+// const [ageRestriction, setAgeRestriction] = useState("무관");
+// const [startYear, setStartYear] = useState('2000');
+// const [endYear, setEndYear] = useState('2005');
+
+
+// const sections = [
+//   {
+//     title: "서브 카테고리",
+//     tags: ["축구", "야구", "배드민턴", "농구", "볼링", "당구", "테니스", "탁구"],
+//     color: "#F5A9A9",
+//   },
+//   {
+//     title: "연령대",
+//     tags: ["10대", "20대", "30대", "40대", "50대"],
+//     color: "#A9D0F5",
+//   },
+//   {
+//     title: "MBTI",
+//     tags: [
+//       "INFP", "INFJ", "INTP", "INTJ",
+//       "ISFP", "ISFJ", "ISTP", "ISTJ",
+//       "ENFP", "ENFJ", "ENTP", "ENTJ",
+//       "ESFP", "ESFJ", "ESTP", "ESTJ",
+//     ],
+//     color: "#D0A9F5",
+//   },
+//   {
+//     title: "분위기",
+//     tags: ["활발함", "조용함"],
+//     color: "#A9F5A9",
+//   },
+//   {
+//     title: "장소",
+//     tags: ["서울", "경기/인천", "강원도", "충청도"],
+//     color: "#F5D0A9",
+//   },
+// ];
+// const [isMandatoryExpanded, setIsMandatoryExpanded] = useState(false);
+// const [expandedSections, setExpandedSections] = useState(sections.slice(1).map(() => false));
+
+// const toggleMandatory = () => {
+//   setIsMandatoryExpanded(!isMandatoryExpanded);
+// };
+
+// const toggleSection = (index) => {
+//   setExpandedSections((prev) => {
+//     const newState = [...prev];
+//     newState[index] = !newState[index];
+//     return newState;
+//   });
+// };
+
+
+
+// 유효성 검사 함수
+const isValidGroupName = (name) => {
+  const regex = /^[a-zA-Z0-9가-힣\s]+$/; // 특수문자 불가
+  return regex.test(name) && name.length >= 1 && name.length <= 15;
+};
+
+const isValidIntroduction = (text) => text.length >= 10 && text.length <= 100;
+const isValidMemberCount = (count) => count >= 2 && count <= 100;
 
 const CreateGroupScreen = () => {
-  const [mandatoryTags, setMandatoryTags] = useState([]); // 필수 태그 상태
-  const [selectedTags, setSelectedTags] = useState([]); // 선택 태그 상태
-  const [groupName, setGroupName] = useState("");
-  const [description, setDescription] = useState("");
-  const [maxMembers, setMaxMembers] = useState("");
-  const [gender, setGender] = useState("무관");
-  const [ageRestriction, setAgeRestriction] = useState("무관");
-  const [startYear, setStartYear] = useState('2000');
-  const [endYear, setEndYear] = useState('2005');
+  const [groupName, setGroupName] = useState('');
+  const [introduction, setIntroduction] = useState('');
+  const [maxMembers, setMaxMembers] = useState('');
+  const [gender, setGender] = useState('NONE');
+  const [ageRestriction, setAgeRestriction] = useState('무관');
+  const [startYear, setStartYear] = useState('');
+  const [endYear, setEndYear] = useState('');
+  const [mandatoryTags, setMandatoryTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [isMandatoryExpanded, setIsMandatoryExpanded] = useState(true);
+  const [errors, setErrors] = useState({});
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [expandedSections, setExpandedSections] = useState([]); // 선택 태그 섹션 확장 여부
+  const [value, setValue] = useState('');
+
+  // 테스트 시 데이터 주입 가능하도록 빈 배열로 초기화
 
   const sections = [
     {
       title: "서브 카테고리",
       tags: ["축구", "야구", "배드민턴", "농구", "볼링", "당구", "테니스", "탁구"],
       color: "#F5A9A9",
+      isMandatory: true // 필수 선택
     },
     {
       title: "연령대",
       tags: ["10대", "20대", "30대", "40대", "50대"],
       color: "#A9D0F5",
+      isMandatory: true
     },
     {
       title: "MBTI",
-      tags: [
-        "INFP", "INFJ", "INTP", "INTJ",
-        "ISFP", "ISFJ", "ISTP", "ISTJ",
-        "ENFP", "ENFJ", "ENTP", "ENTJ",
-        "ESFP", "ESFJ", "ESTP", "ESTJ",
-      ],
+      tags: ["INFP", "INFJ", "INTP", "INTJ", "ISFP", "ISFJ", "ISTP", "ISTJ", "ENFP", "ENFJ", "ENTP", "ENTJ", "ESFP", "ESFJ", "ESTP", "ESTJ"],
       color: "#D0A9F5",
+      isMandatory: false
     },
     {
       title: "분위기",
       tags: ["활발함", "조용함"],
       color: "#A9F5A9",
+      isMandatory: false
     },
     {
       title: "장소",
       tags: ["서울", "경기/인천", "강원도", "충청도"],
       color: "#F5D0A9",
+      isMandatory: false
     },
   ];
-  const [isMandatoryExpanded, setIsMandatoryExpanded] = useState(false);
-  const [expandedSections, setExpandedSections] = useState(sections.slice(1).map(() => false));
 
-  const toggleMandatory = () => {
-    setIsMandatoryExpanded(!isMandatoryExpanded);
-  };
+  const toggleMandatory = () => setIsMandatoryExpanded(!isMandatoryExpanded);
 
   const toggleSection = (index) => {
     setExpandedSections((prev) => {
-      const newState = [...prev];
-      newState[index] = !newState[index];
-      return newState;
+      const newSections = [...prev];
+      newSections[index] = !newSections[index];
+      return newSections;
     });
   };
 
@@ -85,6 +157,55 @@ const CreateGroupScreen = () => {
 
     if (!result.canceled) {
       console.log('Selected Image:', result.assets[0].uri);
+
+  
+  // 폼 유효성 검사
+  useEffect(() => {
+    const errors = {};
+
+    // 모임 이름 검사
+    if (!isValidGroupName(groupName)) {
+      errors.groupName = '특수문자 없이 1~15자 이내로 입력하세요';
+    }
+
+    // 모임 소개글 검사
+    if (!isValidIntroduction(introduction)) {
+      errors.introduction = '10~100자 이내로 입력하세요';
+    }
+
+    // 가입 인원수 검사
+    if (!isValidMemberCount(Number(maxMembers))) {
+      errors.maxMembers = '2~100명 사이로 입력하세요';
+    }
+
+    setErrors(errors);
+    setIsFormValid(Object.keys(errors).length === 0);
+  }, [groupName, introduction, maxMembers]);
+
+  // 모임 생성 요청
+  const handleSubmit = async () => {
+    if (!isFormValid) return;
+
+    try {
+      const groupData = {
+        groupName,
+        introduction,
+        maxMemberCount: maxMembers,
+        gender,
+        minBirth: startYear,
+        maxBirth: endYear,
+        tags: selectedTags.map((tag) => ({ tagName: tag })),
+      };
+
+      console.log('요청 데이터:', groupData);
+
+      const response = await instance.post('/groups', groupData);
+      console.log(response);
+      console.alert('성공', '모임이 생성되었습니다');
+    } catch (error) {
+      console.error('오류 발생:', error.response?.data || error.message);
+      console.alert('오류', error.response?.data?.message || '서버 오류 발생');
+
     }
   };
 
@@ -118,8 +239,8 @@ const CreateGroupScreen = () => {
             {/* 소개글 입력 */}
             <InputWithLabel
               label="소개글"
-              value={description}
-              onChangeText={setDescription}
+              value={{value}}
+              onChangeText={setIntroduction}
               placeholder="소개글을 입력해주세요. (최소 10자, 최대 100자 이내)"
               isTextarea={true}
               style={styles.input}
@@ -221,7 +342,7 @@ const CreateGroupScreen = () => {
           </View>}
 
 {/* 필수 태그 */}
-<View style={[styles.sectionContainer, { backgroundColor: sections[0].color }]}>
+<View style={[styles.sectionContainer, { backgroundColor: PINK_DARK_COLOR }]}>
   <View style={styles.sectionHeader}>
     <Text style={styles.sectionTitle}>{sections[0].title}</Text>
     <TouchableOpacity onPress={toggleMandatory} style={styles.toggleButton}>
@@ -258,11 +379,9 @@ const CreateGroupScreen = () => {
   )}
 </View>
 
-
-
 {/* 선택 태그 */}
 {sections.slice(1).map((section, index) => (
-  <View key={section.title} style={[styles.sectionContainer, { backgroundColor: section.color }]}>
+  <View key={section.title || index} style={[styles.sectionContainer, { backgroundColor: GREEN_LIGHT_COLOR }]}>
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{section.title}</Text>
       <TouchableOpacity onPress={() => toggleSection(index)} style={styles.toggleButton}>
@@ -307,7 +426,7 @@ const CreateGroupScreen = () => {
                       ListFooterComponent={
                         <CustomButton
                           title="모임 생성하기"
-                          onPress={() => console.log("모임 생성 버튼 클릭")}
+                          onPress={handleSubmit}
                           style={{ alignSelf: 'stretch', marginVertical: 20 }}
                         />
                       }
