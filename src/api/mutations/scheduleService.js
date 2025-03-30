@@ -27,6 +27,18 @@ export const createSchedule = async (groupId, scheduleData) => {
   }
 };
 
+export const getScheduleParticipants = async (scheduleId, keyword = '') => {
+  try {
+    const response = await instance.get(`/schedules/${scheduleId}/participation`, {
+      params: keyword ? { keyword } : {},
+    });
+    return response.data;
+  } catch (error) {
+    console.error('참여자 목록 조회 오류:', error);
+    throw error;
+  }
+};
+
 /**
  * 일정 유형에 따른 scheduleStatus 변환 함수
  * UI에 표시되는 한글 일정 유형을 API 요청용 영문 코드로 변환합니다.
