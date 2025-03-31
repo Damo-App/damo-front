@@ -70,6 +70,7 @@ const MyPageScreen = () => {
           text="회원탈퇴"
           style={[styles.menuBar, commonShadow.btnNoBdShadow]}
           iconWrapperStyle={{ backgroundColor: PINK_DARK_COLOR }}
+          onPress={() => {navigation.navigate('회원탈퇴')}}
         />
         <MenuBar
           image={require('../../../assets/images/mypage/mypageIcon6.png')}
