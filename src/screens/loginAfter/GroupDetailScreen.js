@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { CustomButton } from '../../components/CustomButton';
 import CommonTag from '../../components/CommonTag';
-import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
+import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, WHITE_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
-import Toast from 'react-native-toast-message';
 
 const GroupDetailScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
@@ -45,18 +44,14 @@ const GroupDetailScreen = ({ route, navigation }) => {
           onPress: async () => {
             try {
               await instance.delete(`/groups/${groupId}/leave`);
-              Toast.show({
-                type: 'success',
-                text1: '모임 탈퇴 완료',
-              });
               // 탈퇴 성공 시 이전 화면으로 이동
               navigation.goBack();
             } catch (error) {
               console.error('Error leaving group:', error);
-              Toast.show({
-                type: 'error',
-                text2: '모임 탈퇴 중 오류가 발생했습니다.',
-              });
+              Alert.alert(
+                "탈퇴 실패",
+                "모임 탈퇴 중 오류가 발생했습니다."
+              );
             }
           }
         }
@@ -69,60 +64,46 @@ const GroupDetailScreen = ({ route, navigation }) => {
       const response = await instance.post(`/groups/${groupId}/join`);
       
       if (response.status === 200) {
-        Toast.show({
-          type: 'success',
-          text1: '모임 가입 성공!',
-          text2: '모임에 가입하신걸 환영합니다!',
-        });
-        // 가입 성공 시 그룹 정보 새로고침
-        const updatedGroupResponse = await instance.get(`/groups/${groupId}`);
-        setGroupData(updatedGroupResponse.data.data);
+        Alert.alert(
+          "가입 완료",
+          "모임 가입이 완료되었습니다.",
+          [
+            {
+              text: "확인",
+              onPress: async () => {
+                // 가입 성공 시 그룹 정보 새로고침
+                const updatedGroupResponse = await instance.get(`/groups/${groupId}`);
+                setGroupData(updatedGroupResponse.data.data);
+              }
+            }
+          ]
+        );
       }
     } catch (error) {
       if (error.response) {
         // 서버에서 오는 에러 메시지 처리
         switch(error.response.data.code) {
           case 'GROUP_JOIN_GENDER_MISMATCH':
-            Toast.show({
-              type: 'error',
-              text1: '가입 실패',
-              text2: '성별 조건이 맞지 않아 가입할 수 없습니다.',
-            });
+            Alert.alert("가입 실패", "성별 조건이 맞지 않아 가입할 수 없습니다.");
             break;
           case 'GROUP_JOIN_AGE_MISMATCH':
-            Toast.show({
-              type: 'error',
-              text1: '가입 실패',
-              text2: '나이 조건이 맞지 않아 가입할 수 없습니다.',
-            });
+            Alert.alert("가입 실패", "나이 조건이 맞지 않아 가입할 수 없습니다.");
             break;
           case 'GROUP_JOIN_MEMBER_FULL':
-            Toast.show({
-              type: 'error',
-              text1: '가입 실패',
-              text2: '모임 정원이 가득 찼습니다.',
-            });
+            Alert.alert("가입 실패", "모임 정원이 가득 찼습니다.");
             break;
           default:
-            Toast.show({
-              type: 'error',
-              text1: '가입 실패',
-              text2: '가입 중 오류가 발생했습니다.',
-            });
+            Alert.alert("가입 실패", "가입 중 오류가 발생했습니다.");
         }
       } else {
-        Toast.show({
-          type: 'error',
-          text1: '네트워크 오류',
-          text2: '네트워크 연결을 확인해주세요.',
-        });
+        Alert.alert("네트워크 오류", "네트워크 연결을 확인해주세요.");
       }
       console.error('Error joining group:', error);
     }
   };
 
   const handleBoard = () => {
-    navigation.navigate('Board', { groupId: groupId });
+    navigation.navigate('BoardScreen', { groupId: groupId });
   };
 
   const fetchMemberList = async (keyword = '') => {
@@ -225,7 +206,6 @@ const GroupDetailScreen = ({ route, navigation }) => {
   const renderActionButton = () => {
     if (groupData.myRole === 'GROUP_LEADER') {
       return (
-        <>
         <CustomButton 
           title="게시판"
           style={{
@@ -237,18 +217,6 @@ const GroupDetailScreen = ({ route, navigation }) => {
           }}
           onPress={handleBoard}
         />
-        <CustomButton 
-          title="모임 일정 생성"
-          style={{
-            ...styles.button,
-            backgroundColor: PINK_DARK_COLOR,
-            borderColor: BLACK_COLOR,
-            paddingVertical: 4,
-            paddingHorizontal: 16,
-          }}
-          onPress={handleBoard}
-        />
-        </>
       );
     } else if (groupData.myRole === 'GROUP_MEMBER') {
       return (
@@ -256,7 +224,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
           title="게시판"
           style={{
             ...styles.button,
-            backgroundColor: PRIMARY_COLOR,
+            backgroundColor: PINK_DARK_COLOR,
             borderColor: BLACK_COLOR,
             paddingVertical: 4,
             paddingHorizontal: 16,
@@ -300,7 +268,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
           />
         ) : (
           <CustomButton
-            title="탈퇴 하기"
+            title="멤버 목록"
             style={{
               ...styles.button,
               backgroundColor: PINK_DARK_COLOR,
@@ -308,7 +276,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
               paddingVertical: 4,
               paddingHorizontal: 16,
             }}
-            onPress={handleWithdraw}
+            onPress={() => setShowMemberList(true)}
           />
         )}
       </View>
@@ -329,7 +297,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
         <View style={[styles.groupInfoCard, commonShadow.mainShadow]}>
           <View style={styles.imageContainer}>
             <Image 
-              source={{ uri: groupData.image }}
+              source={{ uri: groupData.image}}
               style={styles.groupImage}
             />
           </View>
@@ -524,7 +492,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                 {memberList.map((member, index) => (
                   <View key={index} style={styles.memberItem}>
                     <Image
-                      source={{ uri: member.image }}
+                      source={{ uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${member.image}` }}
                       style={styles.memberImage}
                     />
                     <Text style={styles.memberName}>닉네임 : {member.name}</Text>

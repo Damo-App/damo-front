@@ -214,14 +214,14 @@ function GroupListScreen({navigation}) {
       </View>
     );
   };
-
+  
   return (
     <View style={[commonStyles.container, { flex: 1 }]}>
       {/* 카테고리 아이콘 */}
       <View style={styles.categoryContainer}>
         {renderCategoryIcons()}
       </View>
-    
+   
       {/* 모임 생성 버튼 */}
       <CustomButton 
         style={[styles.createButton, { paddingVertical: 3, width: '97%' }]}
@@ -231,12 +231,12 @@ function GroupListScreen({navigation}) {
       />
 
       {/* 그룹 리스트 */}
-      <FlatList
+      <FlatList 
         style={styles.flatList}
         data={groupsData?.data || []}
         keyExtractor={(item) => item.groupId.toString()}
         renderItem={({ item }) => (
-          <GroupListBox
+        <GroupListBox
             style={styles.groupCard}
             image={{ uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${item.image}` }}
             title={item.name}

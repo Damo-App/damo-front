@@ -85,10 +85,10 @@ const BoardPostScreen = ({ route, navigation }) => {
           text1: '게시글이 작성되었습니다.',
           position: 'bottom'
         });
-        navigation.goBack();
-        if (route.params?.onGoBack) {
-          route.params.onGoBack();
-        }
+        navigation.navigate('BoardScreen', { 
+          groupId: groupId,
+          refresh: Date.now()
+        });
       }
     } catch (error) {
       console.error('게시글 작성 오류:', error);

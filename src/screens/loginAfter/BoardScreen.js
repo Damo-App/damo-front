@@ -71,7 +71,7 @@ const BoardScreen = ({route, navigation}) => {
 
   const handlePostPress = (boardId) => {
     console.log('게시글 클릭 - boardId:', boardId, 'groupId:', groupId);
-    navigation.navigate('BoardDetail', { boardId, groupId });
+    navigation.navigate('BoardDetailsScreen', { boardId, groupId });
   };
 
   const formatDate = (dateString) => {
@@ -93,7 +93,7 @@ const BoardScreen = ({route, navigation}) => {
           <TouchableOpacity 
             style={[styles.writeButton, commonShadow.mainShadow]}
             onPress={() => {
-              navigation.navigate('BoardPost', { groupId });
+              navigation.navigate('BoardPostScreen', { groupId });
             }}
           >
             <Text style={styles.buttonText}>게시글 작성</Text>
