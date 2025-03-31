@@ -9,66 +9,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import * as ImagePicker from 'expo-image-picker';
 import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
 import { instance } from "../../api/axiosInstance";
-
-// const [mandatoryTags, setMandatoryTags] = useState([]); // 필수 태그 상태
-// const [selectedTags, setSelectedTags] = useState([]); // 선택 태그 상태
-// const [groupName, setGroupName] = useState("");
-// const [description, setDescription] = useState("");
-// const [maxMembers, setMaxMembers] = useState("");
-// const [gender, setGender] = useState("무관");
-// const [ageRestriction, setAgeRestriction] = useState("무관");
-// const [startYear, setStartYear] = useState('2000');
-// const [endYear, setEndYear] = useState('2005');
-
-
-// const sections = [
-//   {
-//     title: "서브 카테고리",
-//     tags: ["축구", "야구", "배드민턴", "농구", "볼링", "당구", "테니스", "탁구"],
-//     color: "#F5A9A9",
-//   },
-//   {
-//     title: "연령대",
-//     tags: ["10대", "20대", "30대", "40대", "50대"],
-//     color: "#A9D0F5",
-//   },
-//   {
-//     title: "MBTI",
-//     tags: [
-//       "INFP", "INFJ", "INTP", "INTJ",
-//       "ISFP", "ISFJ", "ISTP", "ISTJ",
-//       "ENFP", "ENFJ", "ENTP", "ENTJ",
-//       "ESFP", "ESFJ", "ESTP", "ESTJ",
-//     ],
-//     color: "#D0A9F5",
-//   },
-//   {
-//     title: "분위기",
-//     tags: ["활발함", "조용함"],
-//     color: "#A9F5A9",
-//   },
-//   {
-//     title: "장소",
-//     tags: ["서울", "경기/인천", "강원도", "충청도"],
-//     color: "#F5D0A9",
-//   },
-// ];
-// const [isMandatoryExpanded, setIsMandatoryExpanded] = useState(false);
-// const [expandedSections, setExpandedSections] = useState(sections.slice(1).map(() => false));
-
-// const toggleMandatory = () => {
-//   setIsMandatoryExpanded(!isMandatoryExpanded);
-// };
-
-// const toggleSection = (index) => {
-//   setExpandedSections((prev) => {
-//     const newState = [...prev];
-//     newState[index] = !newState[index];
-//     return newState;
-//   });
-// };
-
-
+import { useRoute } from "@react-navigation/native";
 
 // 유효성 검사 함수
 const isValidGroupName = (name) => {
@@ -83,7 +24,7 @@ const CreateGroupScreen = () => {
   const [groupName, setGroupName] = useState('');
   const [introduction, setIntroduction] = useState('');
   const [maxMembers, setMaxMembers] = useState('');
-  const [gender, setGender] = useState('NONE');
+  const [gender, setGender] = useState('무관');
   const [ageRestriction, setAgeRestriction] = useState('무관');
   const [startYear, setStartYear] = useState('');
   const [endYear, setEndYear] = useState('');
@@ -94,51 +35,47 @@ const CreateGroupScreen = () => {
   const [isFormValid, setIsFormValid] = useState(false);
   const [expandedSections, setExpandedSections] = useState([]); // 선택 태그 섹션 확장 여부
   const [value, setValue] = useState('');
+  const [sections, setSections] = useState([]);
+  const route = useRoute(); // 현재 화면의 route 객체 가져오기
+  const { selectedCategoryId } = route.params || {}; // params에서 selectedCategoryId 추출
 
-  // 테스트 시 데이터 주입 가능하도록 빈 배열로 초기화
+  useEffect(() => {
+    const fetchTagsByCategory = async () => {
+      try {
+        if (!selectedCategoryId) {
+          console.error("No category ID provided");
+          return;
+        }
 
-  const sections = [
-    {
-      title: "서브 카테고리",
-      tags: ["축구", "야구", "배드민턴", "농구", "볼링", "당구", "테니스", "탁구"],
-      color: "#F5A9A9",
-      isMandatory: true // 필수 선택
-    },
-    {
-      title: "연령대",
-      tags: ["10대", "20대", "30대", "40대", "50대"],
-      color: "#A9D0F5",
-      isMandatory: true
-    },
-    {
-      title: "MBTI",
-      tags: ["INFP", "INFJ", "INTP", "INTJ", "ISFP", "ISFJ", "ISTP", "ISTJ", "ENFP", "ENFJ", "ENTP", "ENTJ", "ESFP", "ESFJ", "ESTP", "ESTJ"],
-      color: "#D0A9F5",
-      isMandatory: false
-    },
-    {
-      title: "분위기",
-      tags: ["활발함", "조용함"],
-      color: "#A9F5A9",
-      isMandatory: false
-    },
-    {
-      title: "장소",
-      tags: ["서울", "경기/인천", "강원도", "충청도"],
-      color: "#F5D0A9",
-      isMandatory: false
-    },
-  ];
+        const response = await instance.get(`/categories/${selectedCategoryId}/tags`);
+        setSections(response.data.tags); // 태그 목록 저장
+      } catch (error) {
+        console.error("Error fetching tags:", error.message);
+      }
+    };
+
+    fetchTagsByCategory();
+  }, [selectedCategoryId]);
+
+  // useEffect(() => {
+  //   const fetchTagsByCategory = async () => {
+  //     try {
+  //       if (!selectedCategoryId) {
+  //         console.error("No category ID provided");
+  //         return;
+  //       }
+
+  //       const response = await instance.get(`/categories/${selectedCategoryId}/tags`);
+  //       setSections(response.data.tags); // 태그 목록 저장
+  //     } catch (error) {
+  //       console.error("Error fetching tags:", error.message);
+  //     }
+  //   };
+
+  //   fetchTagsByCategory();
+  // }, [selectedCategoryId]); // selectedCategoryId가 변경될 때마다 실행
 
   const toggleMandatory = () => setIsMandatoryExpanded(!isMandatoryExpanded);
-
-  const toggleSection = (index) => {
-    setExpandedSections((prev) => {
-      const newSections = [...prev];
-      newSections[index] = !newSections[index];
-      return newSections;
-    });
-  };
 
   const [profileImage, setProfileImage] = useState(null)
 
@@ -190,78 +127,29 @@ const CreateGroupScreen = () => {
   // 모임 생성 요청
   const handleSubmit = async () => {
     if (!isFormValid) return;
-  
+
     try {
-      const formData = new FormData();
-  
-      // 모임 정보 추가
-      formData.append('groupName', groupName);
-      formData.append('introduction', introduction);
-      formData.append('maxMemberCount', maxMembers);
-      formData.append('gender', gender);
-      formData.append('minBirth', startYear);
-      formData.append('maxBirth', endYear);
-      selectedTags.forEach((tag, index) => {
-        formData.append(`tags[${index}][tagName]`, tag);
-      });
-  
-      // 이미지 파일 추가
-      if (profileImage) {
-        const filename = profileImage.split('/').pop(); // 파일 이름 추출
-        const fileType = filename.split('.').pop(); // 파일 확장자 추출
-  
-        formData.append('image', {
-          uri: profileImage,
-          name: filename,
-          type: `image/${fileType}`,
-        });
-      } else {
-        Alert.alert('오류', '모임 대표 이미지를 선택해주세요.');
-        return;
-      }
-  
-      console.log('요청 데이터:', formData);
-  
-      // 서버 요청
-      const response = await instance.post('/groups', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-  
+      const groupData = {
+        groupName,
+        introduction,
+        maxMemberCount: maxMembers,
+        gender,
+        minBirth: startYear,
+        maxBirth: endYear,
+        tags: selectedTags.map((tag) => ({ tagName: tag })),
+      };
+
+      console.log('요청 데이터:', groupData);
+
+      const response = await instance.post('/groups', groupData);
       console.log(response);
-      Alert.alert('성공', '모임이 생성되었습니다');
+      console.alert('성공', '모임이 생성되었습니다');
     } catch (error) {
       console.error('오류 발생:', error.response?.data || error.message);
-      Alert.alert('오류', error.response?.data?.message || '서버 오류 발생');
+      console.alert('오류', error.response?.data?.message || '서버 오류 발생');
+
     }
   };
-  
-  // const handleSubmit = async () => {
-  //   if (!isFormValid) return;
-
-  //   try {
-  //     const groupData = {
-  //       groupName,
-  //       introduction,
-  //       maxMemberCount: maxMembers,
-  //       gender,
-  //       minBirth: startYear,
-  //       maxBirth: endYear,
-  //       tags: selectedTags.map((tag) => ({ tagName: tag })),
-  //     };
-
-  //     console.log('요청 데이터:', groupData);
-
-  //     const response = await instance.post('/groups', groupData);
-  //     console.log(response);
-  //     console.alert('성공', '모임이 생성되었습니다');
-  //   } catch (error) {
-  //     console.error('오류 발생:', error.response?.data || error.message);
-  //     console.alert('오류', error.response?.data?.message || '서버 오류 발생');
-
-  //   }
-  // };
 
 
   return (
@@ -292,18 +180,20 @@ const CreateGroupScreen = () => {
       </View>
             {/* 모임 이름 입력 */}
             <InputWithLabel
+              style={styles.input}
               label="모임 이름"
               value={groupName}
+              placeholderStyle={{fontSize:12}}
               onChangeText={setGroupName}
               placeholder="모임 이름을 입력해주세요. (최소 1자, 최대 10자 이내)"
-              isTextarea={true}
-              style={styles.input}
+              isTextarea={false}
             />
   
             {/* 소개글 입력 */}
             <InputWithLabel
               label="소개글"
               value={{value}}
+              placeholderStyle={{fontSize:12}}
               onChangeText={setIntroduction}
               placeholder="소개글을 입력해주세요. (최소 10자, 최대 100자 이내)"
               isTextarea={true}
@@ -315,6 +205,7 @@ const CreateGroupScreen = () => {
               <InputWithLabel
                 label="가입 인원수"
                 value={maxMembers}
+                placeholderStyle={{fontSize:12}}
                 onChangeText={setMaxMembers}
                 placeholder="최대 인원수를 입력해주세요." 
                 containerStyle={{width: '50%'}}
@@ -336,7 +227,7 @@ const CreateGroupScreen = () => {
             </View>
   
             {/* 모임 연령 */}
-<View style={styles.ageContainer}>
+<View>
   <Text style={styles.label}>모임 연령</Text>
   <CommonRadio
     value={ageRestriction}
@@ -407,42 +298,46 @@ const CreateGroupScreen = () => {
 
 {/* 필수 태그 */}
 <Text style={styles.subTagStyle}>필수</Text>
-<View style={[styles.sectionContainer, { backgroundColor: PINK_DARK_COLOR }]}>
-  <View style={styles.sectionHeader}>
-    <Text style={styles.sectionTitle}>{sections[0].title}</Text>
-    <TouchableOpacity onPress={toggleMandatory} style={styles.toggleButton}>
-      <Text style={styles.toggleButtonText}>{isMandatoryExpanded ? '-' : '+'}</Text>
-    </TouchableOpacity>
-  </View>
-  {isMandatoryExpanded && (
-    <View style={styles.tagContainer}>
-      {sections[0].tags.map((tag) => (
-        <TouchableOpacity
-          key={tag}
-          onPress={() => {
-            if (mandatoryTags.includes(tag)) {
-              setMandatoryTags([]);
-            } else {
-              setMandatoryTags([tag]);
-            }
-          }}
-        >
-          <CommonTag
-            name={tag}
-            size={14}
-            color="#000"
-            showCloseButton={false}
-            containerStyle={{
-              borderColor: mandatoryTags.includes(tag) ? BLACK_COLOR : "#CCE5E5",
-              borderWidth: mandatoryTags.includes(tag) ? 2 : 0,
-              backgroundColor: WHITE_COLOR,
-            }}
-          />
-        </TouchableOpacity>
-      ))}
+{sections.length > 0 ? ( // 데이터가 존재하는 경우에만 렌더링
+  <View style={[styles.sectionContainer, { backgroundColor: PINK_DARK_COLOR }]}>
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{sections[0].title}</Text> {/* title 사용 */}
+      <TouchableOpacity onPress={toggleMandatory} style={styles.toggleButton}>
+        <Text style={styles.toggleButtonText}>{isMandatoryExpanded ? '-' : '+'}</Text>
+      </TouchableOpacity>
     </View>
-  )}
-</View>
+    {isMandatoryExpanded && (
+      <View style={styles.tagContainer}>
+        {sections[0].tags.map((tag) => (
+          <TouchableOpacity
+            key={tag}
+            onPress={() => {
+              if (mandatoryTags.includes(tag)) {
+                setMandatoryTags([]);
+              } else {
+                setMandatoryTags([tag]);
+              }
+            }}
+          >
+            <CommonTag
+              name={tag}
+              size={14}
+              color="#000"
+              showCloseButton={false}
+              containerStyle={{
+                borderColor: mandatoryTags.includes(tag) ? BLACK_COLOR : "#CCE5E5",
+                borderWidth: mandatoryTags.includes(tag) ? 2 : 0,
+                backgroundColor: WHITE_COLOR,
+              }}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+    )}
+  </View>
+) : (
+  <Text>No tags available.</Text> // 데이터가 없으면 로딩 상태 표시
+)}
 
 {/* 선택 태그 */}
 <Text style={styles.subTagStyle}>선택</Text>
@@ -488,7 +383,10 @@ const CreateGroupScreen = () => {
                         </>
                       }
                       data={[]}
-                      contentContainerStyle={styles.listContent}
+                      contentContainerStyle={{
+                        flexGrow: 1,
+                        paddingBottom: 80
+                      }}
                       ListFooterComponent={
                         <CustomButton
                           title="모임 생성하기"
@@ -507,6 +405,8 @@ const styles = StyleSheet.create({
     paddingTop: 25,
     paddingHorizontal: 16,
     backgroundColor: '#fce7fc',
+    width: '100%',
+    height: '100%'
   },
   header: {
     fontSize: 18,
@@ -596,24 +496,15 @@ toggleButtonText: {
     height: 150,
     marginBottom: 16,
   },
-  imagePlaceholder: {
+  inputLabelText: {
+    marginBottom: 16,
     width: '100%',
-    height: '50%',
-    backgroundColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  imageText: {
-    fontSize: 24,
-    color: '#666',
-  },
-  smallInput:{
-    borderWidth:1,
-    borderColor:BLACK_COLOR
+    fontSize: 10
   },
   input: {
     marginBottom: 16,
     width: '100%',
+    fontSize: 10
   },
   row: {
     flexDirection: 'row',
@@ -622,32 +513,9 @@ toggleButtonText: {
     marginBottom: 16,
     gap:16
   },
-  row2: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    width: '100%',
-    marginBottom: 16,
-    gap:16,
-  },
-  ageRange: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  yearInput: {
-    width: '30%',
-    textAlignVertical: 'center',
-    height: 40,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    padding: 8,
-  },
   listContent: {
+    flexGrow: 1,
     paddingBottom: 20,
-  },
-  ageRange: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between', // 드롭박스와 "~" 사이 간격 조정
   },
   yearInput: {
     borderWidth: 1,
@@ -658,18 +526,7 @@ toggleButtonText: {
     width: 80, // 드롭박스 너비
     textAlign: 'center', // 텍스트 중앙 정렬
     backgroundColor: '#FFFFFF', // 배경색 (흰색)
-  },
-  rangeSeparator: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000', // "~" 색상 (검은색)
-    marginHorizontal: 8, // "~" 좌우 간격
-  },
-  ageContainer: {
-    // marginVertical: 16,
-    // paddingVertical: 12,
-    // borderRadius: 8,
-    // paddingHorizontal: 16,
+    fontSize: 10,
   },
   label: {
     fontSize: 16,
@@ -684,7 +541,7 @@ toggleButtonText: {
     marginTop: 8,
   },
   rangeSeparator: {
-    fontSize: 16,
+    fontSize: 19,
     fontWeight: 'bold',
     color: '#000', // "~" 색상 (검은색)
     marginHorizontal: 8, // "~" 좌우 간격
@@ -716,6 +573,9 @@ const pickerStyle = StyleSheet.create({
   iconContainer: {
     top: 12,
     right: 12,
+  },
+  fontStyle: {
+    fontSize: 12
   },
 });
 
