@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { BLACK_COLOR, ERROR_COLOR, G_DARKER_COLOR, G_LIGHT_COLOR, NAV_BAR_COLOR, PRIMARY_BACK_COLOR, PRIMARY_BTN_COLOR, WHITE_COLOR } from './colors';
+import { BLACK_COLOR, ERROR_COLOR, G_DARKER_COLOR, G_LIGHT_COLOR, NAV_BAR_COLOR, PINK_DARK_COLOR, PRIMARY_BACK_COLOR, PRIMARY_BTN_COLOR, WHITE_COLOR } from './colors';
 
 export const commonStyles = StyleSheet.create({
   container: {
@@ -9,11 +9,19 @@ export const commonStyles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: PRIMARY_BACK_COLOR,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal:16
   },
   centerContainer:{
-    justifyContent: 'center',
-    alignItems: 'center',
+    width:'100%',
+    paddingVertical:16,
+    // borderWidth:1,
+    // borderColor:BLACK_COLOR,
+    height:'100%',
+    display:'flex',
+    flexDirection:'column',
+    justifyContent:'center',
+    alignContent:'center',
   },
   boxContainer:{
     width:'100%',
@@ -48,6 +56,26 @@ export const commonStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+ 
+  toastBox:{
+    flex: 1,
+    display:'flex',
+    flexDirection:'row',
+    justifyContent:'space-between',
+    alignItems:'center',
+    marginBottom:30,
+    width: '90%',
+    borderWidth:1,
+    borderColor:BLACK_COLOR,
+    borderRadius: 12,
+    paddingHorizontal:20,
+    paddingVertical:14,
+    backgroundColor:PINK_DARK_COLOR,
+  },
+  toastText:{
+    fontSize:16,
+    fontWeight:600
+  }
 });
 
 export const homeStyles = StyleSheet.create({

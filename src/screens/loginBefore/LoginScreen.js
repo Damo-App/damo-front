@@ -9,6 +9,7 @@ import { commonBtn, commonStyles } from '../../constants/styles';
 import { BLACK_COLOR } from '../../constants/colors';
 import { Link, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
+import { ScrollView } from 'react-native-gesture-handler';
 
 
 const isValidUsername = (username) => /\S+@\S+\.\S+/.test(username);
@@ -41,20 +42,27 @@ export const LoginScreen = () => {
 
     try {
       await login({ username, password });
-      alert('로그인 성공!');
+      Toast.show({
+        type: 'success',
+        text1: '로그인 완료!',
+        position: 'bottom',
+      });
     } catch (error) {
       console.log(error.response?.data);
       Toast.show({
         type: 'error',
         text1: '로그인 실패!',
         text2: error.message,
+        position: 'bottom',
       });
       // alert(error.message || '로그인 실패!');
     }
   };
 
   return (
-    <View style={[commonStyles.container, styles.container]}>
+    <ScrollView contentContainerStyle={[styles.container, commonStyles.container]} keyboardShouldPersistTaps="handled">
+    <View style={[commonStyles.centerContainer, styles.loginBox]}>
+    {/* <View style={[commonStyles.container, styles.container]}> */}
       <Image source={require('../../../assets/images/loginLogo.png')} style={styles.image} />
       
       <View style={styles.inputBox}>
@@ -92,6 +100,7 @@ export const LoginScreen = () => {
         </View>
       </View>
     </View>
+    </ScrollView>
   );
 };
 
@@ -103,10 +112,15 @@ const styles = StyleSheet.create({
     fontFamily: 'NotoSansKR-Regular',
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    borderWidth:1,
+    borderColor: BLACK_COLOR,
+    // paddingHorizontal: 20,
     display:'flex',
     flexDirection:'column',
     gap: 30,
+  },
+  loginBox:{
+    gap: 30
   },
   inputBox:{
     width:'100%',
