@@ -238,7 +238,7 @@ function GroupListScreen({navigation}) {
         renderItem={({ item }) => (
           <GroupListBox
             style={styles.groupCard}
-            image={{ uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${item.image}` }}
+            image={{ uri: item.image }}
             title={item.name}
             text={item.introduction}
             currentCount={item.memberCount}

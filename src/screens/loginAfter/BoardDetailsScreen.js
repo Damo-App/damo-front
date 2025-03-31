@@ -8,7 +8,7 @@ import InputWithLabel from "../../components/InputWithLabel";
 import { CustomButton } from "../../components/CustomButton";
 import CommentItem from "../../components/CommentItem";
 
-function BoardDetails({ navigation }) {
+function BoardDetailsScreen({ navigation }) {
     const [comment, setComment] = useState("");
 
     // 임시 데이터
@@ -227,4 +227,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default BoardDetails;
+export default BoardDetailsScreen;
