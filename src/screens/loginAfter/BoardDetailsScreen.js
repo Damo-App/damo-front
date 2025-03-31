@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
+import { useState, useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from "react-native";
 import { PRIMARY_BACK_COLOR, BLACK_COLOR, WHITE_COLOR, PRIMARY_BTN_COLOR, ERROR_COLOR, YELLOW_DARK_COLOR, YELLOW_LIGHT_COLOR, INPUT_BACK_COLOR, PINK_DARK_COLOR } from "../../constants/colors";
 import { commonStyles } from "../../constants/styles";
 import { commonShadow } from "../../constants/styles";
@@ -7,61 +7,66 @@ import BoardCard from "../../components/BoardCard";
 import InputWithLabel from "../../components/InputWithLabel";
 import { CustomButton } from "../../components/CustomButton";
 import CommentItem from "../../components/CommentItem";
+import Toast from "react-native-toast-message";
+import { instance } from "../../api/axiosInstance";
 
-function BoardDetailsScreen({ navigation }) {
+function BoardDetailsScreen({ route, navigation }) {
+    const { groupId, boardId } = route.params;
     const [comment, setComment] = useState("");
+    const [post, setPost] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
 
-    // 임시 데이터
-    const boardData = {
-        profileImage: null,
-        username: "작성자",
-        title: "게시글 제목",
-        content: "진짜 미안해 제발 스타일 제대로 입혀줘 제발.....내가정말잘못했다...",
-        postImage: null,
-        createdAt: "2024.03.18",
-        commentCount: 2,
-        // likeCount: 2,
+    // 게시글 상세 조회
+    const fetchPostDetails = async () => {
+        try {
+            const response = await instance.get(`/groups/${groupId}/boards/${boardId}`);
+            setPost(response.data.data);
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: '게시글을 불러오는데 실패했습니다.'
+            });
+        }
     };
 
-    // 임시 댓글 데이터
-    const commentList = [
-        {
-            id: 1,
-            profileImage: null,
-            username: "강기룡",
-            content: "김밥한줄,,,,두고갑니다,,,,,@)))))",
-            createdAt: "2024.03.26",
-            isMyComment: true,
-        },
-        {
-            id: 2,
-            profileImage: null,
-            username: "곽덕배",
-            content: "징징 거리지 말고 그냥 쓰셈",
-            createdAt: "2024.03.26",
-            isMyComment: true,
-        },
-        {
-            id: 3,
-            profileImage: null,
-            username: "권택현",
-            content: "드디어 댓글 컴포넌트 되네 ㅠㅠㅠ",
-            createdAt: "2024.03.26",
-            isMyComment: true,
-        },
-    ];
-
-    const handleLikePress = () => {
-        console.log('좋아요 클릭');
+    // 댓글 목록 조회
+    const fetchComments = async (page = 1) => {
+        try {
+            const response = await instance.get(`/boards/${boardId}/comments?page=${page}&size=10`);
+            setComments(response.data.data);
+            setCurrentPage(page);
+        } catch (error) {
+            console.error('댓글 조회 실패:', error);
+        }
     };
 
-    const handleMorePress = () => {
-        console.log('더보기 클릭');
+    // 댓글 작성
+    const handleSubmit = async () => {
+        if (!comment.trim()) return;
+        
+        try {
+            await instance.post(`/boards/${boardId}/comments`, {
+                content: comment.trim()
+            });
+            setComment('');
+            fetchComments(1);
+            Toast.show({
+                type: 'success',
+                text1: '댓글이 작성되었습니다.'
+            });
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: '댓글 작성에 실패했습니다.'
+            });
+        }
     };
 
-    const handleSubmit = () => {
-        console.log('댓글 작성');
-    };
+    useEffect(() => {
+        fetchPostDetails();
+        fetchComments(1);
+    }, [boardId]);
 
     const handleEdit = () => {
         console.log('게시글 수정');
@@ -71,12 +76,72 @@ function BoardDetailsScreen({ navigation }) {
         console.log('게시글 삭제');
     };
 
-    const handleCommentEdit = (commentId) => {
-        console.log('댓글 수정', commentId);
+    const handleCommentEdit = async (commentId, editedContent) => {
+        if (!editedContent || !editedContent.trim()) return;
+
+        try {
+            await instance.patch(`/boards/${boardId}/comments/${commentId}`, {
+                content: editedContent.trim()
+            });
+            
+            Toast.show({
+                type: 'success',
+                text1: '댓글이 수정되었습니다.'
+            });
+            
+            fetchComments(currentPage);
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: '댓글 수정에 실패했습니다.'
+            });
+        }
     };
 
-    const handleCommentDelete = (commentId) => {
-        console.log('댓글 삭제', commentId);
+    const handleCommentDelete = async (commentId) => {
+        Alert.alert(
+            '댓글 삭제',
+            '댓글을 삭제하시겠습니까?',
+            [
+                {
+                    text: '취소',
+                    style: 'cancel'
+                },
+                {
+                    text: '삭제',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await instance.delete(`/boards/${boardId}/comments/${commentId}`);
+                            
+                            Toast.show({
+                                type: 'success',
+                                text1: '댓글이 삭제되었습니다.'
+                            });
+                            
+                            fetchComments(currentPage);
+                        } catch (error) {
+                            Toast.show({
+                                type: 'error',
+                                text1: '댓글 삭제에 실패했습니다.'
+                            });
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    if (!post) return null;
+
+    const boardData = {
+        profileImage: post.memberProfile,
+        username: post.memberName,
+        title: post.title,
+        content: post.content,
+        postImage: post.image,
+        createdAt: new Date(post.createdAt).toLocaleDateString(),
+        commentCount: post.commentCount,
     };
 
     return (
@@ -88,11 +153,7 @@ function BoardDetailsScreen({ navigation }) {
                     showsVerticalScrollIndicator={false}
                 >
                     <View style={styles.contentContainer}>
-                        <BoardCard 
-                            {...boardData}
-                            onLikePress={handleLikePress}
-                            onMorePress={handleMorePress}
-                        />
+                        <BoardCard {...boardData} />
                         
                         <View style={styles.buttonContainer}>
                             <TouchableOpacity 
@@ -113,23 +174,24 @@ function BoardDetailsScreen({ navigation }) {
                         <View style={styles.commentSection}>
                             <Text style={styles.commentTitle}>댓글</Text>
                             <View style={styles.commentList}>
-                                {commentList.map((item) => (
+                                {comments.map((item) => (
                                     <CommentItem
-                                        key={item.id}
-                                        {...item}
-                                        onEdit={() => handleCommentEdit(item.id)}
-                                        onDelete={() => handleCommentDelete(item.id)}
+                                        key={item.commentId}
+                                        username={item.memberName}
+                                        content={item.content}
+                                        createdAt={new Date(item.createdAt).toLocaleDateString()}
+                                        isMyComment={true} // API에서 제공하는 정보에 따라 수정 필요
+                                        onEdit={(editedContent) => handleCommentEdit(item.commentId, editedContent)}
+                                        onDelete={() => handleCommentDelete(item.commentId)}
                                     />
                                 ))}
-                            </View>
-                            <View style={styles.inputSection}>
                             </View>
                         </View>
 
                         {/* 댓글 입력 */}
                         <View style={styles.commentSection}>
-                        <Text style={styles.commentTitle}>댓글</Text>
-                        <Text style={styles.commentUsername}>유저 닉네임</Text>
+                            <Text style={styles.commentTitle}>댓글</Text>
+                            <Text style={styles.commentUsername}>유저 닉네임</Text>
                             <InputWithLabel
                                 placeholder="댓글을 입력해주세요."
                                 value={comment}
