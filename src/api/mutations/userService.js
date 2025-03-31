@@ -86,3 +86,11 @@ export const patchUserPw = async (data) => {
     throw error; // Re-throw error for handling in mutation
   }
 };
+
+// 회원 탈퇴 API 호출
+export const deleteUser = async (email, password) => {
+  const response = await instance.delete('/members', {
+    data: { email, password }, // axios는 DELETE도 data에 담을 수 있음
+  });
+  return response.data;
+};
