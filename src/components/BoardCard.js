@@ -59,7 +59,7 @@ const BoardCard = ({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    padding: 16,
+    padding: 1,
     width: '100%'
   },
   card: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     justifyContent: 'space-between',
   },
   profileLeft: {
@@ -92,6 +92,8 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     marginRight: 8,
+    borderWidth: 0.5, // Added border width
+    borderColor: BLACK_COLOR, // Added border color
   },
   username: {
     fontSize: 14,
