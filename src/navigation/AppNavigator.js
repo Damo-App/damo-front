@@ -25,7 +25,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserListScreen from '../screens/admin/UserListScreen';
 import GroupListScreen from '../screens/loginBefore/GroupListScreen';
 import CreateGroupScreen from '../screens/loginAfter/CreateGroupScreen';
-import GroupDetailScreen from '../screens/loginBefore/GroupDetailScreen';
+import GroupDetailScreen from '../screens/loginAfter/GroupDetailScreen';
+import { useNavigation } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -33,17 +34,27 @@ const Stack = createStackNavigator();
   // isLoggedIn 값이 true 일경우 로그인후 화면 -> loginAfter
   // isLoggedIn 값이 false 면 로그인 전 화면 -> loginBefore
   function TabNavigator() {
+    // const {navigation} = useNavigation();
     const { isLoggedIn } = useContext(AuthContext);
   
     return (
       <Tab.Navigator
         initialRouteName={isLoggedIn ? 'Main' : 'Home'}
         tabBar={(props) => <CustomTabBar {...props} />}
-        screenOptions={{
+        screenOptions={({ route, navigation }) => ({
           headerShown: true,
           headerStyle: commonStyles.header,
           headerTitleAlign: 'center',
-        }}
+          headerTitle: () => (
+            <Text style={commonStyles.headerTitle}>{route.name}</Text>
+          ),
+          headerLeft: () => (
+            <>
+              {/* <Text style={styles.backButtonText}>뒤로</Text> */}
+              <IconButton onPress={() => navigation.goBack()} name={"arrow-back"} size={30} color={BORDER_COLOR}/>
+            </>
+          ),
+        })}
       >
         {isLoggedIn ? (
           <>

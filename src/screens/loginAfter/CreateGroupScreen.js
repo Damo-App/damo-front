@@ -190,29 +190,78 @@ const CreateGroupScreen = () => {
   // 모임 생성 요청
   const handleSubmit = async () => {
     if (!isFormValid) return;
-
+  
     try {
-      const groupData = {
-        groupName,
-        introduction,
-        maxMemberCount: maxMembers,
-        gender,
-        minBirth: startYear,
-        maxBirth: endYear,
-        tags: selectedTags.map((tag) => ({ tagName: tag })),
-      };
-
-      console.log('요청 데이터:', groupData);
-
-      const response = await instance.post('/groups', groupData);
+      const formData = new FormData();
+  
+      // 모임 정보 추가
+      formData.append('groupName', groupName);
+      formData.append('introduction', introduction);
+      formData.append('maxMemberCount', maxMembers);
+      formData.append('gender', gender);
+      formData.append('minBirth', startYear);
+      formData.append('maxBirth', endYear);
+      selectedTags.forEach((tag, index) => {
+        formData.append(`tags[${index}][tagName]`, tag);
+      });
+  
+      // 이미지 파일 추가
+      if (profileImage) {
+        const filename = profileImage.split('/').pop(); // 파일 이름 추출
+        const fileType = filename.split('.').pop(); // 파일 확장자 추출
+  
+        formData.append('image', {
+          uri: profileImage,
+          name: filename,
+          type: `image/${fileType}`,
+        });
+      } else {
+        Alert.alert('오류', '모임 대표 이미지를 선택해주세요.');
+        return;
+      }
+  
+      console.log('요청 데이터:', formData);
+  
+      // 서버 요청
+      const response = await instance.post('/groups', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
       console.log(response);
-      console.alert('성공', '모임이 생성되었습니다');
+      Alert.alert('성공', '모임이 생성되었습니다');
     } catch (error) {
       console.error('오류 발생:', error.response?.data || error.message);
-      console.alert('오류', error.response?.data?.message || '서버 오류 발생');
-
+      Alert.alert('오류', error.response?.data?.message || '서버 오류 발생');
     }
   };
+  
+  // const handleSubmit = async () => {
+  //   if (!isFormValid) return;
+
+  //   try {
+  //     const groupData = {
+  //       groupName,
+  //       introduction,
+  //       maxMemberCount: maxMembers,
+  //       gender,
+  //       minBirth: startYear,
+  //       maxBirth: endYear,
+  //       tags: selectedTags.map((tag) => ({ tagName: tag })),
+  //     };
+
+  //     console.log('요청 데이터:', groupData);
+
+  //     const response = await instance.post('/groups', groupData);
+  //     console.log(response);
+  //     console.alert('성공', '모임이 생성되었습니다');
+  //   } catch (error) {
+  //     console.error('오류 발생:', error.response?.data || error.message);
+  //     console.alert('오류', error.response?.data?.message || '서버 오류 발생');
+
+  //   }
+  // };
 
 
   return (

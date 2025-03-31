@@ -87,10 +87,9 @@ function ChatScreen({ navigation }) {
 
   return (
     <View style={commonStyles.container}>
-      {
-        memberCategories.map((category) => (
-          <MenuBar
-          key={category.chatroomId}
+      {memberCategories.map((category, index) => (
+        <MenuBar
+          key={category.chatroomId || index} // Ensure unique keys
           image={getCategoryImage(category.categoryId)}
           text={getCategoryName(category.categoryId)}
           style={[styles.menuBar, commonShadow.btnNoBdShadow]}
@@ -103,19 +102,18 @@ function ChatScreen({ navigation }) {
             })
           }
         />
-        ))
-
-      }
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width:'100%',
+    width: '100%',
   },
-  menuBar:{
-    width:'100%',
-  }
+  menuBar: {
+    width: '100%',
+  },
 });
+
 export default ChatScreen;

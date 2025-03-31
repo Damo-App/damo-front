@@ -1,3 +1,4 @@
+import Toast from 'react-native-toast-message';
 import { instance } from '../axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -54,7 +55,14 @@ export const loginUser = async (credentials) => {
 
     return { accessToken, refreshToken, memberId, email };
   } catch (error) {
-    console.error('❌ Login failed:', error.response?.data || error.message);
+    // if(error.response?.data.status === 401){
+    //   Toast.show({
+    //       type: 'error',
+    //       text1: '회원가입 실패!',
+    //       text2: '이미 존재하는 이메일입니다.',
+    //   })
+    // }
+    // console.error('❌ Login failed:', error.response?.data || error.message);
     throw error;
   }
 };

@@ -4,7 +4,7 @@ import { instance } from '../axiosInstance';
 export const categoriesList = async () => {
   try{
     const response = await instance.get('/categories');
-    // console.log(response.data.data);
+    console.log(response.data.data);
     const categories = response.data.data.map(item => item.categoryName);
     return(categories);
   }catch(error){

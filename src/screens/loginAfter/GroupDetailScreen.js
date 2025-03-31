@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { CustomButton } from '../../components/CustomButton';
 import CommonTag from '../../components/CommonTag';
-import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, WHITE_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
+import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
 
@@ -206,6 +206,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
   const renderActionButton = () => {
     if (groupData.myRole === 'GROUP_LEADER') {
       return (
+        <>
         <CustomButton 
           title="게시판"
           style={{
@@ -217,6 +218,18 @@ const GroupDetailScreen = ({ route, navigation }) => {
           }}
           onPress={handleBoard}
         />
+        <CustomButton 
+          title="모임 일정 생성"
+          style={{
+            ...styles.button,
+            backgroundColor: PINK_DARK_COLOR,
+            borderColor: BLACK_COLOR,
+            paddingVertical: 4,
+            paddingHorizontal: 16,
+          }}
+          onPress={handleBoard}
+        />
+        </>
       );
     } else if (groupData.myRole === 'GROUP_MEMBER') {
       return (
@@ -224,7 +237,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
           title="게시판"
           style={{
             ...styles.button,
-            backgroundColor: PINK_DARK_COLOR,
+            backgroundColor: PRIMARY_COLOR,
             borderColor: BLACK_COLOR,
             paddingVertical: 4,
             paddingHorizontal: 16,
@@ -268,7 +281,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
           />
         ) : (
           <CustomButton
-            title="멤버 목록"
+            title="탈퇴 하기"
             style={{
               ...styles.button,
               backgroundColor: PINK_DARK_COLOR,
