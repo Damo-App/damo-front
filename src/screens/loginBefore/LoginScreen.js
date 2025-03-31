@@ -112,8 +112,6 @@ const styles = StyleSheet.create({
     fontFamily: 'NotoSansKR-Regular',
     flex: 1,
     justifyContent: 'center',
-    borderWidth:1,
-    borderColor: BLACK_COLOR,
     // paddingHorizontal: 20,
     display:'flex',
     flexDirection:'column',

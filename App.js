@@ -5,6 +5,11 @@ import AppNavigator from './src/navigation/AppNavigator';
 import {  AuthProvider } from './src/contexts/AuthProvider';
 import { View, Text, LogBox } from 'react-native';
 import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
+import { commonShadow, commonStyles } from './src/constants/styles';
+import IconButton from './src/components/IconButton';
+import close from 'react-native-vector-icons/MaterialIcons';
+import { BLACK_COLOR, WHITE_COLOR } from './src/constants/colors';
+
 
 // defaultProps 관련 경고 메시지 무시
 LogBox.ignoreLogs([
@@ -14,15 +19,15 @@ LogBox.ignoreLogs([
 // 커스텀 토스트 구성
 const toastConfig = {
   success: (props) => (
-    <View style={{ flexDirection: 'row', backgroundColor: 'green', padding: 10, borderRadius: 8 }}>
-      <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>{props.text1}</Text>
-      <Text style={{ color: 'white', fontSize: 14 }}>{props.text2}</Text>
+    <View style={[commonStyles.toastBox, commonShadow.mainShadow, {backgroundColor:WHITE_COLOR}] }>
+      <Text style={commonStyles.toastText}>{props.text1}</Text>
+      <IconButton name='close' size={20} color={BLACK_COLOR} />
     </View>
   ),
   error: (props) => (
-    <View style={{ flexDirection: 'row', backgroundColor: 'red', padding: 10, borderRadius: 8 }}>
-      <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>{props.text1}</Text>
-      <Text style={{ color: 'white', fontSize: 14 }}>{props.text2}</Text>
+    <View style={[commonStyles.toastBox, commonShadow.mainShadow]}>
+      <Text style={commonStyles.toastText}>{props.text1}</Text>
+      <IconButton name='close' size={20} color={BLACK_COLOR} />
     </View>
   ),
 };
@@ -57,13 +62,16 @@ function App() {
       <AuthProvider>
         <NavigationContainer>
           <AppNavigator />
-          <Toast config={toastConfig} />
+            
+          
+          
           {/* <View onLayout={handleLayout} style={{ flex: 1 }}>
             <Text>Width: {layout.width}</Text>
             <Text>Height: {layout.height}</Text>
           </View> */}
           {/* <Stack.Screen name="Register" component={RegisterScreen} /> */}
         </NavigationContainer>
+        <Toast config={toastConfig}/>
       </AuthProvider>
     </QueryClientProvider>
   );

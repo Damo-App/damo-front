@@ -26,6 +26,7 @@ export const FindIdScreen = () => {
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
 
+
   // 아이디 찾기 API 호출 로직
   const findIdMutation = useMutation({
     mutationFn: userService.findUserId,
@@ -34,12 +35,12 @@ export const FindIdScreen = () => {
       navigation.navigate('SuccessFindId', { email: data.data.email });
     },
     onError: (error) => {
-      console.error('아이디 찾기에 실패했습니다:', error.response?.data || error.message);
+      // console.error('아이디 찾기에 실패했습니다:', error.response?.data || error.message);
       // alert('아이디 찾기에 실패했습니다.');
       Toast.show({
         type: 'error',
         text1: '아이디 찾기 실패!',
-        text2: error.message,
+        position:'bottom'
       });
     },
   });
@@ -48,9 +49,10 @@ export const FindIdScreen = () => {
     setName(text);
     if (!isValidNickname(text)) {
       setErrors((prev) => ({ ...prev, name: "닉네임은 2~8자 사이여야 합니다." }));
-      setIsNameDuplicate(false);
+      // setIsNameDuplicate(false);
       return;
     }
+    setErrors((prev) => ({ ...prev, name: null }));
     }
 
      // 전화번호 입력 핸들러
@@ -59,7 +61,7 @@ export const FindIdScreen = () => {
     setPhone(formattedPhone);
     if (!isValidPhone(formattedPhone)) {
       setErrors((prev) => ({ ...prev, phone: "올바른 전화번호를 입력하세요." }));
-      setIsPhoneDuplicate(false);
+      // setIsPhoneDuplicate(false);
       return;
     }
     setErrors((prev) => ({ ...prev, phone: null }));
