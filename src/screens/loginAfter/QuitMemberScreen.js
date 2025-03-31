@@ -7,15 +7,24 @@ import CommonCheckBox from "../../components/CommonCheckBox";
 import Info from "../../components/Info";
 import { BLACK_COLOR } from "../../constants/colors";
 import { commonStyles } from "../../constants/styles";
+import { useMutation } from "@tanstack/react-query";
+import Toast from "react-native-toast-message";
+import { useNavigation } from "@react-navigation/native";
+import { deleteUser } from "../../api/mutations/userService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ERROR_COLOR } from "../../constants/colors";
+import { useUser } from "../../hooks/useUser";
 
 const QuitMemberScreen = () => {
+  const navigation = useNavigation();
+  const { logout } = useUser();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [agreed, setAgreed] = useState(false); // 개인정보 동의 상태
+  const [agreed, setAgreed] = useState(false);
 
-  // 비밀번호 확인 로직
   useEffect(() => {
     if (confirmPassword && password !== confirmPassword) {
       setPasswordError("비밀번호가 일치하지 않습니다.");
@@ -24,45 +33,57 @@ const QuitMemberScreen = () => {
     }
   }, [password, confirmPassword]);
 
-  // 이메일 입력 핸들러
-  const handleEmailChange = (text) => {
-    setEmail(text);
-  };
+  // useMutation으로 회원 탈퇴 처리
+  const mutation = useMutation({
+    mutationFn: () => deleteUser(email, password),
+    onSuccess: async () => {
+      Toast.show({
+        type: 'success',
+        text1: '회원 탈퇴 완료',
+        text2: '그동안 이용해주셔서 감사합니다.',
+      });
 
-  // 비밀번호 입력 핸들러
-  const handlePasswordChange = (text) => {
-    setPassword(text);
-  };
+      await logout(navigation);
+    },
+    onError: (error) => {
+      Toast.show({
+        type: 'error',
+        text1: '회원 탈퇴 실패',
+        text2: error.response?.data?.message || '이메일/비밀번호를 다시 확인해주세요.',
+      });
+    },
+  });
 
-  // 회원 탈퇴 버튼 핸들러
   const handleQuitMember = () => {
     if (!agreed) {
-      alert("개인정보 동의가 필요합니다.");
+      Toast.show({
+        type: 'error',
+        text1: '개인정보 동의 필요',
+        text2: '탈퇴를 위해 개인정보 동의가 필요합니다.',
+      });
       return;
     }
-    console.log("회원 탈퇴 성공!");
+
+    mutation.mutate(); // 탈퇴 요청
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={commonStyles.container}>
-        {/* 이메일 입력 */}
         <InputWithLabel
           label="아이디 (이메일)"
           value={email}
-          onChangeText={handleEmailChange}
+          onChangeText={setEmail}
           placeholder="아이디를 입력해주세요."
         />
 
-        {/* 비밀번호 입력 */}
         <PasswordInput
           label="비밀번호"
           value={password}
-          onChangeText={handlePasswordChange}
+          onChangeText={setPassword}
           placeholder="비밀번호를 입력해주세요."
         />
 
-        {/* 비밀번호 확인 */}
         <PasswordInput
           label="비밀번호 확인"
           value={confirmPassword}
@@ -71,41 +92,33 @@ const QuitMemberScreen = () => {
           error={passwordError}
         />
 
-        {/* 안내사항 */}
-        {!agreed && ( // 체크박스가 선택되지 않았을 때만 안내사항 표시
+        {passwordError !== '' && (
+          <Text style={styles.passwordErrorText}>{passwordError}</Text>
+        )}
+
+        {!agreed && (
           <View style={styles.infoContainer}>
-            <Info 
-              title="• 안내사항 1" 
-              content="안내사항 첫번째 내용입니다." 
-            />
-            <Info 
-              title="• 안내사항 2" 
-              content="안내사항 두번째 내용입니다." 
-            />
-            <Info 
-              title="• 안내사항 3" 
-              content="안내사항 세번째 내용입니다." 
-            />
+            <Info title="• 안내사항 1" content="탈퇴 시 모든 데이터가 삭제됩니다." />
+            <Info title="• 안내사항 2" content="복구가 불가능합니다." />
+            <Info title="• 안내사항 3" content="모임 및 활동 정보도 삭제됩니다." />
           </View>
         )}
 
-        {/* 개인정보 동의 */}
         <View style={styles.checkboxWrapper}>
-  <CommonCheckBox 
-    label="개인정보 동의"
-    value={agreed}
-    onValueChange={(value) => setAgreed(value)}
-  />
-</View>
+          <CommonCheckBox
+            label="개인정보 동의"
+            value={agreed}
+            onValueChange={setAgreed}
+          />
+        </View>
 
-        {/* 회원 탈퇴 버튼 */}
-        <CustomButton 
+        <CustomButton
           title="회원 탈퇴"
           style={[
             styles.buttonStyle,
-            { backgroundColor: email && password && confirmPassword && agreed && !passwordError ? "#FF6B6B" : "#CCCCCC" }, // 활성화 여부에 따라 색상 변경
+            { backgroundColor: email && password && confirmPassword && agreed && !passwordError ? "#FF6B6B" : "#CCCCCC" },
           ]}
-          disabled={!email || !password || !confirmPassword || passwordError !== "" || !agreed} // 버튼 활성화 조건
+          disabled={!email || !password || !confirmPassword || !!passwordError || !agreed}
           onPress={handleQuitMember}
         />
       </View>
@@ -114,12 +127,7 @@ const QuitMemberScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-  },
-  container: {
-    flex: 1,
-  },
+  scrollContainer: { flexGrow: 1 },
   infoContainer: {
     marginTop: 16,
     marginBottom: 16,
@@ -127,10 +135,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   checkboxWrapper: {
-    flexDirection: "row", // 가로 배치
+    flexDirection: "row",
     width: '100%',
-    justifyContent: "flex-start", // 좌측 정렬
-    alignItems: "center", // 세로 중앙 정렬
+    justifyContent: "flex-start",
+    alignItems: "center",
     marginTop: 16,
     marginBottom: 16,
   },
@@ -140,12 +148,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
-    marginBottom: 16, // 화면 하단 여백 추가
+    marginBottom: 16,
     shadowColor: BLACK_COLOR,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
+  },
+  passwordErrorText: {
+    color: ERROR_COLOR,
+    marginTop: 8,
+    marginBottom: 16,
   },
 });
 
