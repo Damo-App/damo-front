@@ -23,7 +23,7 @@ import ChangePWScreen from '../screens/loginAfter/ChangePWScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserListScreen from '../screens/admin/UserListScreen';
-import GroupListScreen from '../screens/loginBefore/GroupListScreen';
+import GroupListScreen from '../screens/loginAfter/GroupListScreen';
 import CreateGroupScreen from '../screens/loginAfter/CreateGroupScreen';
 import GroupDetailScreen from '../screens/loginAfter/GroupDetailScreen';
 import { useNavigation } from '@react-navigation/native';
@@ -129,6 +129,15 @@ const Stack = createStackNavigator();
                 <Stack.Screen
                 name="GroupDetail"
                 component={GroupDetailScreen}
+                options={{
+                  headerTitle: '모임 상세',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
+              <Stack.Screen
+                name="CreateGroupScreen"
+                component={CreateGroupScreen}
                 options={{
                   headerTitle: '모임 상세',
                   headerStyle: commonStyles.header,
