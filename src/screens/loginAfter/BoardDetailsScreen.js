@@ -9,6 +9,8 @@ import { CustomButton } from "../../components/CustomButton";
 import CommentItem from "../../components/CommentItem";
 import Toast from "react-native-toast-message";
 import { instance } from "../../api/axiosInstance";
+import { jwtDecode } from "jwt-decode";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function BoardDetailsScreen({ route, navigation }) {
     const { groupId, boardId } = route.params;
@@ -16,13 +18,32 @@ function BoardDetailsScreen({ route, navigation }) {
     const [post, setPost] = useState(null);
     const [comments, setComments] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [memberName, setMemberName] = useState("");
+    const [isAuthor, setIsAuthor] = useState(false);
 
     // 게시글 상세 조회
     const fetchPostDetails = async () => {
         try {
             const response = await instance.get(`/groups/${groupId}/boards/${boardId}`);
+            console.log('게시글 데이터:', response.data.data);
             setPost(response.data.data);
+
+            // AsyncStorage에서 토큰 가져오기
+            const token = await AsyncStorage.getItem('accessToken');
+
+            if (token) {
+                const decodedToken = jwtDecode(token);
+                console.log('디코딩된 토큰:', decodedToken);
+                console.log('토큰의 memberId:', decodedToken.memberId);
+                console.log('게시글 작성자 memberId:', response.data.data.memberId);
+                
+                // memberId 비교
+                const isPostAuthor = Number(decodedToken.memberId) === response.data.data.memberId;
+                console.log('작성자 일치 여부:', isPostAuthor);
+                setIsAuthor(isPostAuthor);
+            }
         } catch (error) {
+            console.error('에러 발생:', error);
             Toast.show({
                 type: 'error',
                 text1: '게시글을 불러오는데 실패했습니다.'
@@ -38,6 +59,17 @@ function BoardDetailsScreen({ route, navigation }) {
             setCurrentPage(page);
         } catch (error) {
             console.error('댓글 조회 실패:', error);
+        }
+    };
+
+    // 현재 사용자 정보 가져오기
+    const fetchMyInfo = async () => {
+        try {
+            const response = await instance.get('/mypage');
+            console.log('내 정보:', response.data.data);
+            setMemberName(response.data.data.name);  // 사용자 이름 설정
+        } catch (error) {
+            console.error('사용자 정보 조회 실패:', error);
         }
     };
 
@@ -66,14 +98,52 @@ function BoardDetailsScreen({ route, navigation }) {
     useEffect(() => {
         fetchPostDetails();
         fetchComments(1);
+        fetchMyInfo();  // 사용자 정보 조회 추가
     }, [boardId]);
 
     const handleEdit = () => {
-        console.log('게시글 수정');
+        navigation.navigate('BoardUpdateScreen', { 
+            groupId, 
+            boardId,
+            title: post.title,
+            content: post.content,
+            image: post.image
+        });
     };
 
     const handleDelete = () => {
-        console.log('게시글 삭제');
+        Alert.alert(
+            '게시글 삭제',
+            '정말로 이 게시글을 삭제하시겠습니까?',
+            [
+                {
+                    text: '취소',
+                    style: 'cancel'
+                },
+                {
+                    text: '삭제',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await instance.delete(`/groups/${groupId}/boards/${boardId}`);
+                            Toast.show({
+                                type: 'success',
+                                text1: '게시글이 삭제되었습니다.'
+                            });
+                            navigation.navigate('BoardScreen', {
+                                groupId: groupId,
+                                refresh: Date.now()
+                            });
+                        } catch (error) {
+                            Toast.show({
+                                type: 'error',
+                                text1: '게시글 삭제에 실패했습니다.'
+                            });
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const handleCommentEdit = async (commentId, editedContent) => {
@@ -91,55 +161,51 @@ function BoardDetailsScreen({ route, navigation }) {
             
             fetchComments(currentPage);
         } catch (error) {
-            Toast.show({
-                type: 'error',
-                text1: '댓글 수정에 실패했습니다.'
-            });
+            if (error.response?.data?.message === 'Not authorized to access this resource') {
+                Toast.show({
+                    type: 'error',
+                    text1: '댓글 작성자가 아닙니다.'
+                });
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: '댓글 수정에 실패했습니다.'
+                });
+            }
         }
     };
 
     const handleCommentDelete = async (commentId) => {
-        Alert.alert(
-            '댓글 삭제',
-            '댓글을 삭제하시겠습니까?',
-            [
-                {
-                    text: '취소',
-                    style: 'cancel'
-                },
-                {
-                    text: '삭제',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await instance.delete(`/boards/${boardId}/comments/${commentId}`);
-                            
-                            Toast.show({
-                                type: 'success',
-                                text1: '댓글이 삭제되었습니다.'
-                            });
-                            
-                            fetchComments(currentPage);
-                        } catch (error) {
-                            Toast.show({
-                                type: 'error',
-                                text1: '댓글 삭제에 실패했습니다.'
-                            });
-                        }
-                    }
-                }
-            ]
-        );
+        try {
+            await instance.delete(`/boards/${boardId}/comments/${commentId}`);
+            Toast.show({
+                type: 'success',
+                text1: '댓글이 삭제되었습니다.'
+            });
+            fetchComments(currentPage);
+        } catch (error) {
+            if (error.response?.data?.message === 'Not authorized to access this resource') {
+                Toast.show({
+                    type: 'error',
+                    text1: '댓글 작성자가 아닙니다.'
+                });
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: '댓글 삭제에 실패했습니다.'
+                });
+            }
+        }
     };
 
     if (!post) return null;
 
     const boardData = {
-        profileImage: post.memberProfile,
+        profileImage: post.memberProfile ? { uri: post.memberProfile } : null,
         username: post.memberName,
         title: post.title,
         content: post.content,
-        postImage: post.image,
+        postImage: post.image ? { uri: post.image } : null,
         createdAt: new Date(post.createdAt).toLocaleDateString(),
         commentCount: post.commentCount,
     };
@@ -155,20 +221,23 @@ function BoardDetailsScreen({ route, navigation }) {
                     <View style={styles.contentContainer}>
                         <BoardCard {...boardData} />
                         
-                        <View style={styles.buttonContainer}>
-                            <TouchableOpacity 
-                                style={[styles.actionButton, styles.deleteButton, commonShadow.mainShadow]} 
-                                onPress={handleDelete}
-                            >
-                                <Text style={[styles.buttonText, styles.deleteButtonText]}>삭제</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity 
-                                style={[styles.actionButton, styles.editButton, commonShadow.mainShadow]} 
-                                onPress={handleEdit}
-                            >
-                                <Text style={styles.buttonText}>수정</Text>
-                            </TouchableOpacity>
-                        </View>
+                        {/* 작성자인 경우에만 수정/삭제 버튼 표시 */}
+                        {isAuthor && (
+                            <View style={styles.buttonContainer}>
+                                <TouchableOpacity 
+                                    style={[styles.actionButton, styles.deleteButton, commonShadow.mainShadow]} 
+                                    onPress={handleDelete}
+                                >
+                                    <Text style={[styles.buttonText, styles.deleteButtonText]}>삭제</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity 
+                                    style={[styles.actionButton, styles.editButton, commonShadow.mainShadow]} 
+                                    onPress={handleEdit}
+                                >
+                                    <Text style={styles.buttonText}>수정</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
 
                         {/* 댓글 목록 */}
                         <View style={styles.commentSection}>
@@ -180,7 +249,7 @@ function BoardDetailsScreen({ route, navigation }) {
                                         username={item.memberName}
                                         content={item.content}
                                         createdAt={new Date(item.createdAt).toLocaleDateString()}
-                                        isMyComment={true} // API에서 제공하는 정보에 따라 수정 필요
+                                        isMyComment={true}
                                         onEdit={(editedContent) => handleCommentEdit(item.commentId, editedContent)}
                                         onDelete={() => handleCommentDelete(item.commentId)}
                                     />
@@ -190,8 +259,9 @@ function BoardDetailsScreen({ route, navigation }) {
 
                         {/* 댓글 입력 */}
                         <View style={styles.commentSection}>
+                        <View style={{ height: 2, backgroundColor: BLACK_COLOR, marginVertical: 10 }} />
                             <Text style={styles.commentTitle}>댓글</Text>
-                            <Text style={styles.commentUsername}>유저 닉네임</Text>
+                            <Text style={styles.commentUsername}>{memberName}</Text>
                             <InputWithLabel
                                 placeholder="댓글을 입력해주세요."
                                 value={comment}
@@ -226,16 +296,18 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         flex: 1,
+        justifyContent: 'center',
         width: '100%',
         paddingBottom: 32,
+        paddingHorizontal: 16,
     },
     buttonContainer: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
         gap: 12,
         width: '100%',
-        paddingHorizontal: 16,
-        marginTop: -4,
+        paddingHorizontal: 0.8, // Moved to the right by increasing paddingHorizontal
+        marginTop: 8,
         marginBottom: 12,
     },
     actionButton: {
@@ -267,15 +339,14 @@ const styles = StyleSheet.create({
     },
     commentSection: {
         width: '100%',
-        paddingHorizontal: 16,
+        paddingVertical: 16,
     },
     commentList: {
         width: '100%',
-        gap: 16,
+        gap: 12,
     },
     commentUsername: {
         fontSize: 14,
-        fontWeight: 'bold',
         marginBottom: 8,
     },
     inputSection: {

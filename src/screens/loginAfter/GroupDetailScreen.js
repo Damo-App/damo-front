@@ -45,7 +45,9 @@ const GroupDetailScreen = ({ route, navigation }) => {
             try {
               await instance.delete(`/groups/${groupId}/leave`);
               // 탈퇴 성공 시 이전 화면으로 이동
-              navigation.goBack();
+              navigation.navigate('GroupList', { 
+                refresh: Date.now()
+              });
             } catch (error) {
               console.error('Error leaving group:', error);
               Alert.alert(
@@ -58,11 +60,12 @@ const GroupDetailScreen = ({ route, navigation }) => {
       ]
     );
   };
-
   const handleJoin = async () => {
     try {
+      console.log(`Sending join request to: /groups/${groupId}/join`); // Log the request URL
       const response = await instance.post(`/groups/${groupId}/join`);
-      
+      console.log('Join response:', response); // Log the response
+
       if (response.status === 200) {
         Alert.alert(
           "가입 완료",
@@ -80,16 +83,18 @@ const GroupDetailScreen = ({ route, navigation }) => {
         );
       }
     } catch (error) {
+      console.error('Error joining group:', error); // Log the error
+      console.error(error.response.data.message)
       if (error.response) {
         // 서버에서 오는 에러 메시지 처리
-        switch(error.response.data.code) {
-          case 'GROUP_JOIN_GENDER_MISMATCH':
+        switch(error.response.data.message) {
+          case '성별 조건에 부합하지 않아 가입이 불가능합니다.':
             Alert.alert("가입 실패", "성별 조건이 맞지 않아 가입할 수 없습니다.");
             break;
-          case 'GROUP_JOIN_AGE_MISMATCH':
+          case '나이 조건에 부합하지 않아 가입이 불가능합니다.':
             Alert.alert("가입 실패", "나이 조건이 맞지 않아 가입할 수 없습니다.");
             break;
-          case 'GROUP_JOIN_MEMBER_FULL':
+          case '모임의 최대 인원 수를 초과했습니다.':
             Alert.alert("가입 실패", "모임 정원이 가득 찼습니다.");
             break;
           default:
@@ -266,19 +271,19 @@ const GroupDetailScreen = ({ route, navigation }) => {
             }}
             onPress={handleDeleteGroup}
           />
-        ) : (
+        ) : groupData.myRole === 'GROUP_MEMBER' ? (
           <CustomButton
-            title="멤버 목록"
+            title="탈퇴하기"
             style={{
               ...styles.button,
-              backgroundColor: PINK_DARK_COLOR,
+              backgroundColor: 'red',
               borderColor: BLACK_COLOR,
               paddingVertical: 4,
               paddingHorizontal: 16,
             }}
-            onPress={() => setShowMemberList(true)}
+            onPress={handleWithdraw}
           />
-        )}
+        ) : null}
       </View>
     );
   };
