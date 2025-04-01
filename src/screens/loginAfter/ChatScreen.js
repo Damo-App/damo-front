@@ -96,7 +96,7 @@ function ChatScreen({ navigation }) {
           iconWrapperStyle={{ backgroundColor: YELLOW_DARK_COLOR }}
           onPress={() =>
             navigation.navigate('ChatRooms', {
-              chatroomId: category.chatroomId,
+              chatroomId: category.categoryId,
               categoryId: category.categoryId,
               categoryName: getCategoryName(category.categoryId),
             })
