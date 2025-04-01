@@ -27,6 +27,7 @@ import GroupListScreen from '../screens/loginBefore/GroupListScreen';
 import CreateGroupScreen from '../screens/loginAfter/CreateGroupScreen';
 import GroupDetailScreen from '../screens/loginAfter/GroupDetailScreen';
 import { useNavigation } from '@react-navigation/native';
+import QuitMemberScreen from '../screens/loginAfter/QuitMemberScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -124,6 +125,7 @@ const Stack = createStackNavigator();
                 <Stack.Screen name="내 모임 조회" component={MyGroupsScreen} />
                 <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
                 <Stack.Screen name="비밀번호 변경" component={ChangePWScreen} />
+                <Stack.Screen name="회원탈퇴" component={QuitMemberScreen} />
                 <Stack.Screen
                 name="GroupDetail"
                 component={GroupDetailScreen}

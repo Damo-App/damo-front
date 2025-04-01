@@ -45,12 +45,22 @@ function GroupListScreen({navigation}) {
     },
   });
 
+  // console.log("categoriesData ==", memberCategories);
+
   // 첫 번째 카테고리 자동 선택
+  // useEffect(() => {
+  //   if (categoriesData?.data?.length > 0 && !selectedCategoryId) {
+  //     const firstCategory = categoriesData.data[0];
+  //     console.log('Initial category set:', firstCategory);
+  //     setSelectedCategoryId(firstCategory.categoryId);
+  //     setCurrentPage(1);
+  //   }
+  // }, [categoriesData]);
   useEffect(() => {
     if (categoriesData?.data?.length > 0 && !selectedCategoryId) {
       const firstCategory = categoriesData.data[0];
       console.log('Initial category set:', firstCategory);
-      setSelectedCategoryId(firstCategory.categoryId);
+      setSelectedCategoryId(firstCategory.categoryId); // 첫 번째 카테고리 ID 설정
       setCurrentPage(1);
     }
   }, [categoriesData]);
@@ -227,7 +237,14 @@ function GroupListScreen({navigation}) {
         style={[styles.createButton, { paddingVertical: 3, width: '97%' }]}
         textStyle={{ fontSize: 12 }}
         title="모임 생성하기"
-        onPress={() => navigation.navigate('CreateGroup')}
+        onPress={() => {
+          if (!selectedCategoryId) {
+            console.error("No category selected");
+            return;
+          }
+          navigation.navigate('CreateGroupScreen', { selectedCategoryId }); // 카테고리 ID 전달
+        }}
+        // onPress={() => navigation.navigate('CreateGroupScreen', { selectedCategoryId: selectedCategoryId })}
       />
 
       {/* 그룹 리스트 */}

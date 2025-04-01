@@ -227,7 +227,7 @@ function GroupListScreen({navigation}) {
         style={[styles.createButton, { paddingVertical: 3, width: '97%' }]}
         textStyle={{ fontSize: 12 }}
         title="모임 생성하기"
-        onPress={() => navigation.navigate('CreateGroup')}
+        onPress={() => navigation.navigate('CreateGroupScreen')}
       />
 
       {/* 그룹 리스트 */}

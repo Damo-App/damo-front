@@ -12,7 +12,8 @@ const InputWithLabel = ({
   error,
   isTextarea = false, // textarea 여부를 결정하는 속성 (기본값: false)
   containerStyle,
-  labelStyle
+  labelStyle,
+  placeholderStyle
 }) => {
 
   const [height, setHeight] = useState(100);
@@ -24,6 +25,7 @@ const InputWithLabel = ({
       <TextInput
         style={[
           commonInput.input,
+          placeholderStyle,
           isTextarea && styles.textarea,
           error && styles.errorBorder,
           isTextarea && { height: Math.max(100, height) },
