@@ -170,6 +170,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { instance } from '../../api/axiosInstance';
+import { PRIMARY_BACK_COLOR } from '../../constants/colors';
 
 const ScheduleCalendar = ({ categoryId, token }) => {
   const [schedules, setSchedules] = useState([]);
@@ -288,7 +289,7 @@ const ScheduleCalendar = ({ categoryId, token }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EDEDED',
+    backgroundColor: PRIMARY_BACK_COLOR,
     paddingTop: 20,
     paddingHorizontal: 10,
   },

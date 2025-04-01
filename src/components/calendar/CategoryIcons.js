@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Image, StyleSheet, TouchableWithoutFeedback, Text } from 'react-native';
-import { BLACK_COLOR } from '../../constants/colors';
+import { BLACK_COLOR, PRIMARY_COLOR } from '../../constants/colors';
 import { commonShadow } from '../../constants/styles';
 
 const categoryIcons = {
@@ -63,9 +63,9 @@ const styles = StyleSheet.create({
     height: 80,
   },
   selectedIconBox: {
-    backgroundColor: '#FFC107', // 선택된 카테고리의 배경색
-    borderColor: '#FF5722',
-    borderWidth: 2,
+    backgroundColor: PRIMARY_COLOR, // 선택된 카테고리의 배경색
+    // borderColor: '#FF5722',
+    // borderWidth: 2,
   },
   icon: {
     width: 40,

@@ -4,6 +4,7 @@ import { fetchCategories } from '../../api/queries/categoryService';
 import CategoryIcons from '../../components/calendar/CategoryIcons';
 import ScheduleCalendar from './ScheduleCalendar';
 import { instance } from '../../api/axiosInstance';
+import { PRIMARY_BACK_COLOR } from '../../constants/colors';
 
 function MainScreen({ memberId, token }) {
   const [categories, setCategories] = useState([]);
@@ -28,7 +29,7 @@ function MainScreen({ memberId, token }) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 , backgroundColor:PRIMARY_BACK_COLOR}}>
       <CategoryIcons
         categories={categories}
         selectedCategory={selectedCategory}
