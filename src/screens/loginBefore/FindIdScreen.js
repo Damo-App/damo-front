@@ -8,6 +8,8 @@ import { CustomButton } from '../../components/CustomButton';
 // import { formatPhoneNumber } from '../../utils/formatters'; // 전화번호 포맷팅 함수가 별도 파일에 있다면 가져옵니다.
 import { commonStyles } from '../../constants/styles';
 import Toast from 'react-native-toast-message';
+import { style } from 'framer-motion/client';
+import { ERROR_COLOR } from '../../constants/colors';
 
 // 닉네임과 전화번호 유효성 검사 함수
 const isValidNickname = (name) => name.length >= 2 && name.length <= 8;
@@ -90,7 +92,8 @@ export const FindIdScreen = () => {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={[styles.container, commonStyles.container]} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={commonStyles.container} keyboardShouldPersistTaps="handled">
+        <View style={styles.container}>
         <InputWithLabel 
         label="닉네임" 
         value={name} 
@@ -99,6 +102,7 @@ export const FindIdScreen = () => {
         description={errors.name ? <Text>{errors.name}</Text> : ''}
         />
         <InputWithLabel label="전화번호" value={phone} onChangeText={handlePhoneChange} keyboardType="phone-pad" />
+        </View>
         <CustomButton title="아이디 찾기" onPress={handleSubmit} disabled={!isFormValid || findIdMutation.isLoading} />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -107,7 +111,7 @@ export const FindIdScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
-    paddingVertical: 30,
+    width:'100%',
+    marginBottom:30
   },
 });

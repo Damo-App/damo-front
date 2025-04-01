@@ -97,6 +97,20 @@ const Stack = createStackNavigator();
         initialRouteName={
           isAdmin ? 'Admin' : !isLoggedIn ? 'MainTabs' : isCategorySelected ? 'MainTabs' : 'SelectCategories'
         }
+        screenOptions={({ route, navigation }) => ({
+          headerShown: true,
+          headerStyle: commonStyles.header,
+          headerTitleAlign: 'center',
+          headerTitle: () => (
+            <Text style={commonStyles.headerTitle}>{route.name}</Text>
+          ),
+          headerLeft: () => (
+            <>
+              {/* <Text style={styles.backButtonText}>뒤로</Text> */}
+              <IconButton onPress={() => navigation.goBack()} name={"arrow-back"} size={30} color={BORDER_COLOR}/>
+            </>
+          ),
+        })}
       >
         {isAdmin ? (
           <>
@@ -123,7 +137,6 @@ const Stack = createStackNavigator();
                 <Stack.Screen name="Chat" component={ChatScreen} />
                 <Stack.Screen name="ChatRooms" component={ChatRoomsScreen} />
                 <Stack.Screen name="내 모임 조회" component={MyGroupsScreen} />
-                <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
                 <Stack.Screen name="비밀번호 변경" component={ChangePWScreen} />
                 <Stack.Screen name="회원탈퇴" component={QuitMemberScreen} />
                 <Stack.Screen
