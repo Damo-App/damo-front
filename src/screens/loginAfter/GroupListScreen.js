@@ -7,7 +7,7 @@ import GroupListBox from '../../components/GroupListBox';
 import { CategoryIcon } from '../../components/CategoryIcon';
 import { commonShadow } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
-import { BLACK_COLOR } from '../../constants/colors';
+import { BLACK_COLOR, ERROR_COLOR, G_DARK_COLOR, G_LIGHT_COLOR, PRIMARY_COLOR, WHITE_COLOR } from '../../constants/colors';
 
 // 카테고리 ID에 따른 이미지 매핑
 const categoryImages = {
@@ -234,8 +234,8 @@ function GroupListScreen({navigation}) {
     
       {/* 모임 생성 버튼 */}
       <CustomButton 
-        style={[styles.createButton, { paddingVertical: 3, width: '97%' }]}
-        textStyle={{ fontSize: 12 }}
+        style={{ marginTop: 20 }}
+        textStyle={{ fontSize: 16 }}
         title="모임 생성하기"
         onPress={() => {
           if (!selectedCategoryId) {
@@ -248,40 +248,48 @@ function GroupListScreen({navigation}) {
       />
 
       {/* 그룹 리스트 */}
+
+      {groupsData?.data.length > 0 ? 
       <FlatList
-        style={styles.flatList}
-        data={groupsData?.data || []}
-        keyExtractor={(item) => item.groupId.toString()}
-        renderItem={({ item }) => (
-          <GroupListBox
-            style={styles.groupCard}
-            image={{ uri: item.image }}
-            title={item.name}
-            text={item.introduction}
-            currentCount={item.memberCount}
-            maxCount={item.maxMemberCount}
-            subCategory={item.subCategoryName}
-            tags={[
-              ...(item.tags?.mood || []), 
-              ...(item.tags?.MBTI || [])
-            ]}
-            onPress={() => navigation.navigate('GroupDetail', { groupId: item.groupId })}
-          />
-        )}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={() => (
-          <Text style={styles.emptyText}>해당 카테고리의 모임이 없습니다.</Text>
-        )}
-        ListFooterComponent={() => (
-          <View style={styles.footer}>
-            {isLoading ? (
-              <Text style={styles.loadingText}>로딩 중...</Text>
-            ) : renderPagination()}
-            <View style={{ height: 20 }}/>
-          </View>
-        )}
-      />
+      style={styles.flatList}
+      data={groupsData?.data || []}
+      keyExtractor={(item) => item.groupId.toString()}
+      renderItem={({ item }) => (
+        <GroupListBox
+          style={styles.groupCard}
+          image={{ uri: item.image }}
+          title={item.name}
+          text={item.introduction}
+          currentCount={item.memberCount}
+          maxCount={item.maxMemberCount}
+          subCategory={item.subCategoryName}
+          tags={[
+            ...(item.tags?.mood || []), 
+            ...(item.tags?.MBTI || [])
+          ]}
+          onPress={() => navigation.navigate('GroupDetail', { groupId: item.groupId })}
+        />
+      )}
+      contentContainerStyle={styles.listContainer}
+      showsVerticalScrollIndicator={false}
+      // ListEmptyComponent={() => (
+      //   <Text style={styles.emptyText}>해당 카테고리의 모임이 없습니다.</Text>
+      // )}
+      ListFooterComponent={() => (
+        <View style={styles.footer}>
+          {isLoading ? (
+            <Text style={styles.loadingText}>로딩 중...</Text>
+          ) : renderPagination()}
+          <View style={{ height: 20 }}/>
+        </View>
+      )}
+    />
+      : 
+      <View style={styles.emptyTextBox}>
+      <Text style={styles.emptyText}>해당 카테고리의 모임이 없습니다.</Text>
+      </View>
+      }
+      
     </View>
   );
 }
@@ -305,7 +313,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   selectedCategory: {
-    backgroundColor: '#E6E6E6',
+    backgroundColor: PRIMARY_COLOR,
   },
   disabledCategory: {
     opacity: 0.5,
@@ -331,12 +339,22 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingVertical: 10,
   },
+  emptyTextBox:{
+    marginTop:50,
+    height:'auto',
+    width:'100%',
+    paddingHorizontal:20,
+    paddingVertical:50,
+    borderWidth:1,
+    borderColor:G_DARK_COLOR,
+    borderRadius:12,
+    backgroundColor:WHITE_COLOR
+  },
   emptyText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: G_DARK_COLOR,
     textAlign: 'center',
-    marginTop: 20,
   },
   footer: {
     paddingVertical: 10,

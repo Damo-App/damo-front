@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity, Image, TouchableWithoutFeedback } from "react-native";
 
 const images = {
     Books: require("../../assets/images/category/Books.png"),
@@ -18,8 +18,15 @@ const images = {
   };
   export const CategoryIcon = ({ imageName, onPress, style }) => {
     return (
-      <TouchableOpacity style={[style.container, style]} onPress={onPress}>
-        <Image source={images[imageName]} style={style.image} />
-      </TouchableOpacity>
+      // <TouchableOpacity style={[style.container, style]} onPress={onPress}>
+      //   <Image source={images[imageName]} style={style.image} />
+      // </TouchableOpacity>
+
+      <TouchableWithoutFeedback onPress={onPress}>
+        <View style={[style.container, style]} >
+          <Image source={images[imageName]} style={style.image} />
+        </View>
+      </TouchableWithoutFeedback>
+
     );
   };

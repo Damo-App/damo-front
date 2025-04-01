@@ -146,9 +146,9 @@ export const commonBtn = StyleSheet.create({
   btnText:{
     textAlign: 'center',
     fontSize: 18,
+    fontWeight: 'bold',
     color: BLACK_COLOR,
   },
-
    // 비활성화 상태 스타일
    disabledBtn: {
     backgroundColor: G_LIGHT_COLOR, 
