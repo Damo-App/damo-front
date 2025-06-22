@@ -436,6 +436,7 @@ const CreateGroupScreen = ({ navigation }) => {
   const [isFormValid, setIsFormValid] = useState(false);
   const [expandedSections, setExpandedSections] = useState([]);
   const [sections, setSections] = useState([]);
+  const [sectionsTag, setSectionsTag] = useState([]);
   const [profileImage, setProfileImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const route = useRoute();
@@ -462,8 +463,10 @@ const CreateGroupScreen = ({ navigation }) => {
         }
   
         const response = await instance.get(`/categories/${selectedCategoryId}/subcategories`);
+        const responseTag = await instance.get(`/tags`);
         
         console.log("response 카테고리 서브카테고리", response.data.data);
+        console.log("responseTag 카테고리 서브카테고리", responseTag.data.data.tags);
         if (response.data?.data?.length === 0) {
           console.warn("No tags found for this category");
           setSections([]);
@@ -472,6 +475,18 @@ const CreateGroupScreen = ({ navigation }) => {
         } else {
           console.error("Unexpected response format");
         }
+
+        if (responseTag.data.data.tags && Object.keys(responseTag.data.data.tags).length > 0) {
+          const sectionsArray = Object.entries(responseTag.data.data.tags).map(([title, tags]) => ({
+            title,
+            tags,  
+        }));
+          setSectionsTag(sectionsArray);
+
+  console.log("선택 태그 map 돌리기 용 sectionsTag ==",sectionsTag)
+} else {
+  setSectionsTag([]);
+}
       } catch (error) {
         if (error.response?.status === 404) {
           console.error("Tags not found for this category");
@@ -509,32 +524,59 @@ const CreateGroupScreen = ({ navigation }) => {
   }, []);
 
   // 갤러리 열기
-  const openGallery = async () => {
-    try {
+  // const openGallery = async () => {
+  //   try {
+  //     const result = await ImagePicker.launchImageLibraryAsync({
+  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //       allowsEditing: true,
+  //       aspect: [1, 1],
+  //       quality: 0.8,
+  //     });
+
+  //     console.log("Image picker result:", result);
+
+  //     if (!result.canceled) {
+  //       if (result.assets && result.assets.length > 0) {
+  //         setProfileImage(result.assets[0].uri);
+  //         console.log("Selected image URI:", result.assets[0].uri);
+  //       } else if (result.uri) {
+  //         // 이전 버전 호환성
+  //         setProfileImage(result.uri);
+  //         console.log("Selected image URI (legacy):", result.uri);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error picking image:", error);
+  //     Alert.alert("오류", "이미지를 선택하는 중 오류가 발생했습니다.");
+  //   }
+  // };
+   const openGallery = async () => {
+      // 권한 요청
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '사진 접근 권한이 필요합니다.');
+        return;
+      }
+  
+      // 갤러리 열기
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
+        quality: 1,
       });
-
-      console.log("Image picker result:", result);
-
-      if (!result.canceled) {
-        if (result.assets && result.assets.length > 0) {
-          setProfileImage(result.assets[0].uri);
-          console.log("Selected image URI:", result.assets[0].uri);
-        } else if (result.uri) {
-          // 이전 버전 호환성
-          setProfileImage(result.uri);
-          console.log("Selected image URI (legacy):", result.uri);
-        }
+  
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        setImage({
+          uri: selectedImage.uri,
+          type: 'image/jpeg',
+          name: 'image.jpg'
+        });
+      } else {
+        console.log("이미지 선택이 취소되었습니다.");
       }
-    } catch (error) {
-      console.error("Error picking image:", error);
-      Alert.alert("오류", "이미지를 선택하는 중 오류가 발생했습니다.");
-    }
-  };
+    };
+  
 
   // 폼 유효성 검사
   useEffect(() => {
@@ -899,46 +941,46 @@ const CreateGroupScreen = ({ navigation }) => {
 
             {/* 선택 태그 */}
             <Text style={styles.subTagStyle}>선택</Text>
-            {sections.slice(1).map((section, index) => (
-              <View key={section.title || index} style={[styles.sectionContainer, { backgroundColor: GREEN_LIGHT_COLOR }]}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>{section.title}</Text>
-                  <TouchableOpacity onPress={() => toggleSection(index)} style={styles.toggleButton}>
-                    <Text style={styles.toggleButtonText}>{expandedSections[index] ? '-' : '+'}</Text>
-                  </TouchableOpacity>
-                </View>
-                {expandedSections[index] && (
-                  <View style={styles.tagContainer}>
-                    {section.tags.map((tag) => (
-                      <TouchableOpacity
-                        key={tag}
-                        onPress={() => {
-                          if (selectedTags.includes(tag)) {
-                            setSelectedTags(selectedTags.filter((t) => t !== tag));
-                          } else if (selectedTags.length < 3) {
-                            setSelectedTags([...selectedTags, tag]);
-                          }
-                        }}
-                        disabled={!selectedTags.includes(tag) && selectedTags.length >= 3}
-                      >
-                        <CommonTag
-                          name={tag}
-                          size={14}
-                          color="#000"
-                          showCloseButton={false}
-                          containerStyle={{
-                            borderColor: selectedTags.includes(tag) ? BLACK_COLOR : "#CCE5E5",
-                            borderWidth: selectedTags.includes(tag) ? 2 : 0,
-                            backgroundColor: WHITE_COLOR,
-                            opacity: (!selectedTags.includes(tag) && selectedTags.length >= 3) ? 0.5 : 1
-                          }}
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))}
+           {sectionsTag.map((section, index) => (
+  <View key={section.title || index} style={[styles.sectionContainer, { backgroundColor: GREEN_LIGHT_COLOR }]}>
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{section.title}</Text>
+      <TouchableOpacity onPress={() => toggleSection(index)} style={styles.toggleButton}>
+        <Text style={styles.toggleButtonText}>{expandedSections[index] ? '-' : '+'}</Text>
+      </TouchableOpacity>
+    </View>
+    {expandedSections[index] && (
+      <View style={styles.tagContainer}>
+        {section.tags.map((tag) => (
+          <TouchableOpacity
+            key={tag}
+            onPress={() => {
+              if (selectedTags.includes(tag)) {
+                setSelectedTags(selectedTags.filter((t) => t !== tag));
+              } else if (selectedTags.length < 3) {
+                setSelectedTags([...selectedTags, tag]);
+              }
+            }}
+            disabled={!selectedTags.includes(tag) && selectedTags.length >= 3}
+          >
+            <CommonTag
+              name={tag}
+              size={14}
+              color="#000"
+              showCloseButton={false}
+              containerStyle={{
+                borderColor: selectedTags.includes(tag) ? BLACK_COLOR : "#CCE5E5",
+                borderWidth: selectedTags.includes(tag) ? 2 : 0,
+                backgroundColor: WHITE_COLOR,
+                opacity: (!selectedTags.includes(tag) && selectedTags.length >= 3) ? 0.5 : 1
+              }}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+    )}
+  </View>
+))}
           </>
         }
         data={[]}

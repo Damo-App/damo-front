@@ -2,7 +2,9 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const instance = axios.create({
-  baseURL: "http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080",
+  // baseURL: "http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080",
+  // baseURL: "http://192.168.0.5:8080", 이디야
+  baseURL: "http://192.168.45.174:8080", //커피베이
   headers: { 'Content-Type': 'application/json' },
 });
 

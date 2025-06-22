@@ -50,6 +50,7 @@
     "@babel/eslint-parser": "^7.27.0",
     "@babel/plugin-transform-private-methods": "^7.25.9",
     "@eslint/js": "^9.23.0",
+    "@expo/cli": "^0.22.23",
     "@react-native-community/cli": "latest",
     "babel-eslint": "^10.1.0",
     "eslint": "^9.23.0",

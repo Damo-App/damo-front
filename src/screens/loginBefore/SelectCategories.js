@@ -70,7 +70,8 @@ const SelectCategories = () => {
 
       navigation.navigate('MainTabs', { screen: 'Login' }); // 로그인 화면으로 이동
     } catch (error) {
-      console.error('회원가입 실패:', error.message);
+      console.log("회원가입 실패 할때 데이터 들어오는거 확인", finalData);
+      console.error('회원가입 실패:', error);
     }
   };
 

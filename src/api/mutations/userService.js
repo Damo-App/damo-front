@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // 사용자 등록
 export const registerUser = async (userData) => {
   const response = await instance.post('/members', userData);
+  console.log('사용자 등록 response ================', response);
   return response.data;
 };
 
@@ -20,6 +21,7 @@ export const loginUser = async (credentials) => {
     console.log("📤 Sending Login Request:", credentials);
 
     // 로그인 요청
+    //백에서 지금 post 요청 내용 부분이 비어 있어서 제대로 작동 안하고 오류터짐 500
     const loginResponse = await instance.post('/auth/login', credentials);
     console.log("📥 Login Response:", loginResponse.data);
 

@@ -111,6 +111,10 @@ const GroupDetailScreen = ({ route, navigation }) => {
     navigation.navigate('BoardScreen', { groupId: groupId });
   };
 
+  const handleSchedule = () => {
+    navigation.navigate('SchedulePost', { groupId: groupId });
+  };
+
   const fetchMemberList = async (keyword = '') => {
     try {
       const response = await instance.get(`/groups/${groupId}/memberlist${keyword ? `?keyword=${keyword}` : ''}`);
@@ -211,6 +215,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
   const renderActionButton = () => {
     if (groupData.myRole === 'GROUP_LEADER') {
       return (
+        <>
         <CustomButton 
           title="게시판"
           style={{
@@ -222,6 +227,18 @@ const GroupDetailScreen = ({ route, navigation }) => {
           }}
           onPress={handleBoard}
         />
+        <CustomButton 
+          title="일정 생성"
+          style={{
+            ...styles.button,
+            backgroundColor: PINK_DARK_COLOR,
+            borderColor: BLACK_COLOR,
+            paddingVertical: 4,
+            paddingHorizontal: 16,
+          }}
+          onPress={handleSchedule}
+        />
+        </>
       );
     } else if (groupData.myRole === 'GROUP_MEMBER') {
       return (

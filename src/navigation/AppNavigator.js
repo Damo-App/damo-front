@@ -28,6 +28,9 @@ import CreateGroupScreen from '../screens/loginAfter/CreateGroupScreen';
 import GroupDetailScreen from '../screens/loginAfter/GroupDetailScreen';
 import { useNavigation } from '@react-navigation/native';
 import QuitMemberScreen from '../screens/loginAfter/QuitMemberScreen';
+import BoardScreen from '../screens/loginAfter/BoardScreen';
+import BoardPostScreen from '../screens/loginAfter/BoardPostScreen';
+import SchedulePost from '../screens/loginAfter/SchedulePost';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -139,6 +142,24 @@ const Stack = createStackNavigator();
                 <Stack.Screen name="내 모임 조회" component={MyGroupsScreen} />
                 <Stack.Screen name="비밀번호 변경" component={ChangePWScreen} />
                 <Stack.Screen name="회원탈퇴" component={QuitMemberScreen} />
+                <Stack.Screen 
+                name="BoardScreen" 
+                component={BoardScreen} 
+                options={{
+                  headerTitle: '게시판',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+                />
+                <Stack.Screen 
+                name="BoardPostScreen" 
+                component={BoardPostScreen} 
+                options={{
+                  headerTitle: '게시판 작성',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+                />
                 <Stack.Screen
                 name="GroupDetail"
                 component={GroupDetailScreen}
@@ -153,6 +174,15 @@ const Stack = createStackNavigator();
                 component={CreateGroupScreen}
                 options={{
                   headerTitle: '모임 상세',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
+              <Stack.Screen
+                name="SchedulePost"
+                component={SchedulePost}
+                options={{
+                  headerTitle: '일정 생성',
                   headerStyle: commonStyles.header,
                   headerTitleAlign: 'center',
                 }}

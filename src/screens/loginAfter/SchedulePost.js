@@ -14,6 +14,7 @@ import AddressInput from '../../components/schedule/AddressInput';
 import { createSchedule, getScheduleStatus, convertDaysOfWeek, formatDateTime } from '../../api/mutations/scheduleService';
 
 const SchedulePost = ({ navigation, route }) => {
+   const groupId = Number(route.params.groupId);
   // 상태 관리
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -49,7 +50,7 @@ const SchedulePost = ({ navigation, route }) => {
 
   // route params에서 groupId 가져오기 (실제 구현 시 필요)
   // 임시로 테스트용 그룹 ID 설정
-  const groupId = route?.params?.groupId || '1'; // 테스트용 기본값
+  // const groupId = route?.params?.groupId || '1'; // 테스트용 기본값
 
   // 드롭다운 옵션 준비
   const monthOptions = Array.from({ length: 12 }, (_, i) => {

@@ -242,7 +242,7 @@ function GroupListScreen({navigation}) {
             console.error("No category selected");
             return;
           }
-          navigation.navigate('CreateGroup', { selectedCategoryId }); // 카테고리 ID 전달
+          navigation.navigate('CreateGroupScreen', { selectedCategoryId }); // 카테고리 ID 전달
         }}
         // onPress={() => navigation.navigate('CreateGroupScreen', { selectedCategoryId: selectedCategoryId })}
       />
