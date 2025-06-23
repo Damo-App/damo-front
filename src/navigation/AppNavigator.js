@@ -23,6 +23,7 @@ import ChangePWScreen from '../screens/loginAfter/ChangePWScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserListScreen from '../screens/admin/UserListScreen';
+import UserManagementScreen from '../screens/admin/UserManagementScreen';
 import GroupListScreen from '../screens/loginAfter/GroupListScreen';
 import CreateGroupScreen from '../screens/loginAfter/CreateGroupScreen';
 import GroupDetailScreen from '../screens/loginAfter/GroupDetailScreen';
@@ -86,7 +87,7 @@ const Stack = createStackNavigator();
     useEffect(() => {
       const checkAdmin = async () => {
         const email = await AsyncStorage.getItem('email');
-        if (email === 'h4@gmail.com') {
+        if (email === 'admin123@gmail.com') {
           setIsAdmin(true);
         } else {
           setIsAdmin(false); // Reset admin state if email does not match
@@ -120,6 +121,7 @@ const Stack = createStackNavigator();
           {/* <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} /> */}
           <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} />
           <Stack.Screen name="UserList" component={UserListScreen} />
+          <Stack.Screen name="UserManagementScreen" component={UserManagementScreen} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           </>
         ) : (
