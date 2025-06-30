@@ -60,6 +60,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
       ]
     );
   };
+
   const handleJoin = async () => {
     try {
       console.log(`Sending join request to: /groups/${groupId}/join`); // Log the request URL
@@ -306,13 +307,13 @@ const GroupDetailScreen = ({ route, navigation }) => {
   };
 
   return (
-    <View style={[commonStyles.container, { flex: 1 }]}>
+    <View style={[commonStyles.container]}>
       <ScrollView 
         style={{ width: '100%', flex: 1 }}
         contentContainerStyle={{ 
-          flexGrow: 1,
-          paddingBottom: 150,
-          paddingHorizontal: 15,
+          // flexGrow: 1,
+          paddingBottom: 50,
+          // paddingRight: 4,
         }}
       >
         {/* 모임 기본 정보 */}
@@ -327,7 +328,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
             <Text style={styles.groupTitle}>{groupData.name}</Text>
             <Text style={styles.memberCount}>{groupData.memberCount}/{groupData.maxMemberCount}</Text>
           </View>
-          <Text style={styles.description}>{groupData.introduction}</Text>
+          {/* <Text style={styles.description}>{groupData.introduction}</Text> */}
           <View style={styles.bottomContainer}>
             <View style={styles.tagContainer}>
               <CommonTag
@@ -532,6 +533,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // paddingRight:10,
     width: '100%',
   },
   sectionboard: {
@@ -540,7 +542,8 @@ const styles = StyleSheet.create({
   },
   groupInfoCard: {
     backgroundColor: WHITE_COLOR,
-    padding: 10,
+    paddingTop: 10,
+    paddingHorizontal:10,
     marginBottom: 12,
     borderRadius: 10,
     width: '100%',
