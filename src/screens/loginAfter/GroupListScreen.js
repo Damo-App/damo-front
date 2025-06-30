@@ -8,6 +8,7 @@ import { CategoryIcon } from '../../components/CategoryIcon';
 import { commonShadow } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
 import { BLACK_COLOR, ERROR_COLOR, G_DARK_COLOR, G_LIGHT_COLOR, PRIMARY_COLOR, WHITE_COLOR } from '../../constants/colors';
+// import { red } from 'react-native-reanimated/lib/typescript/Colors';
 
 // 카테고리 ID에 따른 이미지 매핑
 const categoryImages = {
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     marginBottom: 5,
-    gap: 30
+    gap: 30,
   },
   categoryIcon: {
     backgroundColor: '#FFFFFF',
@@ -325,9 +326,9 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flexGrow: 1,
-    paddingHorizontal: 10,
+    // paddingHorizontal: 10,
     paddingBottom: 40,
-    minHeight: '100%',
+    // minHeight: '100%',
   },
   groupCard: {
     marginVertical: 5,
@@ -340,7 +341,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   emptyTextBox:{
-    marginTop:50,
+    marginTop:5,
     height:'auto',
     width:'100%',
     paddingHorizontal:20,
