@@ -11,6 +11,8 @@ import Toast from "react-native-toast-message";
 import { instance } from "../../api/axiosInstance";
 // import { jwtDecode } from "jwt-decode";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useUser } from "../../hooks/useUser";
+import { useIsFocused } from "@react-navigation/native";
 
 function BoardDetailsScreen({ route, navigation }) {
     const { groupId, boardId } = route.params;
@@ -20,12 +22,18 @@ function BoardDetailsScreen({ route, navigation }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [memberName, setMemberName] = useState("");
     const [isAuthor, setIsAuthor] = useState(false);
+    const { user } = useUser();
 
     // 게시글 상세 조회
     const fetchPostDetails = async () => {
         try {
             const response = await instance.get(`/groups/${groupId}/boards/${boardId}`);
             console.log('게시글 데이터:', response.data.data);
+
+            if(response.data.data.memberId === user.memberId){
+                setIsAuthor(true);
+            }
+
             setPost(response.data.data);
         } catch (error) {
             console.error('에러 발생:', error);
@@ -36,11 +44,13 @@ function BoardDetailsScreen({ route, navigation }) {
         }
     };
 
+
     // 댓글 목록 조회
     const fetchComments = async (page = 1) => {
         try {
             const response = await instance.get(`/boards/${boardId}/comments?page=${page}&size=10`);
             setComments(response.data.data);
+            console.log("댓글 목록 정보 조회", comments);
             setCurrentPage(page);
         } catch (error) {
             console.error('댓글 조회 실패:', error);
@@ -49,10 +59,12 @@ function BoardDetailsScreen({ route, navigation }) {
 
     // 현재 사용자 정보 가져오기
     const fetchMyInfo = async () => {
+        
         try {
-            const response = await instance.get('/mypage');
-            console.log('내 정보:', response.data.data);
+           const response = await instance.get(`/members/${user.memberId}`);
+            console.log("게시글 들어온 유저 정보", response.data.data);
             setMemberName(response.data.data.name);  // 사용자 이름 설정
+            
         } catch (error) {
             console.error('사용자 정보 조회 실패:', error);
         }
@@ -67,7 +79,9 @@ function BoardDetailsScreen({ route, navigation }) {
                 content: comment.trim()
             });
             setComment('');
+            // console.log("댓글 배열",comments);
             fetchComments(1);
+            fetchPostDetails();
             Toast.show({
                 type: 'success',
                 text1: '댓글이 작성되었습니다.'
@@ -135,9 +149,11 @@ function BoardDetailsScreen({ route, navigation }) {
         if (!editedContent || !editedContent.trim()) return;
 
         try {
-            await instance.patch(`/boards/${boardId}/comments/${commentId}`, {
+            const response = await instance.patch(`/boards/${boardId}/comments/${commentId}`, {
                 content: editedContent.trim()
             });
+
+            console.log("댓글 수정", response.config.data)
             
             Toast.show({
                 type: 'success',
@@ -145,6 +161,7 @@ function BoardDetailsScreen({ route, navigation }) {
             });
             
             fetchComments(currentPage);
+            fetchPostDetails();
         } catch (error) {
             if (error.response?.data?.message === 'Not authorized to access this resource') {
                 Toast.show({
@@ -168,6 +185,7 @@ function BoardDetailsScreen({ route, navigation }) {
                 text1: '댓글이 삭제되었습니다.'
             });
             fetchComments(currentPage);
+            fetchPostDetails();
         } catch (error) {
             if (error.response?.data?.message === 'Not authorized to access this resource') {
                 Toast.show({
@@ -228,7 +246,11 @@ function BoardDetailsScreen({ route, navigation }) {
                         <View style={styles.commentSection}>
                             <Text style={styles.commentTitle}>댓글</Text>
                             <View style={styles.commentList}>
-                                {comments.map((item) => (
+                                {
+                                    post.commentCount === 0 
+                                    ?
+                                   <Text>댓글이 없습니다.</Text>
+                                    : comments.map((item) => (
                                     <CommentItem
                                         key={item.commentId}
                                         username={item.memberName}
@@ -238,7 +260,9 @@ function BoardDetailsScreen({ route, navigation }) {
                                         onEdit={(editedContent) => handleCommentEdit(item.commentId, editedContent)}
                                         onDelete={() => handleCommentDelete(item.commentId)}
                                     />
-                                ))}
+                                    ))
+                                }
+                                
                             </View>
                         </View>
 

@@ -4,9 +4,11 @@ import BoardCard from '../../components/BoardCard';
 import { PRIMARY_BACK_COLOR, PRIMARY_BTN_COLOR, BLACK_COLOR, WHITE_COLOR } from '../../constants/colors';
 import { commonBtn, commonShadow, commonStyles } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
+import { useIsFocused } from '@react-navigation/native';
 
 const BoardScreen = ({route, navigation}) => {
   const groupId = Number(route.params.groupId);
+  const isFocused = useIsFocused();
   const [posts, setPosts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -30,12 +32,12 @@ const BoardScreen = ({route, navigation}) => {
     }
   }, [groupId, currentPage]);
 
-  useEffect(() => {
-    if (route.params?.refresh) {
-      fetchPosts();
-      navigation.setParams({ refresh: undefined });
-    }
-  }, [route.params?.refresh]);
+  // useEffect(() => {
+  //   if (route.params?.refresh) {
+  //     fetchPosts();
+  //     navigation.setParams({ refresh: undefined });
+  //   }
+  // }, [route.params?.refresh]);
 
   const fetchPosts = async () => {
     try {
@@ -62,6 +64,12 @@ const BoardScreen = ({route, navigation}) => {
       setLoading(false);
     }
   };
+
+   useEffect(() => {
+        if (isFocused) {
+        fetchPosts();
+        }
+    }, [isFocused]);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
