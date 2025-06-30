@@ -9,7 +9,7 @@ import { CustomButton } from "../../components/CustomButton";
 import CommentItem from "../../components/CommentItem";
 import Toast from "react-native-toast-message";
 import { instance } from "../../api/axiosInstance";
-import { jwtDecode } from "jwt-decode";
+// import { jwtDecode } from "jwt-decode";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function BoardDetailsScreen({ route, navigation }) {
@@ -27,21 +27,6 @@ function BoardDetailsScreen({ route, navigation }) {
             const response = await instance.get(`/groups/${groupId}/boards/${boardId}`);
             console.log('게시글 데이터:', response.data.data);
             setPost(response.data.data);
-
-            // AsyncStorage에서 토큰 가져오기
-            const token = await AsyncStorage.getItem('accessToken');
-
-            if (token) {
-                const decodedToken = jwtDecode(token);
-                console.log('디코딩된 토큰:', decodedToken);
-                console.log('토큰의 memberId:', decodedToken.memberId);
-                console.log('게시글 작성자 memberId:', response.data.data.memberId);
-                
-                // memberId 비교
-                const isPostAuthor = Number(decodedToken.memberId) === response.data.data.memberId;
-                console.log('작성자 일치 여부:', isPostAuthor);
-                setIsAuthor(isPostAuthor);
-            }
         } catch (error) {
             console.error('에러 발생:', error);
             Toast.show({
@@ -99,7 +84,7 @@ function BoardDetailsScreen({ route, navigation }) {
         fetchPostDetails();
         fetchComments(1);
         fetchMyInfo();  // 사용자 정보 조회 추가
-    }, [boardId]);
+    }, []);
 
     const handleEdit = () => {
         navigation.navigate('BoardUpdateScreen', { 

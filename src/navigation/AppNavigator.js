@@ -32,6 +32,7 @@ import QuitMemberScreen from '../screens/loginAfter/QuitMemberScreen';
 import BoardScreen from '../screens/loginAfter/BoardScreen';
 import BoardPostScreen from '../screens/loginAfter/BoardPostScreen';
 import SchedulePost from '../screens/loginAfter/SchedulePost';
+import BoardDetailsScreen from '../screens/loginAfter/BoardDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -175,7 +176,7 @@ const Stack = createStackNavigator();
                 name="CreateGroupScreen"
                 component={CreateGroupScreen}
                 options={{
-                  headerTitle: '모임 상세',
+                  headerTitle: '모임 생성',
                   headerStyle: commonStyles.header,
                   headerTitleAlign: 'center',
                 }}
@@ -185,6 +186,15 @@ const Stack = createStackNavigator();
                 component={SchedulePost}
                 options={{
                   headerTitle: '일정 생성',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
+              <Stack.Screen
+                name="BoardDetailsScreen"
+                component={BoardDetailsScreen}
+                options={{
+                  headerTitle: '게시물 상세',
                   headerStyle: commonStyles.header,
                   headerTitleAlign: 'center',
                 }}
