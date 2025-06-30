@@ -1,15 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import MenuBar from '../../components/MenuBar';
 import { BLACK_COLOR, GREEN_LIGHT_COLOR, NAV_BAR_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BACK_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../../hooks/useUser';
+import { memberInfo } from '../../api/queries/userService';
  // MenuBar 컴포넌트 import
 
 const MyPageScreen = () => {
   const navigation = useNavigation();
   const { logout } = useUser(); // 로그아웃 함수 가져오기
+  const [currentMember, setCurrentMember] = useState([]);
+
+  const fetchMember = async () => {
+    try {
+      const data = await memberInfo();
+      setCurrentMember(data)
+    } catch(error) {
+      console.log('회원 정보 불러오기 실패!!!', error)
+    }
+  }
+
+  useEffect(() => {
+      fetchMember();
+  }, []);
   
     const handleLogout = async () => {
       try {
@@ -30,9 +45,9 @@ const MyPageScreen = () => {
           style={styles.profileImage}
         />
         <View>
-          <Text style={styles.userName}>닉네임</Text>
-          <Text style={styles.userDetails}>이메일</Text>
-          <Text style={styles.userDetails}>전화번호</Text>
+          <Text style={styles.userName}>{currentMember.name}</Text>
+          <Text style={styles.userDetails}>{currentMember.email}</Text>
+          <Text style={styles.userDetails}>{currentMember.phoneNumber}</Text>
         </View>
       </View>
 
