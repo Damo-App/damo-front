@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import InputWithLabel from '../../components/InputWithLabel';
-import { PRIMARY_BACK_COLOR, BLACK_COLOR, WHITE_COLOR } from '../../constants/colors';
+import { PRIMARY_BACK_COLOR, BLACK_COLOR, WHITE_COLOR, PRIMARY_BTN_COLOR } from '../../constants/colors';
 
 // 분리된 컴포넌트들 임포트
 import ScheduleTypeSelector from '../../components/schedule/ScheduleTypeSelector';
@@ -12,9 +12,48 @@ import AddressInput from '../../components/schedule/AddressInput';
 
 // API 서비스 임포트
 import { createSchedule, getScheduleStatus, convertDaysOfWeek, formatDateTime } from '../../api/mutations/scheduleService';
+import { CustomButton } from "../../components/CustomButton";
 
 const SchedulePost = ({ navigation, route }) => {
-   const groupId = Number(route.params.groupId);
+
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  useEffect(() => {
+      console.log('입력값:', {
+      title, description, startMonth, startDay, endMonth, endDay, 
+      startHour, startMinute, endHour, endMinute, 
+      selectedDays, maxMembers, address, selectedOption
+    });
+
+  const isValid = (
+    title.trim() &&
+    description.trim() &&
+    startMonth !== 'MM' &&
+    startDay !== 'DD' &&
+    startHour !== 'hh' &&
+    startMinute !== 'mm' &&
+    maxMembers && !isNaN(parseInt(maxMembers)) &&
+    address.trim()
+  ) && (
+    selectedOption === '단일일정' ? (
+      endHour !== 'hh' && endMinute !== 'mm'
+    ) : (
+      endMonth !== 'MM' && endDay !== 'DD' && endHour !== 'hh' && endMinute !== 'mm'
+    )
+  ) && (
+    selectedOption !== '정기일정' || selectedDays.length > 0
+  );
+  setIsFormValid(isValid);
+}, [title, description, 
+    startMonth, startDay, 
+    endMonth, endDay, 
+    startHour, startMinute, 
+    endHour, endMinute, 
+    selectedDays, maxMembers, 
+    address, selectedOption]);
+
+
+  const groupId = Number(route.params.groupId);
   // 상태 관리
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -70,7 +109,7 @@ const SchedulePost = ({ navigation, route }) => {
   const minuteOptions = Array.from({ length: 60 }, (_, i) => {
     return { label: i < 10 ? `0${i}` : `${i}`, value: i < 10 ? `0${i}` : `${i}` };
   });
-
+  
   // 요일 옵션
   const dayOfWeekOptions = [
     { id: 'mon', label: '월' },
@@ -336,13 +375,20 @@ const SchedulePost = ({ navigation, route }) => {
 
         {/* 생성 버튼 */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
             style={[styles.submitButton, isLoading && styles.disabledButton]}
             onPress={handleSubmit}
             disabled={isLoading}
           >
-            <Text style={styles.buttonText}>{isLoading ? '처리중...' : '생성'}</Text>
-          </TouchableOpacity>
+            <Text style={styles.buttonText}>{isLoading ? '처리중...' : '일정 생성'}</Text>
+          </TouchableOpacity> */}
+          <CustomButton 
+            title={isLoading ? '처리중...' : '일정 생성'}
+            onPress={handleSubmit}
+            style={{...styles.submitButton, marginTop: 20}}
+            textStyle={{fontSize: 16, lineHeight: 20}}
+            disabled={isLoading || !isFormValid}
+          />
         </View>
       </View>
       
@@ -390,18 +436,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingRight: 0,
     marginBottom: 10,
+    width: '100%',
   },
   submitButton: {
-    width: 80,
-    height: 40,
-    backgroundColor: '#E8E8E8',
-    borderRadius: 4,
+    width: '100%',
+    height: 45,
+    // backgroundColor: '#E8E8E8',
+    // borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  disabledButton: {
-    backgroundColor: '#cccccc',
-  },
+  // disabledButton: {
+  //   backgroundColor: '#cccccc',
+  // },
   buttonText: {
     fontSize: 14,
     fontWeight: '500',
