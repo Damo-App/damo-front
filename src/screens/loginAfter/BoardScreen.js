@@ -113,7 +113,7 @@ const BoardScreen = ({route, navigation}) => {
                 username={post.memberName}
                 title={post.title}
                 content={post.content}
-                postImage={post.image ? { uri: post.image } : defaultImage}
+                postImage={post.image ? { uri: post.image } : null}
                 createdAt={formatDate(post.createdAt)}
                 commentCount={post.commentCount}
               />
