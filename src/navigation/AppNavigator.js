@@ -33,6 +33,7 @@ import BoardScreen from '../screens/loginAfter/BoardScreen';
 import BoardPostScreen from '../screens/loginAfter/BoardPostScreen';
 import SchedulePost from '../screens/loginAfter/SchedulePost';
 import BoardDetailsScreen from '../screens/loginAfter/BoardDetailsScreen';
+import ScheduleDetails from '../screens/loginAfter/ScheduleDetails';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -195,6 +196,15 @@ const Stack = createStackNavigator();
                 component={BoardDetailsScreen}
                 options={{
                   headerTitle: '게시물 상세',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
+              <Stack.Screen
+                name="ScheduleDetails"
+                component={ScheduleDetails}
+                options={{
+                  headerTitle: '일정 상세',
                   headerStyle: commonStyles.header,
                   headerTitleAlign: 'center',
                 }}

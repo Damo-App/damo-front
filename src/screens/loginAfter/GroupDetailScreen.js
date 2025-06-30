@@ -136,6 +136,10 @@ const GroupDetailScreen = ({ route, navigation }) => {
     fetchMemberList(text);
   };
 
+  const handleDetailSchedule = (scheduleId) => {
+    navigation.navigate('ScheduleDetails', { scheduleId, groupId });
+  }
+
   const handleCancelSchedule = (scheduleId) => {
     Alert.alert(
       "일정 취소",
@@ -394,7 +398,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                   </View>
                   {groupData.myRole === 'GROUP_LEADER' && (
                     <View style={styles.scheduleActions}>
-                      <TouchableOpacity style={[styles.smallButton, commonShadow.mainShadow]}>
+                      <TouchableOpacity style={[styles.smallButton, commonShadow.mainShadow]} onPress={() => handleDetailSchedule(schedule.scheduleId)}>
                         <Text style={styles.smallButtonText}>상세</Text>
                       </TouchableOpacity>
                       <TouchableOpacity 
