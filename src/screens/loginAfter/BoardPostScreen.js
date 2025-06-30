@@ -7,6 +7,7 @@ import { BLACK_COLOR, PRIMARY_BTN_COLOR, WHITE_COLOR } from '../../constants/col
 import InputWithLabel from '../../components/InputWithLabel';
 import Toast from 'react-native-toast-message';
 import { Alert } from 'react-native';
+import { Modal } from 'react-native-ui-lib';
 
 const BoardPostScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
@@ -158,6 +159,7 @@ const BoardPostScreen = ({ route, navigation }) => {
             {loading ? '작성 중...' : '작성하기'}
           </Text>
         </TouchableOpacity>
+        <Modal visible={loading} transparent />
       </ScrollView>
     </View>
   );
