@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { CustomButton } from '../../components/CustomButton';
 import CommonTag from '../../components/CommonTag';
-import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, WHITE_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
+import { BLACK_COLOR, BORDER_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
 
@@ -221,7 +221,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
           title="게시판"
           style={{
             ...styles.button,
-            backgroundColor: PINK_DARK_COLOR,
+            backgroundColor: PRIMARY_COLOR,
             borderColor: BLACK_COLOR,
             paddingVertical: 4,
             paddingHorizontal: 16,
@@ -232,7 +232,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
           title="일정 생성"
           style={{
             ...styles.button,
-            backgroundColor: PINK_DARK_COLOR,
+            backgroundColor: PINK_LIGHT_COLOR,
             borderColor: BLACK_COLOR,
             paddingVertical: 4,
             paddingHorizontal: 16,
@@ -282,7 +282,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
             title="삭제하기"
             style={{
               ...styles.button,
-              backgroundColor: 'red',
+              backgroundColor: PINK_DARK_COLOR,
               borderColor: BLACK_COLOR,
               paddingVertical: 4,
               paddingHorizontal: 16,
@@ -311,9 +311,8 @@ const GroupDetailScreen = ({ route, navigation }) => {
       <ScrollView 
         style={{ width: '100%', flex: 1 }}
         contentContainerStyle={{ 
-          // flexGrow: 1,
+          paddingHorizontal:16,
           paddingBottom: 50,
-          // paddingRight: 4,
         }}
       >
         {/* 모임 기본 정보 */}
@@ -534,6 +533,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     // paddingRight:10,
+    paddingHorizontal:16,
     width: '100%',
   },
   sectionboard: {
@@ -576,6 +576,12 @@ const styles = StyleSheet.create({
     color: BLACK_COLOR,
   },
   description: {
+    backgroundColor: WHITE_COLOR,
+    padding:10,
+    borderRadius: 10,
+    borderStyle: "solid",
+    borderWidth:1,
+    borderColor: BORDER_COLOR,
     fontSize: 12,
     color: BLACK_COLOR,
     lineHeight: 18,
