@@ -10,7 +10,8 @@ export const commonStyles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: PRIMARY_BACK_COLOR,
     paddingVertical: 16,
-    paddingHorizontal:16
+    // paddingHorizontal: 16,
+    // overflow: "visible"
   },
   centerContainer:{
     width:'100%',
