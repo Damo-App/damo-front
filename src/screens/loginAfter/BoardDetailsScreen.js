@@ -16,6 +16,7 @@ import { useIsFocused } from "@react-navigation/native";
 
 function BoardDetailsScreen({ route, navigation }) {
     const { groupId, boardId } = route.params;
+    const isFocused = useIsFocused();
     const [comment, setComment] = useState("");
     const [post, setPost] = useState(null);
     const [comments, setComments] = useState([]);
@@ -23,6 +24,8 @@ function BoardDetailsScreen({ route, navigation }) {
     const [memberName, setMemberName] = useState("");
     const [isAuthor, setIsAuthor] = useState(false);
     const { user } = useUser();
+
+    console.log(user.memberId);
 
     // 게시글 상세 조회
     const fetchPostDetails = async () => {
@@ -39,7 +42,8 @@ function BoardDetailsScreen({ route, navigation }) {
             console.error('에러 발생:', error);
             Toast.show({
                 type: 'error',
-                text1: '게시글을 불러오는데 실패했습니다.'
+                text1: '게시글을 불러오는데 실패했습니다.',
+                position:'bottom'
             });
         }
     };
@@ -84,15 +88,23 @@ function BoardDetailsScreen({ route, navigation }) {
             fetchPostDetails();
             Toast.show({
                 type: 'success',
-                text1: '댓글이 작성되었습니다.'
+                text1: '댓글이 작성되었습니다.',
+                position:'bottom'
             });
         } catch (error) {
             Toast.show({
                 type: 'error',
-                text1: '댓글 작성에 실패했습니다.'
+                text1: '댓글 작성에 실패했습니다.',
+                position:'bottom'
             });
         }
     };
+    
+    useEffect(() => {
+        if (isFocused) {
+        fetchPostDetails();
+        }
+    }, [isFocused]);
 
     useEffect(() => {
         fetchPostDetails();
@@ -127,7 +139,8 @@ function BoardDetailsScreen({ route, navigation }) {
                             await instance.delete(`/groups/${groupId}/boards/${boardId}`);
                             Toast.show({
                                 type: 'success',
-                                text1: '게시글이 삭제되었습니다.'
+                                text1: '게시글이 삭제되었습니다.',
+                                position:'bottom'
                             });
                             navigation.navigate('BoardScreen', {
                                 groupId: groupId,
@@ -136,7 +149,8 @@ function BoardDetailsScreen({ route, navigation }) {
                         } catch (error) {
                             Toast.show({
                                 type: 'error',
-                                text1: '게시글 삭제에 실패했습니다.'
+                                text1: '게시글 삭제에 실패했습니다.',
+                                position:'bottom'
                             });
                         }
                     }
@@ -157,7 +171,8 @@ function BoardDetailsScreen({ route, navigation }) {
             
             Toast.show({
                 type: 'success',
-                text1: '댓글이 수정되었습니다.'
+                text1: '댓글이 수정되었습니다.',
+                position:'bottom'
             });
             
             fetchComments(currentPage);
@@ -166,12 +181,14 @@ function BoardDetailsScreen({ route, navigation }) {
             if (error.response?.data?.message === 'Not authorized to access this resource') {
                 Toast.show({
                     type: 'error',
-                    text1: '댓글 작성자가 아닙니다.'
+                    text1: '댓글 작성자가 아닙니다.',
+                    position:'bottom'
                 });
             } else {
                 Toast.show({
                     type: 'error',
-                    text1: '댓글 수정에 실패했습니다.'
+                    text1: '댓글 수정에 실패했습니다.',
+                    position:'bottom'
                 });
             }
         }
@@ -182,7 +199,8 @@ function BoardDetailsScreen({ route, navigation }) {
             await instance.delete(`/boards/${boardId}/comments/${commentId}`);
             Toast.show({
                 type: 'success',
-                text1: '댓글이 삭제되었습니다.'
+                text1: '댓글이 삭제되었습니다.',
+                position:'bottom'
             });
             fetchComments(currentPage);
             fetchPostDetails();
@@ -190,12 +208,14 @@ function BoardDetailsScreen({ route, navigation }) {
             if (error.response?.data?.message === 'Not authorized to access this resource') {
                 Toast.show({
                     type: 'error',
-                    text1: '댓글 작성자가 아닙니다.'
+                    text1: '댓글 작성자가 아닙니다.',
+                    position:'bottom'
                 });
             } else {
                 Toast.show({
                     type: 'error',
-                    text1: '댓글 삭제에 실패했습니다.'
+                    text1: '댓글 삭제에 실패했습니다.',
+                    position:'bottom'
                 });
             }
         }

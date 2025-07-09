@@ -83,6 +83,7 @@ export const patchUserPw = async (data) => {
       type: 'error',
       text1: '비밀번호 변경 실패!',
       text2: error.message,
+      position:'bottom'
     });
 
     throw error; // Re-throw error for handling in mutation

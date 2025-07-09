@@ -69,7 +69,7 @@ export const LoginScreen = () => {
         <InputWithLabel
           label="아이디"
           placeholder="이메일 형식으로 입력해주세요."
-          value={username}
+          value={username === '' ? "qwe1@test.co" : username}
           onChangeText={(text) => setUsername(text)}
           error={userError}
           description={userError ? '이메일 형식을 잘못 입력했습니다.' : ''}

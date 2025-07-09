@@ -34,6 +34,7 @@ import BoardPostScreen from '../screens/loginAfter/BoardPostScreen';
 import SchedulePost from '../screens/loginAfter/SchedulePost';
 import BoardDetailsScreen from '../screens/loginAfter/BoardDetailsScreen';
 import ScheduleDetails from '../screens/loginAfter/ScheduleDetails';
+import BoardUpdateScreen from '../screens/loginAfter/BoardUpdateScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -201,6 +202,15 @@ const Stack = createStackNavigator();
                 }}
               />
               <Stack.Screen
+                name="BoardUpdateScreen"
+                component={BoardUpdateScreen}
+                options={{
+                  headerTitle: '게시물 수정',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
+              <Stack.Screen
                 name="ScheduleDetails"
                 component={ScheduleDetails}
                 options={{
@@ -208,6 +218,15 @@ const Stack = createStackNavigator();
                   headerStyle: commonStyles.header,
                   headerTitleAlign: 'center',
                 }}
+              />
+              <Stack.Screen
+                name="GroupList"
+                component={GroupListScreen}
+                // options={{
+                //   headerTitle: '일정 상세',
+                //   headerStyle: commonStyles.header,
+                //   headerTitleAlign: 'center',
+                // }}
               />
               </>
             )}
