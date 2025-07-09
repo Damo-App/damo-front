@@ -183,9 +183,12 @@ const GroupDetailScreen = ({ route, navigation }) => {
                   text: '확인',
                   onPress: () => {
                     // 삭제된 그룹 ID와 함께 이전 화면으로 돌아가기
+                    // navigation.navigate('GroupList', { 
+                    //   deletedGroupId: groupId,
+                    //   needRefresh: true 
+                    // });
                     navigation.navigate('GroupList', { 
-                      deletedGroupId: groupId,
-                      needRefresh: true 
+                      refresh: Date.now()
                     });
                   }
                 }
@@ -342,7 +345,12 @@ const GroupDetailScreen = ({ route, navigation }) => {
                 showCloseButton={false}
                 containerStyle={{ backgroundColor: '#EEE333', borderColor: BLACK_COLOR, borderWidth: 0.6, marginRight: -1 }}
               />
-              {[...(groupData.tags.mood || []), ...(groupData.tags.MBTI || [])].map((tag, index) => (
+              {[...(groupData.tags.age || []),
+               ...(groupData.tags.MBTI || []),
+               ...(groupData.tags.mood || []),
+               ...(groupData.tags.place || []),
+               ...(groupData.tags.location || []),
+               ...(groupData.tags.cost || [])].map((tag, index) => (
                 <CommonTag
                   key={index}
                   name={tag}

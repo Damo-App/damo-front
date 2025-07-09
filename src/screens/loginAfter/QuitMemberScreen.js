@@ -55,6 +55,7 @@ const QuitMemberScreen = () => {
         type: "success",
         text1: "회원 탈퇴 완료",
         text2: "그동안 이용해주셔서 감사합니다.",
+        position:'bottom'
       });
 
       await logout(navigation);
@@ -63,8 +64,8 @@ const QuitMemberScreen = () => {
       Toast.show({
         type: "error",
         text1: "회원 탈퇴 실패",
-        text2:
-          error.response?.data?.message || "이메일/비밀번호를 다시 확인해주세요.",
+        text2: error.response?.data?.message || "이메일/비밀번호를 다시 확인해주세요.",
+        position:'bottom'
       });
     },
   });
@@ -75,6 +76,7 @@ const QuitMemberScreen = () => {
         type: "error",
         text1: "개인정보 동의 필요",
         text2: "탈퇴를 위해 개인정보 동의가 필요합니다.",
+        position:'bottom'
       });
       return;
     }
@@ -84,6 +86,7 @@ const QuitMemberScreen = () => {
         type: "error",
         text1: "입력 오류",
         text2: "이메일 또는 비밀번호를 확인해주세요.",
+        position:'bottom'
       });
       return;
     }

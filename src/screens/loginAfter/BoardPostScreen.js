@@ -52,8 +52,9 @@ const BoardPostScreen = ({ route, navigation }) => {
       if (!title.trim() || !content.trim()) {
         Toast.show({
           type: 'error',
-          text1: '입력 오류',
-          text2: '제목과 내용을 모두 입력해주세요.'
+          // text1: '입력 오류',
+          text1: '제목과 내용을 모두 입력해주세요.',
+          position:'bottom'
         });
         return;
       }
@@ -96,7 +97,9 @@ const BoardPostScreen = ({ route, navigation }) => {
       Toast.show({
         type: 'error',
         text1: '게시글 작성 실패',
-        text2: error.response?.data?.message || '다시 시도해주세요.'
+        text2: error.response?.data?.message || '다시 시도해주세요.',
+        position:'bottom'
+      
       });
     } finally {
       setLoading(false);

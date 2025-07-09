@@ -567,11 +567,13 @@ const CreateGroupScreen = ({ navigation }) => {
   
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedImage = result.assets[0];
-        setImage({
-          uri: selectedImage.uri,
-          type: 'image/jpeg',
-          name: 'image.jpg'
-        });
+        console.log("이미지 선택 관련 result 결과",result.assets[0].uri);
+        // setImage({
+        //   uri: selectedImage.uri,
+        //   type: 'image/jpeg',
+        //   name: 'image.jpg'
+        // });
+        setProfileImage(result.assets[0].uri); //이미지 등록 useState 함수 활욘
       } else {
         console.log("이미지 선택이 취소되었습니다.");
       }
@@ -621,6 +623,10 @@ const CreateGroupScreen = ({ navigation }) => {
         ? 'image/png' 
         : 'image/jpeg';
 
+        console.log("uriParts============ ",uriParts);
+        console.log("fileName========== ",fileName);
+        console.log("fileType========== ",fileType);
+
       // FormData 생성
       const formData = new FormData();
       formData.append('file', {
@@ -628,6 +634,8 @@ const CreateGroupScreen = ({ navigation }) => {
         name: fileName,
         type: fileType,
       });
+
+      console.log("formData=========== ",formData);
 
       console.log("Uploading image for group:", groupId);
       
@@ -647,59 +655,114 @@ const CreateGroupScreen = ({ navigation }) => {
   };
 
   // 모임 생성 요청
+
+  //수정중인 코드
   const handleSubmit = async () => {
-    if (!isFormValid) {
-      Alert.alert("입력 오류", "모든 필수 정보를 올바르게 입력해주세요.");
-      return;
+  if (!isFormValid) {
+    Alert.alert("입력 오류", "모든 필수 정보를 올바르게 입력해주세요.");
+    return;
+  }
+
+  if (!selectedCategoryId) {
+    Alert.alert("오류", "카테고리 정보가 없습니다.");
+    return;
+  }
+
+  try {
+    setIsLoading(true);
+
+    // 1. groupData 준비
+    const groupData = {
+      // categoryId: selectedCategoryId,
+      groupName: groupName,
+      introduction: introduction,
+      maxMemberCount: parseInt(maxMembers, 10),
+      gender: gender === "무관" ? "NONE" : gender === "여성" ? "FEMALE" : "MALE",
+      minBirth: ageRestriction === "제한" ? startYear : null,
+      maxBirth: ageRestriction === "제한" ? endYear : null,
+      // subCategoryId : [...mandatoryTags.map(tag => (tag))],
+      subCategoryId : mandatoryTags[0],
+      tags: [
+        ...selectedTags.map(tag => ({ tagName: tag }))
+      ],
+    };
+
+    console.log("groupData================", groupData);
+    //groupData 콘솔 결과
+    // {"gender": "FEMALE", "groupName": "고양이 심리 모임", "introduction": "고양이 심리 모임입니다~", "maxBirth": null, "maxMemberCount": 10, "minBirth": null, "subCategoryId": 72, "tags": [{"tagName": "ENFP"}]}
+
+    ///---------- 일단 여기까진 된듯? ------------- /////
+
+    // 2. FormData 생성
+    const formData = new FormData();
+
+    console.log("formData :", formData);
+    console.log("profileImage :", profileImage);
+
+    // 2-1. 파일 추가
+    if (profileImage) {
+      const uriParts = profileImage.split('/');
+      const fileName = uriParts[uriParts.length - 1];
+      const fileType = fileName.split('.').pop().toLowerCase() === 'png'
+        ? 'image/png'
+        : 'image/jpeg';
+
+        console.log("uriParts : ",uriParts);
+        console.log("fileName : ",fileName);
+        console.log("fileType : ",fileType);
+
+      formData.append('groupImage', {
+        uri: profileImage,
+        name: fileName,
+        type: fileType,
+      });
     }
 
-    if (!selectedCategoryId) {
-      Alert.alert("오류", "카테고리 정보가 없습니다.");
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
+    // 2-2. JSON 추가
+    formData.append(
+      'groupPostDto',
+      JSON.stringify(groupData)
+    );
+    // console.log("blob???? ====", new Blob([JSON.stringify(groupData)]));
+    // console.log("formData ==========", formData);
 
-      // 모임 생성 데이터 준비
-      const groupData = {
-        categoryId: selectedCategoryId, // 카테고리 ID 추가
-        name: groupName,
-        introduction: introduction,
-        maxMemberCount: parseInt(maxMembers, 10),
-        gender: gender,
-        minBirth: ageRestriction === "제한" ? startYear : null,
-        maxBirth: ageRestriction === "제한" ? endYear : null,
-        tags: [
-          ...mandatoryTags.map(tag => ({ tagName: tag })),
-          ...selectedTags.map(tag => ({ tagName: tag }))
-        ],
-      };
+    // 3. axios로 전송
+    const response = await instance.post('/groups', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-      console.log('모임 생성 요청 데이터:', groupData);
+    // console.log("response===========", response);
 
-      // 모임 생성 API 호출
-      const response = await instance.post('/groups', groupData);
-      console.log('모임 생성 응답:', response.data);
-      
-      const groupId = response.data.data.groupId;
-      
-      // 이미지가 있으면 업로드
-      if (profileImage) {
-        try {
-          await uploadImage(groupId);
-          console.log("이미지 업로드 완료");
-        } catch (imageError) {
-          console.error("이미지 업로드 실패:", imageError);
-          Alert.alert(
-            "일부 완료", 
-            "모임은 생성되었지만 이미지 업로드에 실패했습니다. 나중에 모임 설정에서 이미지를 추가해주세요."
-          );
-          setIsLoading(false);
-          navigation.navigate('GroupDetail', { groupId });
-          return;
-        }
+    const location = response.headers.location;
+    let groupId = null;
+
+    if (location) {
+      const match = location.match(/\/groups\/(\d+)/);
+      if (match && match[1]) {
+        groupId = Number(match[1]);
+        // groupId로 이후 로직 처리
+        // navigation.navigate('GroupDetail', { groupId });
       }
+    }
+      
+    //   // 이미지가 있으면 업로드
+    //   if (profileImage) {
+    //     try {
+    //       await uploadImage(groupId);
+    //       console.log("이미지 업로드 완료");
+    //     } catch (imageError) {
+    //       console.error("이미지 업로드 실패:", imageError);
+    //       Alert.alert(
+    //         "일부 완료", 
+    //         "모임은 생성되었지만 이미지 업로드에 실패했습니다. 나중에 모임 설정에서 이미지를 추가해주세요."
+    //       );
+    //       setIsLoading(false);
+    //       navigation.navigate('GroupDetail', { groupId });
+    //       return;
+    //     }
+    //   }
 
       Alert.alert("성공", "모임이 성공적으로 생성되었습니다.", [
         {
@@ -707,16 +770,93 @@ const CreateGroupScreen = ({ navigation }) => {
           onPress: () => navigation.navigate('GroupDetail', { groupId })
         }
       ]);
-    } catch (error) {
-      console.error('모임 생성 오류:', error.response?.data || error.message);
+
+    // 이후 로직 (성공 처리 등)
+    // ...
+  } catch (error) {
+    // 에러 처리
+     console.error('모임 생성 오류:', error);
+     console.error('모임 생성 오류:', error.response?.data || error.message);
       Alert.alert(
         "오류", 
         error.response?.data?.message || "모임 생성 중 오류가 발생했습니다. 다시 시도해주세요."
       );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+  //기존코드
+  // const handleSubmit = async () => {
+  //   if (!isFormValid) {
+  //     Alert.alert("입력 오류", "모든 필수 정보를 올바르게 입력해주세요.");
+  //     return;
+  //   }
+
+  //   if (!selectedCategoryId) {
+  //     Alert.alert("오류", "카테고리 정보가 없습니다.");
+  //     return;
+  //   }
+    
+  //   try {
+  //     setIsLoading(true);
+
+  //     // 모임 생성 데이터 준비
+  //     const groupData = {
+  //       categoryId: selectedCategoryId, // 카테고리 ID 추가
+  //       name: groupName,
+  //       introduction: introduction,
+  //       maxMemberCount: parseInt(maxMembers, 10),
+  //       gender: gender,
+  //       minBirth: ageRestriction === "제한" ? startYear : null,
+  //       maxBirth: ageRestriction === "제한" ? endYear : null,
+  //       tags: [
+  //         ...mandatoryTags.map(tag => ({ tagName: tag })),
+  //         ...selectedTags.map(tag => ({ tagName: tag }))
+  //       ],
+  //     };
+
+  //     console.log('모임 생성 요청 데이터:', groupData);
+
+  //     // 모임 생성 API 호출
+  //     const response = await instance.post('/groups', groupData);
+  //     console.log('모임 생성 응답:', response.data);
+      
+  //     const groupId = response.data.data.groupId;
+      
+  //     // 이미지가 있으면 업로드
+  //     if (profileImage) {
+  //       try {
+  //         await uploadImage(groupId);
+  //         console.log("이미지 업로드 완료");
+  //       } catch (imageError) {
+  //         console.error("이미지 업로드 실패:", imageError);
+  //         Alert.alert(
+  //           "일부 완료", 
+  //           "모임은 생성되었지만 이미지 업로드에 실패했습니다. 나중에 모임 설정에서 이미지를 추가해주세요."
+  //         );
+  //         setIsLoading(false);
+  //         navigation.navigate('GroupDetail', { groupId });
+  //         return;
+  //       }
+  //     }
+
+  //     Alert.alert("성공", "모임이 성공적으로 생성되었습니다.", [
+  //       {
+  //         text: "확인",
+  //         onPress: () => navigation.navigate('GroupDetail', { groupId })
+  //       }
+  //     ]);
+  //   } catch (error) {
+  //     console.error('모임 생성 오류:', error.response?.data || error.message);
+  //     Alert.alert(
+  //       "오류", 
+  //       error.response?.data?.message || "모임 생성 중 오류가 발생했습니다. 다시 시도해주세요."
+  //     );
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   return (
     <View style={[commonStyles.container, styles.container]}>
