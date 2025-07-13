@@ -21,6 +21,14 @@ export const getCurrentUser = async () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    const user = {
+      token,
+      memberId,
+      ...response.data.data
+    };
+
+    await AsyncStorage.setItem('user', JSON.stringify(user));
+
     console.log("Current User Data:", response.data.data);
     return response.data.data;
   } catch (error) {
