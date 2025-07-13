@@ -35,6 +35,7 @@ import SchedulePost from '../screens/loginAfter/SchedulePost';
 import BoardDetailsScreen from '../screens/loginAfter/BoardDetailsScreen';
 import ScheduleDetails from '../screens/loginAfter/ScheduleDetails';
 import BoardUpdateScreen from '../screens/loginAfter/BoardUpdateScreen';
+import UpdateCategories from '../screens/loginAfter/UpdateCategories';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -140,7 +141,7 @@ const Stack = createStackNavigator();
               </>
             ) : (
               <>
-                <Stack.Screen name="카테고리 수정" component={SelectCategories} />
+                <Stack.Screen name="카테고리 수정" component={UpdateCategories} />
                 <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} />
                 <Stack.Screen name="Chat" component={ChatScreen} />
                 <Stack.Screen name="ChatRooms" component={ChatRoomsScreen} />
