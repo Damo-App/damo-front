@@ -5,11 +5,16 @@ import { CommonRadio } from '../../components/CommonRadio';
 import { commonStyles } from '../../constants/styles';
 import { useCategories } from '../../hooks/useCategories'; // Custom hook import
 import { instance } from '../../api/axiosInstance'; // Axios instance import
+import CommonCheckBox from '../../components/CommonCheckBox';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { label } from 'framer-motion/client';
 
 const MyGroupsScreen = ({ memberId, token }) => {
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [groups, setGroups] = useState([]);
   const [isLoadingGroups, setIsLoadingGroups] = useState(true);
+  const [checked, setChecked] = useState(false);
+  const [isLeader, setIsLeader] = useState([]);
 
   // Fetch categories using custom hook
   const { categories, isLoading: isLoadingCategories } = useCategories(memberId, token);
@@ -36,61 +41,108 @@ const MyGroupsScreen = ({ memberId, token }) => {
     }
   };
 
+  
+
+  const isLeaderGroup = () => {
+    const leader = groups.filter(groupData => groupData.role === 'GROUP_LEADER');
+    setIsLeader(leader);
+  }
+
+  console.log('isLeader', isLeader)
   // Fetch groups when selectedCategory changes
   useEffect(() => {
     fetchGroups(selectedCategory);
   }, [selectedCategory]);
 
   return (
-    <View style={styles.container}>
-      {/* Loading indicator */}
-      {isLoadingCategories || isLoadingGroups ? (
-        <ActivityIndicator size="large" color="#0000ff" />
-      ) : (
-        <>
-          {/* Radio buttons */}
-          <CommonRadio
-            value={selectedCategory}
-            onChange={(value) => setSelectedCategory(value)}
-            options={[
-              { label: '전체', value: '전체' },
-              ...(Array.isArray(categories) ? categories.map((category) => ({
-                label: category.categoryName,
-                value: category.categoryId,
-              })) : []), // Safely handle undefined or non-array categories
-            ]}
-          />
-
-          {/* Group list */}
-          {groups.length > 0 ? (
-            <FlatList
-              data={groups}
-              keyExtractor={(item) => item.groupId.toString()}
-              renderItem={({ item }) => (
-                <GroupBox
-                  image={item.image}
-                  title={item.groupName}
-                  text={item.introduction}
-                  isLeader={item.role === 'GROUP_LEADER'}
-                  currentCount={item.memberCount}
-                  maxCount={item.maxMemberCount}
-                  onPress={() => console.log(`Group ${item.groupId} clicked!`)}
-                />
-              )}
-              showsVerticalScrollIndicator={false}
-              ListFooterComponent={<View style={{ height: 20 }} />}
+    <SafeAreaView style={{flex: 1}} edges={['left', 'right', 'bottom']}>
+      <View style={styles.container}>
+        {/* Loading indicator */}
+        {isLoadingCategories || isLoadingGroups ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <>
+            {/* Radio buttons */}
+            <CommonRadio
+              value={selectedCategory}
+              onChange={(value) => {setSelectedCategory(value); setChecked(false);}}
+              options={[
+                { label: '전체', value: '전체' },
+                ...(Array.isArray(categories) ? categories.map((category) => ({
+                  label: category.categoryName,
+                  value: category.categoryId,
+                })) : []), // Safely handle undefined or non-array categories
+              ]}
             />
-          ) : (
-            <Text style={styles.noDataText}>해당 카테고리에 모임이 없습니다.</Text>
-          )}
-        </>
-      )}
-    </View>
+            <View style={{alignItems: 'flex-end'}}>
+              <CommonCheckBox 
+                label='모임장인 모임만 보기'
+                value={checked}
+                onValueChange={(value) => {
+                  setChecked(value);
+                  if(value) {
+                    isLeaderGroup();
+                  }
+                }}
+              />
+            </View>
+
+            {/* Group list */}
+            {checked ? (
+              isLeader.length > 0  ? (
+              <FlatList
+                style={styles.flatList}
+                data={checked ? isLeader : groups}
+                keyExtractor={(item) => item.groupId.toString()}
+                renderItem={({ item }) => (
+                  <GroupBox
+                    image={item.image}
+                    title={item.groupName}
+                    text={item.introduction}
+                    isLeader={item.role === 'GROUP_LEADER'}
+                    currentCount={item.memberCount}
+                    maxCount={item.maxMemberCount}
+                    onPress={() => console.log(`Group ${item.groupId} clicked!`)}
+                  />
+                )}
+                showsVerticalScrollIndicator={false}
+                ListFooterComponent={<View style={{ height: 20}} />}
+              />
+              ) : (<Text style={styles.noDataText}>모임장인 모임이 없습니다.</Text>)
+            ) : (
+              groups.length > 0 ? (
+              <FlatList
+              style={styles.flatList}
+                data={checked ? isLeader : groups}
+                keyExtractor={(item) => item.groupId.toString()}
+                renderItem={({ item }) => (
+                  <GroupBox
+                    image={item.image}
+                    title={item.groupName}
+                    text={item.introduction}
+                    isLeader={item.role === 'GROUP_LEADER'}
+                    currentCount={item.memberCount}
+                    maxCount={item.maxMemberCount}
+                    onPress={() => console.log(`Group ${item.groupId} clicked!`)}
+                  />
+                )}
+                showsVerticalScrollIndicator={false}
+                ListFooterComponent={<View style={{ height: 20}} />}
+              />
+            ) : (
+              <Text style={styles.noDataText}>해당 카테고리에 모임이 없습니다.</Text>
+            ))}
+          </>
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    paddingHorizontal: 16,
     ...commonStyles.container,
     justifyContent: 'flex-start',
     alignItems: 'stretch',
@@ -100,6 +152,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     color: '#888',
+  },
+  flatList: {
+    flex: 1,
+    width: '100%',
   },
 });
 
