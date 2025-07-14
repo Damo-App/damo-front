@@ -7,7 +7,7 @@ import GroupListBox from '../../components/GroupListBox';
 import { CategoryIcon } from '../../components/CategoryIcon';
 import { commonShadow } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
-import { BLACK_COLOR, ERROR_COLOR, G_DARK_COLOR, G_LIGHT_COLOR, PRIMARY_COLOR, WHITE_COLOR } from '../../constants/colors';
+import { BLACK_COLOR, ERROR_COLOR, G_DARK_COLOR, G_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR } from '../../constants/colors';
 import { useIsFocused } from '@react-navigation/native';
 // import { red } from 'react-native-reanimated/lib/typescript/Colors';
 
@@ -225,15 +225,16 @@ function GroupListScreen({navigation}) {
   };
 
   return (
-    <View style={[commonStyles.container, { flex: 1 , paddingHorizontal: 16}]}>
+    <View style={[commonStyles.container, { flex: 1, paddingBottom: 30}]}>
       {/* 카테고리 아이콘 */}
       <View style={styles.categoryContainer}>
         {renderCategoryIcons()}
       </View>
     
       {/* 모임 생성 버튼 */}
-      <CustomButton 
-        style={{ marginTop: 20 }}
+      <View style={[commonStyles.paddingX ]}>
+        <CustomButton 
+        style={{ marginTop: 10 }}
         textStyle={{ fontSize: 16 }}
         title="모임 생성하기"
         onPress={() => {
@@ -245,15 +246,16 @@ function GroupListScreen({navigation}) {
         }}
         // onPress={() => navigation.navigate('CreateGroupScreen', { selectedCategoryId: selectedCategoryId })}
       />
+      </View>
+      
 
       {/* 그룹 리스트 */}
-
       {groupsData?.data.length > 0 ? 
       <FlatList
-      style={styles.flatList}
-      data={groupsData?.data || []}
-      keyExtractor={(item) => item.groupId.toString()}
-      renderItem={({ item }) => (
+        style={[styles.flatList, commonStyles.paddingX]}
+        data={groupsData?.data || []}
+        keyExtractor={(item) => item.groupId.toString()}
+        renderItem={({ item }) => (
         <GroupListBox
           style={[styles.groupCard, commonShadow.mainShadow]}
           image={{ uri: item.image }}
@@ -286,19 +288,19 @@ function GroupListScreen({navigation}) {
           <View style={{ height: 20 }}/>
         </View>
       )}
-    />
+      />
       : 
       <View style={styles.emptyTextBox}>
-      <Text style={styles.emptyText}>해당 카테고리의 모임이 없습니다.</Text>
+        <Text style={styles.emptyText}>해당 카테고리의 모임이 없습니다.</Text>
       </View>
       }
-      
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   categoryContainer: {
+    height: 'auto',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -325,12 +327,9 @@ const styles = StyleSheet.create({
   flatList: {
     flex: 1,
     width: '100%',
-  },
+  }, 
   listContainer: {
-    flexGrow: 1,
-    // paddingHorizontal: 10,
     paddingBottom: 40,
-    // minHeight: '100%',
   },
   groupCard: {
     marginVertical: 5,
@@ -338,7 +337,7 @@ const styles = StyleSheet.create({
   },
   createButton: {
     marginBottom: 5,
-    width: '95%',
+    // width: '95%',
     alignSelf: 'center',
     paddingVertical: 10,
   },

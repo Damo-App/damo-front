@@ -37,7 +37,7 @@ const MyPageScreen = () => {
     };
 
   return (
-    <ScrollView contentContainerStyle={[styles.container,commonStyles.container]} keyboardShouldPersistTaps="handled">
+    <ScrollView contentContainerStyle={[styles.container,commonStyles.container, commonStyles.paddingX]} keyboardShouldPersistTaps="handled">
       {/* 유저 정보 */}
       <View style={[styles.userInfo, commonShadow.mainShadow]}>
         <Image
