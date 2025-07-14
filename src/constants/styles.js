@@ -10,14 +10,17 @@ export const commonStyles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: PRIMARY_BACK_COLOR,
     paddingVertical: 16,
-    // paddingHorizontal: 16,
-    // overflow: "visible"
+  },
+  paddingX:{
+    width:'100%',
+    paddingHorizontal: 16
+  },
+  paddingY:{
+    paddingVertical: 16
   },
   centerContainer:{
     width:'100%',
     paddingVertical:16,
-    // borderWidth:1,
-    // borderColor:BLACK_COLOR,
     height:'100%',
     display:'flex',
     flexDirection:'column',

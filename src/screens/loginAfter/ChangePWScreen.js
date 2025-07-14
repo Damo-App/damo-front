@@ -64,7 +64,7 @@ const ChangePWScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={commonStyles.container}>
+    <View style={[commonStyles.container, commonStyles.paddingX]}>
       <PasswordInput
         label="기존 비밀번호"
         value={oldPassword}

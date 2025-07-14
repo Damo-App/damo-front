@@ -156,7 +156,7 @@ const UpdateCategories = () => {
 
   return (
     <ScrollView contentContainerStyle={[styles.container, commonStyles.container]}>
-      <View style={[commonStyles.boxContainer, styles.container]}>
+      <View style={[commonStyles.boxContainer]}>
         {/* 카테고리 리스트 */}
         <View style={styles.categoryGrid}>
           {categories.map((category, index) => (

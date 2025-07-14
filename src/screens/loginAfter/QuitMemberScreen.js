@@ -96,7 +96,7 @@ const QuitMemberScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={commonStyles.container}>
+      <View style={[commonStyles.container, commonStyles.paddingX]}>
         <InputWithLabel
           label="아이디 (이메일)"
           value={email}
