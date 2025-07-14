@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { BLACK_COLOR, WHITE_COLOR } from '../constants/colors';
+import { commonShadow, commonStyles } from '../constants/styles';
 
 const GroupBox = ({ image, title, text, isLeader, currentCount, maxCount, onPress }) => {
   return (
     <TouchableOpacity onPress={onPress}>
-      <View style={styles.card}>
+      <View style={[styles.card, commonShadow.mainShadow]}>
         {/* Image section */}
         {image ? (
           <Image source={{ uri: image }} style={styles.image} onError={(error) => console.log('Image loading error:', error)} />

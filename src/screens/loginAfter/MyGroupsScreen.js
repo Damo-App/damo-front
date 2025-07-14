@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import GroupBox from '../../components/GroupBox';
 import { CommonRadio } from '../../components/CommonRadio';
-import { commonStyles } from '../../constants/styles';
+import { commonShadow, commonStyles } from '../../constants/styles';
 import { useCategories } from '../../hooks/useCategories'; // Custom hook import
 import { instance } from '../../api/axiosInstance'; // Axios instance import
 import CommonCheckBox from '../../components/CommonCheckBox';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { label } from 'framer-motion/client';
 import { G_DARK_COLOR, WHITE_COLOR } from '../../constants/colors';
+import { useNavigation } from '@react-navigation/native';
 
 const MyGroupsScreen = ({ memberId, token }) => {
+  const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [groups, setGroups] = useState([]);
   const [isLoadingGroups, setIsLoadingGroups] = useState(true);
@@ -57,12 +59,13 @@ const MyGroupsScreen = ({ memberId, token }) => {
 
   return (
     <SafeAreaView style={{flex: 1}} edges={['left', 'right', 'bottom']}>
-      <View style={styles.container}>
+      <View style={[styles.container]}>
         {/* Loading indicator */}
         {isLoadingCategories || isLoadingGroups ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
           <>
+            <View style={commonStyles.paddingX}>
             {/* Radio buttons */}
             <CommonRadio
               value={selectedCategory}
@@ -87,12 +90,13 @@ const MyGroupsScreen = ({ memberId, token }) => {
                 }}
               />
             </View>
+            </View>
 
             {/* Group list */}
             {checked ? (
               isLeader.length > 0  ? (
               <FlatList
-                style={styles.flatList}
+                style={[styles.flatList, commonStyles.paddingX]}
                 data={checked ? isLeader : groups}
                 keyExtractor={(item) => item.groupId.toString()}
                 renderItem={({ item }) => (
@@ -115,18 +119,21 @@ const MyGroupsScreen = ({ memberId, token }) => {
             ) : (
               groups.length > 0 ? (
               <FlatList
-              style={styles.flatList}
+                style={[styles.flatList, commonStyles.paddingX]}
                 data={checked ? isLeader : groups}
                 keyExtractor={(item) => item.groupId.toString()}
                 renderItem={({ item }) => (
                   <GroupBox
+                  style={commonShadow.mainShadow}
                     image={item.image}
                     title={item.groupName}
                     text={item.introduction}
                     isLeader={item.role === 'GROUP_LEADER'}
                     currentCount={item.memberCount}
                     maxCount={item.maxMemberCount}
-                    onPress={() => console.log(`Group ${item.groupId} clicked!`)}
+                    onPress={() => {
+                      navigation.navigate('GroupDetail', {groupId :item.groupId});
+                    }}
                   />
                 )}
                 showsVerticalScrollIndicator={false}
@@ -145,7 +152,6 @@ const MyGroupsScreen = ({ memberId, token }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16,
     ...commonStyles.container,
     justifyContent: 'flex-start',
     alignItems: 'stretch',
