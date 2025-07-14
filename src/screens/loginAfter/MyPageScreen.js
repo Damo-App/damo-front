@@ -76,6 +76,7 @@ const MyPageScreen = () => {
           text="내 게시글 조회"
           style={[styles.menuBar, commonShadow.btnNoBdShadow]}
           iconWrapperStyle={{ backgroundColor: NAV_BAR_COLOR }}
+          onPress={() => {navigation.navigate('내 게시글 조회')}}
         />
         <MenuBar
           image={require('../../../assets/images/mypage/mypageIcon3.png')}
