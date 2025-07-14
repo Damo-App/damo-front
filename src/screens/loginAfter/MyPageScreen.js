@@ -6,6 +6,7 @@ import { commonShadow, commonStyles } from '../../constants/styles';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../../hooks/useUser';
 import { memberInfo } from '../../api/queries/userService';
+import Toast from 'react-native-toast-message';
  // MenuBar 컴포넌트 import
 
 const MyPageScreen = () => {
@@ -29,10 +30,20 @@ const MyPageScreen = () => {
     const handleLogout = async () => {
       try {
         await logout(); // 로그아웃 실행
+        Toast.show({
+          type: 'success',
+          text1: '로그아웃 완료 !',
+          position: 'bottom',
+        });
         // navigation.navigate('Login'); // 로그아웃 후 로그인 화면으로 이동
         navigation.navigate('MainTabs', { screen: 'Login' });
       } catch (error) {
         console.error('Logout failed:', error);
+        Toast.show({
+          type: 'error',
+          text1: '로그아웃 실패 !',
+          position: 'bottom',
+        });
       }
     };
 
