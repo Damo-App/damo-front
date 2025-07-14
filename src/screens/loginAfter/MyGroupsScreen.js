@@ -8,6 +8,7 @@ import { instance } from '../../api/axiosInstance'; // Axios instance import
 import CommonCheckBox from '../../components/CommonCheckBox';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { label } from 'framer-motion/client';
+import { G_DARK_COLOR, WHITE_COLOR } from '../../constants/colors';
 
 const MyGroupsScreen = ({ memberId, token }) => {
   const [selectedCategory, setSelectedCategory] = useState('전체');
@@ -108,7 +109,9 @@ const MyGroupsScreen = ({ memberId, token }) => {
                 showsVerticalScrollIndicator={false}
                 ListFooterComponent={<View style={{ height: 20}} />}
               />
-              ) : (<Text style={styles.noDataText}>모임장인 모임이 없습니다.</Text>)
+              ) : (<View style={styles.emptyTextBox}>
+                      <Text style={styles.emptyText}>모임장인 모임이 없습니다.</Text>
+                   </View>)
             ) : (
               groups.length > 0 ? (
               <FlatList
@@ -156,6 +159,23 @@ const styles = StyleSheet.create({
   flatList: {
     flex: 1,
     width: '100%',
+  },
+  emptyTextBox:{
+    marginTop:5,
+    height:'auto',
+    width:'100%',
+    paddingHorizontal:20,
+    paddingVertical:50,
+    borderWidth:1,
+    borderColor:G_DARK_COLOR,
+    borderRadius:12,
+    backgroundColor:WHITE_COLOR
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: G_DARK_COLOR,
+    textAlign: 'center',
   },
 });
 
