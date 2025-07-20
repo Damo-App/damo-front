@@ -404,11 +404,11 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, Platf
 import InputWithLabel from "../../components/InputWithLabel";
 import { CommonRadio } from "../../components/CommonRadio";
 import CommonTag from "../../components/CommonTag";
-import { commonStyles } from "../../constants/styles";
+import { commonShadow, commonStyles } from "../../constants/styles";
 import { CustomButton } from "../../components/CustomButton";
 import RNPickerSelect from 'react-native-picker-select';
 import * as ImagePicker from 'expo-image-picker';
-import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
+import { BEIGE_COLOR, BLACK_COLOR, G_DARKER_COLOR, GREEN_LIGHT_COLOR, NAV_BAR_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, SKY_BLUE, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
 import { instance } from "../../api/axiosInstance";
 import { useRoute } from "@react-navigation/native";
 
@@ -417,6 +417,16 @@ const isValidGroupName = (name) => {
   const regex = /^[a-zA-Z0-9가-힣\s]+$/; // 특수문자 불가
   return regex.test(name) && name.length >= 1 && name.length <= 15;
 };
+
+const categoryColor = {
+  '연령대': PRIMARY_COLOR,
+  'MBTI': BEIGE_COLOR,
+  '분위기': NAV_BAR_COLOR,
+  '장소': YELLOW_DARK_COLOR,
+  '지역': SKY_BLUE,
+  '장소': YELLOW_DARK_COLOR,
+  '활동비': PINK_DARK_COLOR,
+}
 
 const isValidIntroduction = (text) => text.length >= 10 && text.length <= 100;
 const isValidMemberCount = (count) => count >= 2 && count <= 100;
@@ -441,7 +451,13 @@ const CreateGroupScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const route = useRoute();
   const { selectedCategoryId } = route.params || {};
-  
+
+  const tagToCategory = {};
+    sectionsTag.forEach(section => {
+      section.tags.forEach(tag => {
+        tagToCategory[tag] = section.title;
+      });
+  });
   useEffect(() => {
     console.log(`Received Category ID in CreateGroupScreen: ${selectedCategoryId}`);
 
@@ -465,7 +481,7 @@ const CreateGroupScreen = ({ navigation }) => {
         const response = await instance.get(`/categories/${selectedCategoryId}/subcategories`);
         const responseTag = await instance.get(`/tags`);
         
-        console.log("response 카테고리 서브카테고리", response.data.data);
+        console.log("response 카테고리 서브카테고리 }}}}}}", response.data.data);
         console.log("responseTag 카테고리 서브카테고리", responseTag.data.data.tags);
         if (response.data?.data?.length === 0) {
           console.warn("No tags found for this category");
@@ -656,7 +672,6 @@ const CreateGroupScreen = ({ navigation }) => {
 
   // 모임 생성 요청
 
-  //수정중인 코드
   const handleSubmit = async () => {
   if (!isFormValid) {
     Alert.alert("입력 오류", "모든 필수 정보를 올바르게 입력해주세요.");
@@ -786,6 +801,8 @@ const CreateGroupScreen = ({ navigation }) => {
   }
 };
 
+console.log('selectedTags', sectionsTag)
+
   //기존코드
   // const handleSubmit = async () => {
   //   if (!isFormValid) {
@@ -860,7 +877,7 @@ const CreateGroupScreen = ({ navigation }) => {
 
   return (
     <View style={[commonStyles.container, styles.container]}>
-      <FlatList style={styles.flatContainer}
+      <FlatList style={[styles.flatContainer, commonStyles.paddingX]}
         ListHeaderComponent={
           <>
             {/* 모임 대표 이미지 */}
@@ -951,7 +968,7 @@ const CreateGroupScreen = ({ navigation }) => {
               />
 
               {ageRestriction === "제한" && (
-                <View style={styles.ageRange}>
+                <View style={[styles.ageRange, pickerStyle.viewContainer]}>
                   <RNPickerSelect
                     onValueChange={(value) => setStartYear(value)}
                     value={startYear}
@@ -960,7 +977,7 @@ const CreateGroupScreen = ({ navigation }) => {
                       return { label: String(year), value: String(year) };
                     })}
                     style={pickerStyle}
-                    placeholder={{ label: "시작 연도", value: null }}
+                    placeholder={{ label: "시작연도", value: null }}
                   />
                   <Text style={styles.rangeSeparator}>~</Text>
                   <RNPickerSelect
@@ -971,7 +988,7 @@ const CreateGroupScreen = ({ navigation }) => {
                       return { label: String(year), value: String(year) };
                     })}
                     style={pickerStyle}
-                    placeholder={{ label: "종료 연도", value: null }}
+                    placeholder={{ label: "종료연도", value: null }}
                   />
                 </View>
               )}
@@ -980,7 +997,56 @@ const CreateGroupScreen = ({ navigation }) => {
             {/* 태그 선택 */}
             <Text style={styles.subHeader}>태그 선택</Text>
             <View style={styles.selectedTagsContainer}>
-              {[...mandatoryTags, ...selectedTags].map((tag) => (
+              {[...mandatoryTags].map((tag) => {
+                return(
+                  <CommonTag
+                    key={tag}
+                    name={tag}
+                    size={14}
+                    color="#000"
+                    showCloseButton={true}
+                    containerStyle={{
+                      borderWidth:1, 
+                      borderColor:BLACK_COLOR,
+                      backgroundColor: PINK_LIGHT_COLOR
+                    }}
+                    closeButtonStyle={{
+                      backgroundColor: PINK_LIGHT_COLOR
+                    }}
+                    onPress={() =>
+                      setMandatoryTags([])
+                    }
+                  />
+                  );
+              })}
+              {[...selectedTags].map((tag) => {
+                const categoryName = tagToCategory[tag];
+                const color = categoryColor[categoryName];
+                return (
+                  <CommonTag
+                    key={tag}
+                    name={tag}
+                    size={14}
+                    color="#000"
+                    showCloseButton={true}
+                    containerStyle={{
+                      borderWidth:1, 
+                      borderColor:BLACK_COLOR,
+                      backgroundColor: color
+                    }}
+                    closeButtonStyle={{
+                      backgroundColor: color  
+                    }}
+                    onPress={() =>
+                      setSelectedTags(selectedTags.filter((t) => t !== tag))
+                    }
+                  />
+                )}
+              )}
+                )
+            </View>
+            {/* <View style={styles.selectedTagsContainer}>
+              {[...sectionsTag].map((tag) => (
                 <CommonTag
                   key={tag}
                   name={tag}
@@ -990,10 +1056,10 @@ const CreateGroupScreen = ({ navigation }) => {
                   containerStyle={{
                     borderWidth:1, 
                     borderColor:BLACK_COLOR,
-                    backgroundColor: YELLOW_DARK_COLOR,
+                    backgroundColor:PINK_LIGHT_COLOR,
                   }}
                   closeButtonStyle={{
-                    backgroundColor: YELLOW_DARK_COLOR
+                    backgroundColor: PINK_LIGHT_COLOR
                   }}
                   onPress={() =>
                     mandatoryTags.includes(tag)
@@ -1002,7 +1068,7 @@ const CreateGroupScreen = ({ navigation }) => {
                   }
                 />
               ))}
-            </View>
+            </View> */}
 
             {/* 필수 태그 */}
             <Text style={styles.subTagStyle}>필수</Text>
@@ -1048,79 +1114,86 @@ const CreateGroupScreen = ({ navigation }) => {
             )} */}
 
 {sections.length > 0 ? (
-  <View style={styles.tagContainer}>
-    {sections.map((tag, index) => (
-      <TouchableOpacity
-        key={index}
-        onPress={() => {
-          if (mandatoryTags.includes(tag.subCategoryId)) {
-            setMandatoryTags([]);
-          } else {
-            setMandatoryTags([tag.subCategoryId]);
-          }
-        }}
-      >
-        <CommonTag
-          name={tag.subCategoryName} // 객체의 subCategoryName 속성을 사용
-          size={14}
-          color="#000"
-          showCloseButton={false}
-          containerStyle={{
-            borderColor: mandatoryTags.includes(tag.subCategoryId) ? BLACK_COLOR : "#CCE5E5",
-            borderWidth: mandatoryTags.includes(tag.subCategoryId) ? 2 : 0,
-            backgroundColor: WHITE_COLOR,
+  <View style={[styles.tagContainer, { backgroundColor: PINK_LIGHT_COLOR }, commonShadow.mainShadow]  }>
+    <View style={styles.tagBox}>
+      {sections.map((tag, index) => (
+        <TouchableOpacity
+          key={index}
+          onPress={() => {
+            if (mandatoryTags.includes(tag.subCategoryId)) {
+              setMandatoryTags([tag.subCategoryName]);
+            } else {
+              setMandatoryTags([tag.subCategoryName]);
+            }
           }}
-        />
-      </TouchableOpacity>
-    ))}
+        >
+          <CommonTag
+            name={tag.subCategoryName} // 객체의 subCategoryName 속성을 사용
+            size={14}
+            color="#000"
+            showCloseButton={false}
+            containerStyle={{
+              borderColor: mandatoryTags.includes(tag.subCategoryName) ? BLACK_COLOR : "#CCE5E5",
+              borderWidth: mandatoryTags.includes(tag.subCategoryName) ? 2 : 0,
+              backgroundColor: WHITE_COLOR,
+            }}
+          />
+        </TouchableOpacity>
+      ))}
+    </View>
   </View>
 ) : (
   <Text>태그 정보를 불러올 수 없습니다.</Text>
 )}
 
 
-            {/* 선택 태그 */}
-            <Text style={styles.subTagStyle}>선택</Text>
-           {sectionsTag.map((section, index) => (
-  <View key={section.title || index} style={[styles.sectionContainer, { backgroundColor: GREEN_LIGHT_COLOR }]}>
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{section.title}</Text>
-      <TouchableOpacity onPress={() => toggleSection(index)} style={styles.toggleButton}>
-        <Text style={styles.toggleButtonText}>{expandedSections[index] ? '-' : '+'}</Text>
-      </TouchableOpacity>
-    </View>
-    {expandedSections[index] && (
-      <View style={styles.tagContainer}>
-        {section.tags.map((tag) => (
-          <TouchableOpacity
-            key={tag}
-            onPress={() => {
-              if (selectedTags.includes(tag)) {
-                setSelectedTags(selectedTags.filter((t) => t !== tag));
-              } else if (selectedTags.length < 3) {
-                setSelectedTags([...selectedTags, tag]);
-              }
-            }}
-            disabled={!selectedTags.includes(tag) && selectedTags.length >= 3}
-          >
-            <CommonTag
-              name={tag}
-              size={14}
-              color="#000"
-              showCloseButton={false}
-              containerStyle={{
-                borderColor: selectedTags.includes(tag) ? BLACK_COLOR : "#CCE5E5",
-                borderWidth: selectedTags.includes(tag) ? 2 : 0,
-                backgroundColor: WHITE_COLOR,
-                opacity: (!selectedTags.includes(tag) && selectedTags.length >= 3) ? 0.5 : 1
-              }}
-            />
-          </TouchableOpacity>
-        ))}
+  {/* 선택 태그 */}
+    <Text style={styles.subTagStyle}>선택</Text>
+    {sectionsTag.map((section, index) => {
+      const categoryName = section.title;
+      const bgColor = categoryColor[categoryName];
+      return (
+    <View key={section.title || index} style={[styles.sectionContainer, {backgroundColor: bgColor}, commonShadow.mainShadow]}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{section.title}</Text>
+        <TouchableOpacity onPress={() => toggleSection(index)} style={styles.toggleButton}>
+          <Text style={styles.toggleButtonText}>{expandedSections[index] ? '-' : '+'}</Text>
+        </TouchableOpacity>
       </View>
-    )}
-  </View>
-))}
+      {expandedSections[index] && (
+        <View style={styles.tagContainer}>
+          {section.tags.map((tag) => {
+            return(
+              <TouchableOpacity
+                key={tag} 
+                onPress={() => {
+                  if (selectedTags.includes(tag)) {
+                    setSelectedTags(selectedTags.filter((t) => t !== tag));
+                  } else if (selectedTags.length < 3) {
+                    setSelectedTags([...selectedTags, tag]);
+                  }
+                }}
+                disabled={!selectedTags.includes(tag) && selectedTags.length >= 3}
+              >
+              <CommonTag
+                name={tag}
+                size={14}
+                color={BLACK_COLOR}
+                showCloseButton={false}
+                containerStyle={{
+                  borderColor: selectedTags.includes(tag) ? BLACK_COLOR : "#CCE5E5",
+                  borderWidth: selectedTags.includes(tag) ? 2 : 0,
+                  backgroundColor: WHITE_COLOR,
+                  opacity: (!selectedTags.includes(tag) && selectedTags.length >= 3) ? 0.5 : 1
+                }}
+              />
+            </TouchableOpacity>
+            );
+        })}
+        </View>
+      )}
+  </View>);
+        })}
           </>
         }
         data={[]}
@@ -1145,7 +1218,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 25,
-    paddingHorizontal: 16,
     backgroundColor: '#fce7fc',
     width: '100%',
     height: '100%'
@@ -1160,6 +1232,7 @@ const styles = StyleSheet.create({
     alignItems: "center", // 가로축 중앙 정렬
   },
   subTagStyle: {
+    marginVertical: 10,
     fontSize: 14,
     fontWeight: 'bold'
   },
@@ -1183,18 +1256,20 @@ const styles = StyleSheet.create({
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: 8,
+  paddingTop: 8,
 },
 toggleButton: {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'start',
   width: 20,
   height: 20,
-  justifyContent: 'center',
-  alignItems: 'center',
 },
 toggleButtonText: {
+  lineHeight: 18,
   fontSize: 20,
   fontWeight: 'bold',
-  color: '#000',
+  color: BLACK_COLOR,
 },
   subHeader: {
     fontSize: 16,
@@ -1205,43 +1280,37 @@ toggleButtonText: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 4,
-    // marginBottom: 10,
   },
   sectionContainer: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    marginBottom:12, 
     borderRadius: 8,
-    marginBottom: 16,
+    paddingHorizontal: 10,
+    // paddingBottom: 12,
   },
   sectionTitle: {
+    marginBottom: 12,
     fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 8,
   },
   tagContainer: {
+    borderRadius: 8,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
+  tagBox: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingTop: 12,
+    paddingHorizontal: 10,
+
+  },
   tag: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 16,
-    backgroundColor: "#CCE5E5",
+    backgroundColor: WHITE_COLOR,
     fontWeight: 'bold',
   },
   flatContainer:{
     width:'100%',
-  },
-  imageContainer: {
-    width: '100%',
-    height: 150,
-    marginBottom: 16,
-  },
-  inputLabelText: {
-    marginBottom: 16,
-    width: '100%',
-    fontSize: 10
   },
   input: {
     marginBottom: 16,
@@ -1285,7 +1354,7 @@ toggleButtonText: {
   rangeSeparator: {
     fontSize: 19,
     fontWeight: 'bold',
-    color: '#000', // "~" 색상 (검은색)
+    color: BLACK_COLOR, // "~" 색상 (검은색)
     marginHorizontal: 8, // "~" 좌우 간격
   },
 });
@@ -1293,10 +1362,13 @@ toggleButtonText: {
 const pickerStyle = StyleSheet.create({
   viewContainer: {
     borderWidth: 1,
-    borderColor: BLACK_COLOR,
+    // borderColor: BLACK_COLOR,
+    borderColor: '#ff0000ff',
     borderRadius: 12,
-    backgroundColor: 'white',
+    backgroundColor: WHITE_COLOR,
     width: 140,
+    height:50,
+    padding:0
   },
   inputAndroid: {
     height: 50,
