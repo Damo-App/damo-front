@@ -290,8 +290,10 @@ function GroupListScreen({navigation}) {
       )}
       />
       : 
-      <View style={styles.emptyTextBox}>
-        <Text style={styles.emptyText}>해당 카테고리의 모임이 없습니다.</Text>
+      <View style={{width: '100%'}}>
+        <View style={styles.emptyTextBox}>
+          <Text style={styles.emptyText}>해당 카테고리의 모임이 없습니다.</Text>
+        </View>
       </View>
       }
     </View>
@@ -342,10 +344,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   emptyTextBox:{
-    marginTop:5,
+    marginHorizontal: 16,
+    marginTop: 8,
     height:'auto',
-    width:'100%',
-    paddingHorizontal:20,
     paddingVertical:50,
     borderWidth:1,
     borderColor:G_DARK_COLOR,
