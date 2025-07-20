@@ -254,7 +254,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
           title="게시판"
           style={{
             ...styles.button,
-            backgroundColor: PINK_DARK_COLOR,
+            backgroundColor: PRIMARY_COLOR,
             borderColor: BLACK_COLOR,
             paddingVertical: 4,
             paddingHorizontal: 16,
@@ -301,7 +301,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
             title="탈퇴하기"
             style={{
               ...styles.button,
-              backgroundColor: 'red',
+              backgroundColor: PINK_DARK_COLOR,
               borderColor: BLACK_COLOR,
               paddingVertical: 4,
               paddingHorizontal: 16,
