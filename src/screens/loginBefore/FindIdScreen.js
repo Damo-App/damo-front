@@ -92,7 +92,7 @@ export const FindIdScreen = () => {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={commonStyles.container} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[commonStyles.container, commonStyles.paddingX]} keyboardShouldPersistTaps="handled">
         <View style={styles.container}>
         <InputWithLabel 
         label="닉네임" 

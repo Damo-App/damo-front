@@ -67,6 +67,7 @@ const ChangePWScreen = ({ navigation }) => {
     <View style={[commonStyles.container, commonStyles.paddingX]}>
       <PasswordInput
         label="기존 비밀번호"
+        placeholder="기존 비밀번호를 입력해주세요."
         value={oldPassword}
         onChangeText={(text) => setOldPassword(text)}
         error={errors.oldPassword}
@@ -75,6 +76,7 @@ const ChangePWScreen = ({ navigation }) => {
 
       <PasswordInput
         label="새 비밀번호"
+        placeholder="새 비밀번호를 입력해주세요."
         value={password}
         onChangeText={(text) => setPassword(text)}
         error={errors.password}
@@ -89,6 +91,7 @@ const ChangePWScreen = ({ navigation }) => {
 
       <PasswordInput
         label="새 비밀번호 확인"
+        placeholder="새 비밀번호를 다시 입력해주세요."
         value={confirmPassword}
         onChangeText={(text) => setConfirmPassword(text)}
         error={passwordError}
