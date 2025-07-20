@@ -140,7 +140,9 @@ const MyGroupsScreen = ({ memberId, token }) => {
                 ListFooterComponent={<View style={{ height: 20}} />}
               />
             ) : (
-              <Text style={styles.noDataText}>해당 카테고리에 모임이 없습니다.</Text>
+              <View style={styles.emptyTextBox}>
+                      <Text style={styles.emptyText}>해당 카테고리에 모임이 없습니다.</Text>
+                   </View>
             ))}
           </>
         )}
@@ -156,21 +158,14 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'stretch',
   },
-  noDataText: {
-    textAlign: 'center',
-    marginTop: 20,
-    fontSize: 16,
-    color: '#888',
-  },
   flatList: {
     flex: 1,
     width: '100%',
   },
   emptyTextBox:{
+    marginHorizontal: 16,
     marginTop:5,
     height:'auto',
-    width:'100%',
-    paddingHorizontal:20,
     paddingVertical:50,
     borderWidth:1,
     borderColor:G_DARK_COLOR,
