@@ -141,8 +141,8 @@ const MyGroupsScreen = ({ memberId, token }) => {
               />
             ) : (
               <View style={styles.emptyTextBox}>
-                      <Text style={styles.emptyText}>해당 카테고리에 모임이 없습니다.</Text>
-                   </View>
+                <Text style={styles.emptyText}>해당 카테고리에 모임이 없습니다.</Text>
+              </View>
             ))}
           </>
         )}

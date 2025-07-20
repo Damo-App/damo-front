@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import BoardCard from '../../components/BoardCard';
-import { PRIMARY_BACK_COLOR, PRIMARY_BTN_COLOR, BLACK_COLOR, WHITE_COLOR } from '../../constants/colors';
+import { PRIMARY_BACK_COLOR, PRIMARY_BTN_COLOR, BLACK_COLOR, WHITE_COLOR, G_DARK_COLOR } from '../../constants/colors';
 import { commonBtn, commonShadow, commonStyles } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
 import { useIsFocused } from '@react-navigation/native';
@@ -128,7 +128,7 @@ const BoardScreen = ({route, navigation}) => {
             </TouchableOpacity>
           ))
         ) : (
-          <View style={styles.emptyContainer}>
+          <View style={styles.emptyTextBox}>
             <Text style={styles.emptyText}>게시글이 없습니다.</Text>
           </View>
         )}
@@ -213,17 +213,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold'
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 100,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
-  },
   cardContainer: {
     width: '100%',
     marginBottom: 15,
@@ -264,6 +253,22 @@ const styles = StyleSheet.create({
   pageButtonTextActive: {
     color: BLACK_COLOR,
     fontWeight: 'bold',
+  },
+  emptyTextBox:{
+    // marginHorizontal: 16,
+    marginTop:5,
+    height:'auto',
+    paddingVertical:50,
+    borderWidth:1,
+    borderColor:G_DARK_COLOR,
+    borderRadius:12,
+    backgroundColor:WHITE_COLOR,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: G_DARK_COLOR,
+    textAlign: 'center',
   },
 });
 

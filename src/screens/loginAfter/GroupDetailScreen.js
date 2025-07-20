@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { CustomButton } from '../../components/CustomButton';
 import CommonTag from '../../components/CommonTag';
-import { BLACK_COLOR, BORDER_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
+import { BLACK_COLOR, BORDER_COLOR, G_DARK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
 
@@ -453,9 +453,9 @@ const GroupDetailScreen = ({ route, navigation }) => {
               </View>
             ))
           ) : (
-            <View style={[styles.scheduleBox, styles.sectionboard]}>
-              <Text style={styles.noSchedule}>예정된 일정이 없습니다.</Text>
-            </View>
+              <View style={styles.emptyTextBox}>
+                <Text style={styles.emptyText}>예정된 일정이 없습니다.</Text>
+              </View>
           )}
           
           <Text style={styles.subTitle}>일정 내역</Text>
@@ -485,8 +485,8 @@ const GroupDetailScreen = ({ route, navigation }) => {
               </View>
             ))
           ) : (
-            <View style={[styles.scheduleBox, styles.sectionboard]}>
-              <Text style={styles.noSchedule}>일정 내역이 없습니다.</Text>
+            <View style={styles.emptyTextBox}>
+              <Text style={styles.emptyText}>일정 내역이 없습니다.</Text>
             </View>
           )}
         </View>
@@ -629,17 +629,17 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginBottom: 8,
   },
-  scheduleBox: {
-    backgroundColor: WHITE_COLOR,
-    padding: 50,
-    marginBottom: 15,
-    borderRadius: 10,
-  },
-  noSchedule: {
-    textAlign: 'center',
-    color: '#999999',
-    fontSize: 10,
-  },
+  // scheduleBox: {
+  //   backgroundColor: WHITE_COLOR,
+  //   padding: 50,
+  //   marginBottom: 15,
+  //   borderRadius: 10,
+  // },
+  // noSchedule: {
+  //   textAlign: 'center',
+  //   color: '#999999',
+  //   fontSize: 10,
+  // },
   scheduleCard: {
     backgroundColor: WHITE_COLOR,
     padding: 12,
@@ -829,6 +829,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: WHITE_COLOR,
+    textAlign: 'center',
+  },
+  emptyTextBox:{
+    marginTop:5,
+    height:'auto',
+    paddingVertical:50,
+    borderWidth:1,
+    borderColor:G_DARK_COLOR,
+    borderRadius:12,
+    backgroundColor:WHITE_COLOR
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: G_DARK_COLOR,
     textAlign: 'center',
   },
 });

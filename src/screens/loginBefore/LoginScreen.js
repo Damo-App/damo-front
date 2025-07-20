@@ -10,6 +10,7 @@ import { BLACK_COLOR } from '../../constants/colors';
 import { Link, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { ScrollView } from 'react-native-gesture-handler';
+import commons from 'react-native-ui-lib/src/commons';
 
 
 const isValidUsername = (username) => /\S+@\S+\.\S+/.test(username);
@@ -60,7 +61,7 @@ export const LoginScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, commonStyles.container]} keyboardShouldPersistTaps="handled">
+    <ScrollView contentContainerStyle={[styles.container, commonStyles.container, commonStyles.paddingX]} keyboardShouldPersistTaps="handled">
     <View style={[commonStyles.centerContainer, styles.loginBox]}>
     {/* <View style={[commonStyles.container, styles.container]}> */}
       <Image source={require('../../../assets/images/loginLogo.png')} style={styles.image} />
