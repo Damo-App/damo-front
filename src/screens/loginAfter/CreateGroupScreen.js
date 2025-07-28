@@ -441,6 +441,7 @@ const CreateGroupScreen = ({ navigation }) => {
   const [startYear, setStartYear] = useState('');
   const [endYear, setEndYear] = useState('');
   const [mandatoryTags, setMandatoryTags] = useState([]);
+  const [mandatoryTagsId, setMandatoryTagsId] = useState(null);
   const [selectedTags, setSelectedTags] = useState([]);
   const [isMandatoryExpanded, setIsMandatoryExpanded] = useState(true);
   const [errors, setErrors] = useState({});
@@ -466,6 +467,11 @@ const CreateGroupScreen = ({ navigation }) => {
         tagToCategory[tag] = section.title;
       });
   });
+
+  const matchedSubCategoryIds = sections
+  .filter(section => mandatoryTags.includes(section.subCategoryName))
+  .map(section => section.subCategoryId);
+
   useEffect(() => {
     console.log(`Received Category ID in CreateGroupScreen: ${selectedCategoryId}`);
 
@@ -694,6 +700,8 @@ const CreateGroupScreen = ({ navigation }) => {
   try {
     setIsLoading(true);
 
+    console.log("mandatoryTags",mandatoryTags);
+
     // 1. groupData 준비
     const groupData = {
       // categoryId: selectedCategoryId,
@@ -704,7 +712,7 @@ const CreateGroupScreen = ({ navigation }) => {
       minBirth: ageRestriction === "제한" ? startYear : null,
       maxBirth: ageRestriction === "제한" ? endYear : null,
       // subCategoryId : [...mandatoryTags.map(tag => (tag))],
-      subCategoryId : mandatoryTags[0],
+      subCategoryId : matchedSubCategoryIds[0],
       tags: [
         ...selectedTags.map(tag => ({ tagName: tag }))
       ],
@@ -809,79 +817,6 @@ const CreateGroupScreen = ({ navigation }) => {
   }
 };
 
-console.log('selectedTags', )
-
-  //기존코드
-  // const handleSubmit = async () => {
-  //   if (!isFormValid) {
-  //     Alert.alert("입력 오류", "모든 필수 정보를 올바르게 입력해주세요.");
-  //     return;
-  //   }
-
-  //   if (!selectedCategoryId) {
-  //     Alert.alert("오류", "카테고리 정보가 없습니다.");
-  //     return;
-  //   }
-    
-  //   try {
-  //     setIsLoading(true);
-
-  //     // 모임 생성 데이터 준비
-  //     const groupData = {
-  //       categoryId: selectedCategoryId, // 카테고리 ID 추가
-  //       name: groupName,
-  //       introduction: introduction,
-  //       maxMemberCount: parseInt(maxMembers, 10),
-  //       gender: gender,
-  //       minBirth: ageRestriction === "제한" ? startYear : null,
-  //       maxBirth: ageRestriction === "제한" ? endYear : null,
-  //       tags: [
-  //         ...mandatoryTags.map(tag => ({ tagName: tag })),
-  //         ...selectedTags.map(tag => ({ tagName: tag }))
-  //       ],
-  //     };
-
-  //     console.log('모임 생성 요청 데이터:', groupData);
-
-  //     // 모임 생성 API 호출
-  //     const response = await instance.post('/groups', groupData);
-  //     console.log('모임 생성 응답:', response.data);
-      
-  //     const groupId = response.data.data.groupId;
-      
-  //     // 이미지가 있으면 업로드
-  //     if (profileImage) {
-  //       try {
-  //         await uploadImage(groupId);
-  //         console.log("이미지 업로드 완료");
-  //       } catch (imageError) {
-  //         console.error("이미지 업로드 실패:", imageError);
-  //         Alert.alert(
-  //           "일부 완료", 
-  //           "모임은 생성되었지만 이미지 업로드에 실패했습니다. 나중에 모임 설정에서 이미지를 추가해주세요."
-  //         );
-  //         setIsLoading(false);
-  //         navigation.navigate('GroupDetail', { groupId });
-  //         return;
-  //       }
-  //     }
-
-  //     Alert.alert("성공", "모임이 성공적으로 생성되었습니다.", [
-  //       {
-  //         text: "확인",
-  //         onPress: () => navigation.navigate('GroupDetail', { groupId })
-  //       }
-  //     ]);
-  //   } catch (error) {
-  //     console.error('모임 생성 오류:', error.response?.data || error.message);
-  //     Alert.alert(
-  //       "오류", 
-  //       error.response?.data?.message || "모임 생성 중 오류가 발생했습니다. 다시 시도해주세요."
-  //     );
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   return (
     <View style={[commonStyles.container, styles.container]}>
@@ -960,112 +895,69 @@ console.log('selectedTags', )
                 groupStyle={{display:'flex', flexDirection:'column'}}
               />
             </View>
-              <View>
-              <Text style={styles.label}>모임 연령</Text>
-              <CommonRadio
-                value={ageRestriction}
-                onChange={setAgeRestriction}
-                options={[
-                  { label: "무관", value: "무관" },
-                  { label: "제한", value: "제한" },
-                ]}
-                containerStyle={{ paddingBottom: 8 }}
-                groupStyle={{ flexDirection: 'column' }}
-              />
-
-                {ageRestriction === "제한" && (
-                  <View style={styles.ageRange}>
-                    {/* 시작연도 드롭다운 */}
-                    <DropDownPicker
-                      open={openStart}
-                      value={startYear}
-                      items={yearItems}
-                      setOpen={setOpenStart}
-                      setValue={setStartYear}
-                      setItems={() => {}}
-                      placeholder="시작연도"
-                      style={styles.pickerBox}   // 커스텀 박스 스타일
-                      containerStyle={{ width: 140 }}
-                      textStyle={styles.pickerText}
-                      dropDownContainerStyle={styles.pickerDropDown}
-                      arrowIconStyle={styles.arrowIcon}
-                      listMode="SCROLLVIEW"
-                      zIndex={2000}
-                      onClose={() => setOpenEnd(false)}
-                      tickIconStyle={{ width: 0, height: 0, opacity: 0 }}
-                    />
-
-                    {/* ~ 텍스트 */}
-                    <Text style={styles.rangeSeparator}>~</Text>
-
-                    {/* 종료연도 드롭다운 */}
-                    <DropDownPicker
-                      open={openEnd}
-                      value={endYear}
-                      items={yearItems}
-                      setOpen={setOpenEnd}
-                      setValue={setEndYear}
-                      setItems={() => {}}
-                      placeholder="종료연도"
-                      style={styles.pickerBox}
-                      containerStyle={{ width: 140 }}
-                      textStyle={styles.pickerText}
-                      dropDownContainerStyle={styles.pickerDropDown}
-                      arrowIconStyle={styles.arrowIcon}
-                      listMode="SCROLLVIEW"
-                      zIndex={1000}
-                      onClose={() => setOpenStart(false)}
-                      tickIconStyle={{ width: 0, height: 0, opacity: 0 }}
-                    />
-                  </View>
-                )};
-                </View>
-
-  
-            {/* 모임 연령
             <View>
-              <Text style={styles.label}>모임 연령</Text>
-              <CommonRadio
-                value={ageRestriction}
-                onChange={setAgeRestriction}
-                options={[
-                  { label: "무관", value: "무관" },
-                  { label: "제한", value: "제한" },
-                ]}
-                containerStyle={{ paddingBottom: 8 }}
-                groupStyle={{ flexDirection: 'column' }}
-              />
+            <Text style={styles.label}>모임 연령</Text>
+            <CommonRadio
+              value={ageRestriction}
+              onChange={setAgeRestriction}
+              options={[
+                { label: "무관", value: "무관" },
+                { label: "제한", value: "제한" },
+              ]}
+              containerStyle={{ paddingBottom: 8 }}
+              groupStyle={{ flexDirection: 'column' }}
+            />
 
               {ageRestriction === "제한" && (
                 <View style={styles.ageRange}>
-                  <RNPickerSelect
-                    onValueChange={(value) => setStartYear(value)}
+                  {/* 시작연도 드롭다운 */}
+                  <DropDownPicker
+                    open={openStart}
                     value={startYear}
-                    items={[...Array(50)].map((_, i) => {
-                      const year = 1970 + i;
-                      return { label: String(year), value: String(year) };
-                    })}
-                    style={pickerStyle}
-                    placeholder={{ label: "시작연도", value: null }}
-                    Icon={() => <Ionicons name="chevron-down" size={18} color="#969696" />}
-                    useNativeAndroidPickerStyle={false}
+                    items={yearItems}
+                    setOpen={setOpenStart}
+                    setValue={setStartYear}
+                    setItems={() => {}}
+                    placeholder="시작연도"
+                    style={styles.pickerBox}   // 커스텀 박스 스타일
+                    containerStyle={{ width: 140 }}
+                    textStyle={styles.pickerText}
+                    dropDownContainerStyle={styles.pickerDropDown}
+                    arrowIconStyle={styles.arrowIcon}
+                    listMode="SCROLLVIEW"
+                    zIndex={2000}
+                    onClose={() => setOpenEnd(false)}
+                    tickIconStyle={{ width: 0, height: 0, opacity: 0 }}
                   />
+
+                  {/* ~ 텍스트 */}
                   <Text style={styles.rangeSeparator}>~</Text>
-                  <RNPickerSelect
-                    onValueChange={(value) => setEndYear(value)}
+
+                  {/* 종료연도 드롭다운 */}
+                  <DropDownPicker
+                    open={openEnd}
                     value={endYear}
-                    items={[...Array(50)].map((_, i) => {
-                      const year = 1970 + i;
-                      return { label: String(year), value: String(year) };
-                    })}
-                    style={pickerStyle}
-                    placeholder={{ label: "종료연도", value: null }}
-                    Icon={() => <Ionicons name="chevron-down" size={18} color="#969696" />}
-                    useNativeAndroidPickerStyle={false}
+                    items={yearItems}
+                    setOpen={setOpenEnd}
+                    setValue={setEndYear}
+                    setItems={() => {}}
+                    placeholder="종료연도"
+                    style={styles.pickerBox}
+                    containerStyle={{ width: 140 }}
+                    textStyle={styles.pickerText}
+                    dropDownContainerStyle={styles.pickerDropDown}
+                    arrowIconStyle={styles.arrowIcon}
+                    listMode="SCROLLVIEW"
+                    zIndex={1000}
+                    onClose={() => setOpenStart(false)}
+                    tickIconStyle={{ width: 0, height: 0, opacity: 0 }}
                   />
                 </View>
               )}
-            </View> */}
+            </View>
+
+  
+        
 
             {/* 태그 선택 */}
             <Text style={styles.subHeader}>태그 선택</Text>
@@ -1086,8 +978,10 @@ console.log('selectedTags', )
                     closeButtonStyle={{
                       backgroundColor: PINK_LIGHT_COLOR
                     }}
-                    onPress={() =>
+                    onPress={() =>{
                       setMandatoryTags([])
+                    }
+                     
                     }
                   />
                   );
@@ -1116,7 +1010,6 @@ console.log('selectedTags', )
                   />
                 )}
               )}
-                )
             </View>
             {/* <View style={styles.selectedTagsContainer}>
               {[...sectionsTag].map((tag) => (
