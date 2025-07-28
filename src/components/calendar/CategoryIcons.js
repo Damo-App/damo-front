@@ -35,7 +35,7 @@ const CategoryIcons = ({ categories, selectedCategory, onSelectCategory }) => {
             ]}
           >
             <Image source={categoryIcons[category.categoryId]} style={styles.icon} />
-            <Text style={styles.categoryText}>{category.categoryName}</Text>
+            {/* <Text style={styles.categoryText}>{category.categoryName}</Text> */}
           </View>
         </TouchableWithoutFeedback>
       ))}
