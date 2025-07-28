@@ -13,7 +13,8 @@ const InputWithLabel = ({
   isTextarea = false, // textarea 여부를 결정하는 속성 (기본값: false)
   containerStyle,
   labelStyle,
-  placeholderStyle
+  placeholderStyle,
+  disabled = false
 }) => {
 
   const [height, setHeight] = useState(100);
@@ -29,11 +30,13 @@ const InputWithLabel = ({
           isTextarea && styles.textarea,
           error && styles.errorBorder,
           isTextarea && { height: Math.max(100, height) },
+          disabled && styles.disabledInput
         ]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         multiline={isTextarea} 
+        editable={!disabled}
         onContentSizeChange={(event) => {
           if (isTextarea) {
             const newHeight = event.nativeEvent.contentSize.height;
@@ -63,6 +66,10 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: ERROR_COLOR,
+  },
+  disabledInput: {
+    backgroundColor: '#F0F0F0',
+    color: BLACK_COLOR, 
   },
 });
 
