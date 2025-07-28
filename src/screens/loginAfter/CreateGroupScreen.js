@@ -411,6 +411,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { BEIGE_COLOR, BLACK_COLOR, G_DARKER_COLOR, GREEN_LIGHT_COLOR, NAV_BAR_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, SKY_BLUE, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
 import { instance } from "../../api/axiosInstance";
 import { useRoute } from "@react-navigation/native";
+import DropDownPicker from "react-native-dropdown-picker";
 
 // 유효성 검사 함수
 const isValidGroupName = (name) => {
@@ -451,6 +452,13 @@ const CreateGroupScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const route = useRoute();
   const { selectedCategoryId } = route.params || {};
+  const [openStart, setOpenStart] = useState(false);
+  const [openEnd, setOpenEnd] = useState(false);
+  const yearItems = [...Array(50)].map((_, i) => ({
+    label: String(1970 + i)+"년",
+    value: String(1970 + i),
+  }));
+
 
   const tagToCategory = {};
     sectionsTag.forEach(section => {
@@ -801,7 +809,7 @@ const CreateGroupScreen = ({ navigation }) => {
   }
 };
 
-console.log('selectedTags', sectionsTag)
+console.log('selectedTags', )
 
   //기존코드
   // const handleSubmit = async () => {
@@ -952,8 +960,69 @@ console.log('selectedTags', sectionsTag)
                 groupStyle={{display:'flex', flexDirection:'column'}}
               />
             </View>
+              <View>
+              <Text style={styles.label}>모임 연령</Text>
+              <CommonRadio
+                value={ageRestriction}
+                onChange={setAgeRestriction}
+                options={[
+                  { label: "무관", value: "무관" },
+                  { label: "제한", value: "제한" },
+                ]}
+                containerStyle={{ paddingBottom: 8 }}
+                groupStyle={{ flexDirection: 'column' }}
+              />
+
+                {ageRestriction === "제한" && (
+                  <View style={styles.ageRange}>
+                    {/* 시작연도 드롭다운 */}
+                    <DropDownPicker
+                      open={openStart}
+                      value={startYear}
+                      items={yearItems}
+                      setOpen={setOpenStart}
+                      setValue={setStartYear}
+                      setItems={() => {}}
+                      placeholder="시작연도"
+                      style={styles.pickerBox}   // 커스텀 박스 스타일
+                      containerStyle={{ width: 140 }}
+                      textStyle={styles.pickerText}
+                      dropDownContainerStyle={styles.pickerDropDown}
+                      arrowIconStyle={styles.arrowIcon}
+                      listMode="SCROLLVIEW"
+                      zIndex={2000}
+                      onClose={() => setOpenEnd(false)}
+                      tickIconStyle={{ width: 0, height: 0, opacity: 0 }}
+                    />
+
+                    {/* ~ 텍스트 */}
+                    <Text style={styles.rangeSeparator}>~</Text>
+
+                    {/* 종료연도 드롭다운 */}
+                    <DropDownPicker
+                      open={openEnd}
+                      value={endYear}
+                      items={yearItems}
+                      setOpen={setOpenEnd}
+                      setValue={setEndYear}
+                      setItems={() => {}}
+                      placeholder="종료연도"
+                      style={styles.pickerBox}
+                      containerStyle={{ width: 140 }}
+                      textStyle={styles.pickerText}
+                      dropDownContainerStyle={styles.pickerDropDown}
+                      arrowIconStyle={styles.arrowIcon}
+                      listMode="SCROLLVIEW"
+                      zIndex={1000}
+                      onClose={() => setOpenStart(false)}
+                      tickIconStyle={{ width: 0, height: 0, opacity: 0 }}
+                    />
+                  </View>
+                )};
+                </View>
+
   
-            {/* 모임 연령 */}
+            {/* 모임 연령
             <View>
               <Text style={styles.label}>모임 연령</Text>
               <CommonRadio
@@ -968,7 +1037,7 @@ console.log('selectedTags', sectionsTag)
               />
 
               {ageRestriction === "제한" && (
-                <View style={[styles.ageRange, pickerStyle.viewContainer]}>
+                <View style={styles.ageRange}>
                   <RNPickerSelect
                     onValueChange={(value) => setStartYear(value)}
                     value={startYear}
@@ -978,6 +1047,8 @@ console.log('selectedTags', sectionsTag)
                     })}
                     style={pickerStyle}
                     placeholder={{ label: "시작연도", value: null }}
+                    Icon={() => <Ionicons name="chevron-down" size={18} color="#969696" />}
+                    useNativeAndroidPickerStyle={false}
                   />
                   <Text style={styles.rangeSeparator}>~</Text>
                   <RNPickerSelect
@@ -989,10 +1060,12 @@ console.log('selectedTags', sectionsTag)
                     })}
                     style={pickerStyle}
                     placeholder={{ label: "종료연도", value: null }}
+                    Icon={() => <Ionicons name="chevron-down" size={18} color="#969696" />}
+                    useNativeAndroidPickerStyle={false}
                   />
                 </View>
               )}
-            </View>
+            </View> */}
 
             {/* 태그 선택 */}
             <Text style={styles.subHeader}>태그 선택</Text>
@@ -1346,50 +1419,50 @@ toggleButtonText: {
     color: '#000',
   },
   ageRange: {
-    flexDirection: 'row', // 시작 연도와 종료 연도를 가로로 배치
-    alignItems: 'center', // 세로축 중앙 정렬
-    justifyContent: 'space-between', // 좌우 간격 조정
+    width:'100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: 8,
   },
   rangeSeparator: {
     fontSize: 19,
     fontWeight: 'bold',
     color: BLACK_COLOR, // "~" 색상 (검은색)
-    marginHorizontal: 8, // "~" 좌우 간격
+    marginHorizontal: 14
   },
-});
-
-const pickerStyle = StyleSheet.create({
-  viewContainer: {
+  pickerBox: {
+    width: '100%',
+    height: 44,
     borderWidth: 1,
-    // borderColor: BLACK_COLOR,
-    borderColor: '#ff0000ff',
-    borderRadius: 12,
-    backgroundColor: WHITE_COLOR,
-    width: 140,
-    height:50,
-    padding:0
+    borderColor: BLACK_COLOR,
+    borderRadius: 14,
+    backgroundColor: '#fff',
+    marginHorizontal: 0,
+    justifyContent: 'center',
+    padding: 0,
   },
-  inputAndroid: {
-    height: 50,
-    color: '#333',
-    fontSize: 14,
-    paddingLeft: 10,
-    paddingRight: 10,
+  pickerText: {
+    fontSize: 16,
+    color: '#202020',
+    textAlign: 'center',
+    lineHeight: 20,
+    textAlignVertical: 'center',
+    includeFontPadding: false
   },
-  inputIOS: {
-    height: 50,
-    color: '#333',
-    fontSize: 14,
-    paddingLeft: 10,
-    paddingRight: 10,
+  pickerDropDown: {
+    width: '100%',
+    left: 0,
+    alignSelf: 'flex-start',
+    borderColor: '#121212',
+    borderRadius: 14,
+    backgroundColor: '#fff',
   },
-  iconContainer: {
-    top: 12,
-    right: 12,
-  },
-  fontStyle: {
-    fontSize: 12
+  arrowIcon: {
+    tintColor: '#222', // 화살표 컬러 변경
+    width: 20,
+    height: 20,
+    marginRight: 10
   },
 });
 
