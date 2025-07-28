@@ -203,6 +203,17 @@ const GroupDetailScreen = ({ route, navigation }) => {
     );
   };
 
+  const handleUpdateGroup = async () => {
+      console.log('[디버깅] groupData:', groupData); // 🔍 groupData 확인
+  console.log('[디버깅] groupId:', groupData?.groupId); // 🔍 groupId 확인
+    
+    if(!groupData?.groupId) {
+      Alert.alert("모임정보가 없습니다.")
+      return;
+    }
+    navigation.navigate('UpdateGroupScreen', { groupId: groupData.groupId, selectedCategoryId: groupData.categoryId })
+  }
+
   if (loading || !groupData) {
     return <View style={commonStyles.container}><Text>Loading...</Text></View>;
   }
@@ -285,17 +296,32 @@ const GroupDetailScreen = ({ route, navigation }) => {
     return (
       <View style={styles.bottomButtonContainer}>
         {groupData.myRole === 'GROUP_LEADER' ? (
-          <CustomButton
-            title="삭제하기"
-            style={{
-              ...styles.button,
-              backgroundColor: PINK_DARK_COLOR,
-              borderColor: BLACK_COLOR,
-              paddingVertical: 4,
-              paddingHorizontal: 16,
-            }}
-            onPress={handleDeleteGroup}
-          />
+          <View style={{flexDirection:'row', justifyContent: 'space-between'}}>
+            <CustomButton
+              title="삭제하기"
+              style={{
+                ...styles.button,
+                width: '48%',
+                backgroundColor: PINK_DARK_COLOR,
+                borderColor: BLACK_COLOR,
+                paddingVertical: 4,
+                paddingHorizontal: 16,
+              }}
+              onPress={handleDeleteGroup}
+            />
+            <CustomButton 
+              title="수정하기"
+              style={{
+                ...styles.button,
+                width: '48%',
+                backgroundColor: PINK_LIGHT_COLOR,
+                borderColor: BLACK_COLOR,
+                paddingVertical: 4,
+                paddingHorizontal: 16,
+              }}
+              onPress={handleUpdateGroup}
+            />
+          </View>
         ) : groupData.myRole === 'GROUP_MEMBER' ? (
           <CustomButton
             title="탈퇴하기"
