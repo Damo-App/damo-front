@@ -37,6 +37,7 @@ import ScheduleDetails from '../screens/loginAfter/ScheduleDetails';
 import BoardUpdateScreen from '../screens/loginAfter/BoardUpdateScreen';
 import UpdateCategories from '../screens/loginAfter/UpdateCategories';
 import MyBoardScreen from '../screens/loginAfter/MyBoardScreen';
+import UpdateGroupScreen from '../screens/loginAfter/UpdateGroupScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -182,6 +183,15 @@ const Stack = createStackNavigator();
                 component={CreateGroupScreen}
                 options={{
                   headerTitle: '모임 생성',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
+              <Stack.Screen
+                name="UpdateGroupScreen"
+                component={UpdateGroupScreen}
+                options={{
+                  headerTitle: '모임 수정',
                   headerStyle: commonStyles.header,
                   headerTitleAlign: 'center',
                 }}
