@@ -387,7 +387,7 @@ const SchedulePost = ({ navigation, route }) => {
             onPress={handleSubmit}
             style={{...styles.submitButton, marginTop: 20}}
             textStyle={{fontSize: 16, lineHeight: 20}}
-            disabled={isLoading || !isFormValid}
+            disabled={isLoading}
           />
         </View>
       </View>
