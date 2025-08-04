@@ -59,8 +59,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFF', // 기본 배경색
-    width: 80,
-    height: 80,
+    width: 70,
+    height: 70,
   },
   selectedIconBox: {
     backgroundColor: PRIMARY_COLOR, // 선택된 카테고리의 배경색

@@ -82,6 +82,47 @@ export const commonStyles = StyleSheet.create({
   }
 });
 
+export const borderStyles = StyleSheet.create({
+  border:{
+    borderStyle:'solid',
+    borderColor:BLACK_COLOR,
+    borderWidth:1
+  }
+})
+
+export const flexStyles = StyleSheet.create({
+  center:{
+    display:'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  flexRow:{
+    display:'flex',
+    flexDirection:'row'
+  },
+  flexCol:{
+     display:'flex',
+    flexDirection:'column'
+  },
+  spaceBetweenRow:{
+    width: '100%',
+    display:'flex',
+    flexDirection:'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  spaceBetweenCol:{
+    borderStyle:'solid',
+    borderColor:BLACK_COLOR,
+    borderWidth:1,
+    width: '100%',
+    display:'flex',
+    flexDirection:'column',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  }
+})
+
 export const homeStyles = StyleSheet.create({
   container:{
     display:'flex',
