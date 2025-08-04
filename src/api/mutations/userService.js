@@ -91,9 +91,12 @@ export const patchUserPw = async (data) => {
 };
 
 // 회원 탈퇴 API 호출
-export const deleteUser = async (email, password) => {
-  const response = await instance.delete('/members', {
-    data: { email, password }, // axios는 DELETE도 data에 담을 수 있음
+export const deleteUser = async (email, password, token) => {
+ const response = await instance.delete('/members', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: { email, password },
   });
   return response.data;
 };
