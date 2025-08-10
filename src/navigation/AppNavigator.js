@@ -129,6 +129,7 @@ const Stack = createStackNavigator();
           <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} />
           <Stack.Screen name="UserList" component={UserListScreen} />
           <Stack.Screen name="UserManagementScreen" component={UserManagementScreen} />
+          <Stack.Screen name="AdminChangePWScreen" component={AdminChangePWScreen} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           </>
         ) : (
