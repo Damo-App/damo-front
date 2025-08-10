@@ -38,6 +38,7 @@ import BoardUpdateScreen from '../screens/loginAfter/BoardUpdateScreen';
 import UpdateCategories from '../screens/loginAfter/UpdateCategories';
 import MyBoardScreen from '../screens/loginAfter/MyBoardScreen';
 import UpdateGroupScreen from '../screens/loginAfter/UpdateGroupScreen';
+import { instance } from '../api/axiosInstance';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -46,7 +47,59 @@ const Stack = createStackNavigator();
   // isLoggedIn 값이 false 면 로그인 전 화면 -> loginBefore
   function TabNavigator() {
     // const {navigation} = useNavigation();
-    const { isLoggedIn } = useContext(AuthContext);
+    // const { isLoggedIn } = useContext(AuthContext);
+    const { isLoggedIn, setIsLoggedIn, setUser } = useContext(AuthContext);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+      const checkedAutoLogin = async () => {
+        try {
+          const refreshToken = await AsyncStorage.getItem('refreshToken');
+          const email = await AsyncStorage.getItem('email');
+
+          console.log('refreshToken 확인', refreshToken);
+          console.log('email 확인', email);
+  
+          if(email && refreshToken) {
+            const res = await instance.post(
+            '/auth/token/refresh',
+            null,
+            {
+              headers: {
+                Refresh: `Bearer ${refreshToken}`,
+              },
+            }
+          );
+          const newAccessToken =
+            res.headers['authorization']
+            ? res.headers['authorization'].replace('Bearer ', '').trim()
+            : null;
+
+            console.log('확인 newAccessToken', newAccessToken)
+            if (!newAccessToken) throw new Error('No access token in refresh response');
+            if(newAccessToken) {
+              await AsyncStorage.setItem('accessToken', newAccessToken);
+              instance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+              setIsLoggedIn(true);
+              setUser({ refreshToken, email, accessToken: newAccessToken })
+            }
+          } else {
+            setIsLoggedIn(false);
+            setUser(null);
+          }
+        } catch(error) {
+          await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'email']);
+          setUser(null);
+          setIsLoggedIn(false);
+          console.log('자동 로그인 실패', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      checkedAutoLogin();
+    }, [setIsLoggedIn, setUser]);
+
+    if(isLoading) return null;
   
     return (
       <Tab.Navigator

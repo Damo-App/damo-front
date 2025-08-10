@@ -15,9 +15,16 @@ export const findUserId = async (userData) => {
   return response.data;
 };
 
+
+
+
 // 로그dls
+// 아이디, 비밀번호 : credentials
 export const loginUser = async (credentials) => {
   try {
+    await AsyncStorage.setItem("loginInfo", JSON.stringify(credentials))
+    const userData =  await AsyncStorage.getItem('loginInfo')
+    console.log('loginInfo>>>>>', userData);
     console.log("📤 Sending Login Request:", credentials);
 
     // 로그인 요청
