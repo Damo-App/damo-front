@@ -13,6 +13,7 @@ const CommonModal = ({
   onCancel,
   confirmButtonText,
   onConfirm,
+  titleStyle
 }) => {
   return (
     <Modal
@@ -23,7 +24,7 @@ const CommonModal = ({
     >
       <View style={[styles.centeredView, ]}>
         <View style={[styles.modalView, commonShadow.mainShadow]}>
-          {title && <Text style={styles.titleText}>{title}</Text>}
+          {title && <Text style={[styles.titleText, titleStyle]}>{title}</Text>}
           {introduction && <Text style={styles.mainText}>{introduction}</Text>}
 
           {/* 만약 children이 있으면 children 렌더링 */}
@@ -59,6 +60,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
   },
   modalView: {
     width: '80%',
@@ -79,6 +81,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   buttonRow: {
+    marginTop: 20,
     flexDirection: 'row',
     width: '100%',
     justifyContent: 'space-between',

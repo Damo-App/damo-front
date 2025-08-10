@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { CustomButton } from '../../components/CustomButton';
 import CommonTag from '../../components/CommonTag';
-import { BLACK_COLOR, WHITE_COLOR } from '../../constants/colors';
-import { commonShadow } from '../../constants/styles';
+import { BLACK_COLOR, G_DARK_COLOR, WHITE_COLOR } from '../../constants/colors';
+import { commonShadow, commonStyles } from '../../constants/styles';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { instance } from '../../api/axiosInstance';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
+import CommonModal from '../../components/CommonModal';
 
 const UserManagementScreen = () => {
   const [activeTab, setActiveTab] = useState('모임');
@@ -14,6 +16,8 @@ const UserManagementScreen = () => {
   const navigation = useNavigation();
   const { memberId } = route.params;
   const queryClient = useQueryClient();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  
 
   // API 데이터 가져오기
   const { data: memberData, isError: memberError, error: memberErrorData } = useQuery({
@@ -49,34 +53,44 @@ const UserManagementScreen = () => {
       await instance.delete(`/members/${memberId}`);
       // 삭제 성공 후 users 쿼리 무효화
       await queryClient.invalidateQueries(['users']);
-      Alert.alert('성공', '회원이 성공적으로 탈퇴되었습니다.', [
-        { 
-          text: '확인', 
-          onPress: () => {
-            navigation.goBack();
-          }
-        }
-      ]);
+      // Alert.alert('성공', '회원이 성공적으로 탈퇴되었습니다.', [
+      //   { 
+      //     text: '확인', 
+      //     onPress: () => {
+      //       navigation.goBack();
+      //     }
+      //   }
+      // ]);
+      Toast.show({
+        type: 'success',
+        text1: '회원이 성공적으로 탈퇴되었습니다.',
+        position: 'bottom'
+      })
+      navigation.goBack();
     } catch (error) {
       if (error.response?.status === 400) {
-        Alert.alert('실패', '모임장은 회원 탈퇴할 수 없습니다.');
+        // Alert.alert('실패', '모임장은 회원 탈퇴할 수 없습니다.');
+        Toast.show({
+          type: 'error',
+          text1: '모임장인 회원을 탈퇴할 수 없습니다.',
+          position: 'bottom'
+        })
+        setIsModalVisible(false);
       } else {
-        Alert.alert('오류', '회원 탈퇴 처리 중 오류가 발생했습니다.');
+        // Alert.alert('오류', '회원 탈퇴 처리 중 오류가 발생했습니다.');
+        Toast.show({
+          type: 'error',
+          text1: '회원 탈퇴 처리 중 오류가 발생했습니다.',
+          position: 'bottom'
+        })
+        setIsModalVisible(false);
       }
     }
   };
 
-  const confirmDelete = () => {
-    Alert.alert(
-      '회원 탈퇴',
-      '정말로 이 회원을 탈퇴시키시겠습니까?',
-      [
-        { text: '취소', style: 'cancel' },
-        { text: '탈퇴', onPress: handleDeleteMember, style: 'destructive' }
-      ],
-      { cancelable: true }
-    );
-  };
+  // const confirmDelete = () => {
+  //   setIsModalVisible()
+  // };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -84,7 +98,8 @@ const UserManagementScreen = () => {
         return (
           <ScrollView style={styles.tabContent}>
             <View style={styles.gridContainer}>
-              {groupsData?.data?.data?.map((group, index) => (
+              {(groupsData?.data?.data ?? []).length > 0 ?
+              groupsData?.data?.data?.map((group, index) => (
                 <View key={index} style={styles.gridItem}>
                   <View style={[styles.imageWrapper, commonShadow.mainShadow]}>
                     <View style={styles.imageContainer}>
@@ -100,7 +115,10 @@ const UserManagementScreen = () => {
                     <Text style={styles.gridTitle}>{group.groupName}</Text>
                   </View>
                 </View>
-              ))}
+              )) : 
+                <View style={styles.emptyTextBox}>
+                  <Text style={styles.emptyText}>가입한 모임이 없습니다.</Text>
+                </View>}
             </View>
           </ScrollView>
         );
@@ -108,7 +126,8 @@ const UserManagementScreen = () => {
         return (
           <ScrollView style={styles.tabContent}>
             <View style={styles.postContainer}>
-              {boardsData?.data?.data?.map((post, index) => (
+              {(boardsData?.data?.data ?? []).length > 0 ?
+              boardsData?.data?.data?.map((post, index) => (
                 <View key={index} style={[styles.postBox, commonShadow.mainShadow]}>
                   <Text style={styles.postLabel}>{post.groupName}</Text>
                   <Text style={styles.postTitle}>{post.title}</Text>
@@ -134,20 +153,27 @@ const UserManagementScreen = () => {
                     <Text style={styles.dateText}>{post.createdAt}</Text>
                   </View>
                 </View>
-              ))}
+              )) :
+                <View style={styles.emptyTextBox}>
+                  <Text style={styles.emptyText}>작성한 게시글이 없습니다.</Text>
+                </View>}
             </View>
           </ScrollView>
         );
       case '댓글':
         return (
-          <ScrollView style={styles.tabContent}>
-            {commentsData?.data?.data?.map((comment, index) => (
+          <ScrollView style={[styles.tabContent, {padding: 10}]}>
+            {(commentsData?.data?.data ?? []).length > 0 ?
+            commentsData?.data?.data?.map((comment, index) => (
               <View key={index} style={[styles.commentBox, commonShadow.mainShadow]}>
                 <Text style={styles.commentLabel}>{comment.groupName}</Text>
                 <Text style={[styles.commentText, { fontWeight: 'bold' }]}>{comment.postTitle}</Text>
                 <Text style={styles.commentText}>{comment.content}</Text>
               </View>
-            ))}
+            )) : 
+              <View style={styles.emptyTextBox}>
+                <Text style={styles.emptyText}>작성한 댓글이 없습니다.</Text>
+              </View>}
           </ScrollView>
         );
       default:
@@ -200,12 +226,24 @@ const UserManagementScreen = () => {
           textStyle={{
             color: WHITE_COLOR
           }}
-          onPress={memberData?.data?.data?.email === 'h4@gmail.com' ? null : confirmDelete}
+          onPress={memberData?.data?.data?.email === 'h4@gmail.com' ? null : () => setIsModalVisible(true)}
           disabled={memberData?.data?.data?.email === 'h4@gmail.com'}
+        />
+        <CommonModal 
+        style={{marginBottom: 10}}
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          onCancel={() => setIsModalVisible(false)}
+          onConfirm={handleDeleteMember}
+          title={"정말로 이 회원을 탈퇴시키시겠습니까 ?"}
+          titleStyle={{fontSize: 14}}
+          // introduction={`탈퇴 시 계정에 있는 모든 모임과 일정이 삭제되며 복구되지 않습니다.`}
+          cancelButtonText={"취소"}
+          confirmButtonText={"탈퇴"}
         />
       </View>
 
-      {/* 활동 내역 박스 */}
+      {/* 활동 내역 박스 */}  
       <View style={[styles.activityContainer, commonShadow.mainShadow]}>
         {/* 탭 메뉴 */}
         <View style={styles.tabContainer}>
@@ -419,7 +457,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BLACK_COLOR,
     borderRadius: 10,
-    padding: 8,
     backgroundColor: WHITE_COLOR,
     marginHorizontal: 10,
     marginTop: 10, 
@@ -435,6 +472,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 8,
   },
+  emptyTextBox:{
+    marginTop:5,
+    height:'auto',
+    width:'100%',
+    paddingHorizontal:20,
+    paddingVertical:50,
+    borderWidth:1,
+    borderColor:G_DARK_COLOR,
+    borderRadius:12,
+    backgroundColor:WHITE_COLOR
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: G_DARK_COLOR,
+    textAlign: 'center',
+  }
 });
 
 export default UserManagementScreen; 
