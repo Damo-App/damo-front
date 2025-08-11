@@ -40,6 +40,22 @@ import MyBoardScreen from '../screens/loginAfter/MyBoardScreen';
 import UpdateGroupScreen from '../screens/loginAfter/UpdateGroupScreen';
 import { instance } from '../api/axiosInstance';
 
+// 뒤로가기 버튼을 표시하지 않을 화면들
+const NO_BACK_BUTTON_SCREENS = [
+  'MainTabs', 
+  'Home', 
+  'Main',
+  'Admin',
+  'SelectCategories',
+  '모임 리스트',
+  'Chat',
+  'MyPage'
+];
+
+const shouldShowBackButton = (routeName) => {
+  return !NO_BACK_BUTTON_SCREENS.includes(routeName);
+};
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
  // 로그인 여부에 따라서 다른 화면을 탭으로 전환해줌
@@ -112,12 +128,26 @@ const Stack = createStackNavigator();
           headerTitle: () => (
             <Text style={commonStyles.headerTitle}>{route.name}</Text>
           ),
-          headerLeft: () => (
-            <>
-              {/* <Text style={styles.backButtonText}>뒤로</Text> */}
-              <IconButton onPress={() => navigation.goBack()} name={"arrow-back"} size={30} color={BORDER_COLOR}/>
-            </>
-          ),
+          headerLeft: () => {
+            // route가 undefined인 경우 처리
+            if (!route || !route.name) {
+              return null;
+            }
+            
+            // 뒤로가기 버튼을 표시하지 않을 화면들
+            if (!shouldShowBackButton(route.name)) {
+              return null;
+            }
+            
+            return (
+              <IconButton 
+                onPress={() => navigation.goBack()} 
+                name={"arrow-back"} 
+                size={30} 
+                color={BORDER_COLOR}
+              />
+            );
+          },
           tabBarShowLabel: false, // 레이블(텍스트) 숨기고 이미지만!
         })}
       >
@@ -126,8 +156,8 @@ const Stack = createStackNavigator();
           {/* options={{ headerShown: false }}  */}
             <Tab.Screen name="Main" component={MainScreen} options={{ headerShown: false }}/>
             <Tab.Screen name="모임 리스트" component={GroupListScreen} />
-            <Tab.Screen name="Chat" component={ChatScreen} />
-            <Tab.Screen name="MyPage" component={MyPageScreen} />
+            <Tab.Screen name="채팅" component={ChatScreen} />
+            <Tab.Screen name="마이 페이지" component={MyPageScreen} />
           </>
         ) : (
           <>
@@ -168,12 +198,26 @@ const Stack = createStackNavigator();
           headerTitle: () => (
             <Text style={commonStyles.headerTitle}>{route.name}</Text>
           ),
-          headerLeft: () => (
-            <>
-              {/* <Text style={styles.backButtonText}>뒤로</Text> */}
-              <IconButton onPress={() => navigation.goBack()} name={"arrow-back"} size={30} color={BORDER_COLOR}/>
-            </>
-          ),
+          headerLeft: () => {
+            // route가 undefined인 경우 처리
+            if (!route || !route.name) {
+              return null;
+            }
+            
+            // 뒤로가기 버튼을 표시하지 않을 화면들
+            if (!shouldShowBackButton(route.name)) {
+              return null;
+            }
+            
+            return (
+              <IconButton 
+                onPress={() => navigation.goBack()} 
+                name={"arrow-back"} 
+                size={30} 
+                color={BORDER_COLOR}
+              />
+            );
+          },
         })}
       >
         {isAdmin ? (

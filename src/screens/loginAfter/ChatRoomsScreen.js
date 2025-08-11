@@ -598,7 +598,7 @@ const ChatRoomsScreen = ({ route, navigation }) => {
 
             console.log('STOMP 연결 시도...');
             const client = new Client({
-              webSocketFactory: () => new SockJS('http://192.168.1.155:8080/ws-stomp'),
+              webSocketFactory: () => new SockJS('http://172.20.10.5:8080/ws-stomp'),
               // connectHeaders: { Authorization: `Bearer ${token}` },
                 // webSocketFactory: () => new SockJS('ws://172.20.10.5:8080/ws-stomp'),
                 connectHeaders: {

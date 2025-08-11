@@ -266,7 +266,7 @@ const SchedulePost = ({ navigation, route }) => {
           text: '확인', 
           onPress: () => {
             // 해당 모임의 일정 페이지로 이동
-            navigation.navigate('GroupDetailScreen', {
+            navigation.replace('GroupDetailScreen', {
               groupId: groupId,
               initialTab: 'schedule' // 일정 탭으로 바로 이동하도록 파라미터 추가
             });

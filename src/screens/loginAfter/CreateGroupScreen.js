@@ -798,7 +798,7 @@ const CreateGroupScreen = ({ navigation }) => {
       Alert.alert("성공", "모임이 성공적으로 생성되었습니다.", [
         {
           text: "확인",
-          onPress: () => navigation.navigate('GroupDetail', { groupId })
+          onPress: () => navigation.replace('GroupDetail', { groupId })
         }
       ]);
 
