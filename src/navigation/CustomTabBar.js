@@ -23,11 +23,11 @@ const TAB_ICONS = {
     on: require('../../assets/images/tab/main_on.png'),
     off: require('../../assets/images/tab/main_off.png'),
   },
-  Login: {
+  '로그인': {
     on: require('../../assets/images/tab/login_on.png'),
     off: require('../../assets/images/tab/login_off.png'),
   },
-  Register: {
+  '회원가입': {
     on: require('../../assets/images/tab/register_on.png'),
     off: require('../../assets/images/tab/register_off.png'),
   },
