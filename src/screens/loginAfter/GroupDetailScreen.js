@@ -14,6 +14,20 @@ const GroupDetailScreen = ({ route, navigation }) => {
   const [showMemberList, setShowMemberList] = useState(false);
   const [memberList, setMemberList] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const { isLoggedIn, isCategorySelected } = useContext(AuthContext);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const email = await AsyncStorage.getItem('email');
+      if (email === 'admin123@gmail.com') {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false); // Reset admin state if email does not match
+      }
+    };
+    checkAdmin();
+  }, [isLoggedIn]);
 
   useEffect(() => {
     const fetchGroupDetail = async () => {
@@ -251,6 +265,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
   console.log('Past Schedules:', pastSchedules);
 
   const renderActionButton = () => {
+    if(isAdmin) return null;
     if (groupData.myRole === 'GROUP_LEADER') {
       return (
         <>
@@ -311,6 +326,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
 
   const renderBottomButton = () => {
     if (!groupData) return null;
+    if(isAdmin) return null;
 
     return (
       <View style={styles.bottomButtonContainer}>

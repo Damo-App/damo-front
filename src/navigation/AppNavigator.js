@@ -228,6 +228,24 @@ const Stack = createStackNavigator();
           <Stack.Screen name="UserManagementScreen" component={UserManagementScreen} />
           <Stack.Screen name="AdminChangePWScreen" component={AdminChangePWScreen} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen
+            name="GroupDetail"
+            component={GroupDetailScreen}
+            options={{
+              headerTitle: '모임 상세',
+              headerStyle: commonStyles.header,
+              headerTitleAlign: 'center',
+            }}
+          />
+          <Stack.Screen
+            name="BoardDetailsScreen"
+            component={BoardDetailsScreen}
+            options={{
+              headerTitle: '게시물 상세',
+              headerStyle: commonStyles.header,
+              headerTitleAlign: 'center',
+            }}
+          />
           </>
         ) : (
           <>
