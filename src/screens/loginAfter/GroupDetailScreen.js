@@ -9,6 +9,7 @@ import { instance } from '../../api/axiosInstance';
 const GroupDetailScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
   const [groupData, setGroupData] = useState(null);
+  const [participationData, setParticipationData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showMemberList, setShowMemberList] = useState(false);
   const [memberList, setMemberList] = useState([]);
@@ -18,6 +19,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
     const fetchGroupDetail = async () => {
       try {
         const response = await instance.get(`/groups/${groupId}`);
+        
         console.log('API Response:', response.data.data);
         setGroupData(response.data.data);
       } catch (error) {
@@ -29,6 +31,8 @@ const GroupDetailScreen = ({ route, navigation }) => {
 
     fetchGroupDetail();
   }, [groupId]);
+
+  console.log("groupData ============", groupData)
 
   const handleWithdraw = () => {
     Alert.alert(
@@ -140,6 +144,21 @@ const GroupDetailScreen = ({ route, navigation }) => {
     navigation.navigate('ScheduleDetails', { scheduleId, groupId });
   }
 
+  const handleParticipation = async (scheduleId) => {
+    // /schedules/{schedules-id}/participation
+    try {
+        const response = await instance.get(`/schedules/${scheduleId}/participation`);
+        
+        console.log('setParticipationData ::::::>>>>>>', response.data.data);
+        setParticipationData(response.data.data);
+      } catch (error) {
+        console.error('Error setParticipationData', error);
+      } finally {
+        setLoading(false);
+      }
+
+  }
+
   const handleCancelSchedule = (scheduleId) => {
     Alert.alert(
       "일정 취소",
@@ -228,7 +247,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
     schedule => schedule.state === 'SCHEDULE_COMPLETED'
   ) || [];
 
-  console.log('Active Schedules:', activeSchedules);
+  console.log('Active Schedules:', activeSchedules); //scheduleId
   console.log('Past Schedules:', pastSchedules);
 
   const renderActionButton = () => {
@@ -430,7 +449,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                         : YELLOW_LIGHT_COLOR
                     }]} />
                   </View>
-                  {groupData.myRole === 'GROUP_LEADER' && (
+                  {groupData.myRole === 'GROUP_LEADER' ? (
                     <View style={styles.scheduleActions}>
                       <TouchableOpacity style={[styles.smallButton, commonShadow.mainShadow]} onPress={() => handleDetailSchedule(schedule.scheduleId)}>
                         <Text style={styles.smallButtonText}>상세</Text>
@@ -442,7 +461,22 @@ const GroupDetailScreen = ({ route, navigation }) => {
                         <Text style={styles.smallButtonText}>취소</Text>
                       </TouchableOpacity>
                     </View>
-                  )}
+                  )
+                  :
+                  (
+                    <View style={styles.scheduleActions}>
+                      <TouchableOpacity style={[styles.smallButton, commonShadow.mainShadow]} onPress={() => handleParticipation(schedule.scheduleId)}>
+                        <Text style={styles.smallButtonText}>참여</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.smallButton, { backgroundColor: '#FFE5E5' }, commonShadow.mainShadow]}
+                        onPress={() => handleCancelSchedule(schedule.scheduleId)}
+                      >
+                        <Text style={styles.smallButtonText}>취소</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )
+                }
                 </View>
                 {schedule.scheduleStatus === 'CONTINUOUS' ? (
                   <View style={styles.timeContainer}>

@@ -162,8 +162,8 @@ const Stack = createStackNavigator();
         ) : (
           <>
             <Tab.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-            <Tab.Screen name="Login" component={LoginScreen} />
-            <Tab.Screen name="Register" component={RegisterScreen} />
+            <Tab.Screen name="로그인" component={LoginScreen} />
+            <Tab.Screen name="회원가입" component={RegisterScreen} />
           </>
         )}
       </Tab.Navigator>
@@ -234,8 +234,8 @@ const Stack = createStackNavigator();
             {!isLoggedIn ? (
               <>
                 <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} />
-                <Stack.Screen name="Register" component={RegisterScreen} />
-                <Stack.Screen name="FindId" component={FindIdScreen} />
+                <Stack.Screen name="회원가입" component={RegisterScreen} />
+                <Stack.Screen name="아이디 찾기" component={FindIdScreen} />
                 <Stack.Screen name="SuccessFindId" component={SuccessFindIdScreen} />
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="SelectCategories" component={SelectCategories} />
@@ -245,7 +245,7 @@ const Stack = createStackNavigator();
                 <Stack.Screen name="카테고리 수정" component={UpdateCategories} />
                 <Stack.Screen name="내 게시글 조회" component={MyBoardScreen} />
                 <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} />
-                <Stack.Screen name="Chat" component={ChatScreen} />
+                <Stack.Screen name="채팅" component={ChatScreen} />
                 <Stack.Screen name="ChatRooms" component={ChatRoomsScreen} />
                 <Stack.Screen name="내 모임 조회" component={MyGroupsScreen} />
                 <Stack.Screen name="비밀번호 변경" component={ChangePWScreen} />
