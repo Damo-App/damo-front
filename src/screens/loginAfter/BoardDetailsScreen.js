@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from "react-native";
 import { PRIMARY_BACK_COLOR, BLACK_COLOR, WHITE_COLOR, PRIMARY_BTN_COLOR, ERROR_COLOR, YELLOW_DARK_COLOR, YELLOW_LIGHT_COLOR, INPUT_BACK_COLOR, PINK_DARK_COLOR } from "../../constants/colors";
 import { commonStyles } from "../../constants/styles";
@@ -13,6 +13,7 @@ import { instance } from "../../api/axiosInstance";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUser } from "../../hooks/useUser";
 import { useIsFocused } from "@react-navigation/native";
+import { AuthContext } from "../../contexts/AuthProvider";
 
 function BoardDetailsScreen({ route, navigation }) {
     const { groupId, boardId } = route.params;
@@ -24,16 +25,33 @@ function BoardDetailsScreen({ route, navigation }) {
     const [memberName, setMemberName] = useState("");
     const [isAuthor, setIsAuthor] = useState(false);
     const { user } = useUser();
+    const { isLoggedIn, isCategorySelected } = useContext(AuthContext);
+    const [isAdmin, setIsAdmin] = useState(false);
+  
+    useEffect(() => {
+        console.log(boardId, groupId)
+      const checkAdmin = async () => {
+        const email = await AsyncStorage.getItem('email');
+        if (email === 'admin123@gmail.com') {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      };
+      checkAdmin();
+    }, [isLoggedIn]);
 
     console.log(user.memberId);
 
     // 게시글 상세 조회
     const fetchPostDetails = async () => {
         try {
+            console.log(isAdmin)
+            console.log('groupId, boardId', groupId, boardId)
             const response = await instance.get(`/groups/${groupId}/boards/${boardId}`);
             console.log('게시글 데이터:', response.data.data);
 
-            if(response.data.data.memberId === user.memberId){
+            if(response.data.data.memberId === user.memberId || isAdmin){
                 setIsAuthor(true);
             }
 
@@ -51,6 +69,7 @@ function BoardDetailsScreen({ route, navigation }) {
 
     // 댓글 목록 조회
     const fetchComments = async (page = 1) => {
+        console.log('boardId', boardId)
         try {
             const response = await instance.get(`/boards/${boardId}/comments?page=${page}&size=10`);
             setComments(response.data.data);
@@ -77,7 +96,6 @@ function BoardDetailsScreen({ route, navigation }) {
     // 댓글 작성
     const handleSubmit = async () => {
         if (!comment.trim()) return;
-        
         try {
             await instance.post(`/boards/${boardId}/comments`, {
                 content: comment.trim()

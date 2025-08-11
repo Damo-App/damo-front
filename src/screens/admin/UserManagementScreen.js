@@ -10,13 +10,15 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import CommonModal from '../../components/CommonModal';
 
-const UserManagementScreen = () => {
+const UserManagementScreen = ({ route }) => {
   const [activeTab, setActiveTab] = useState('모임');
-  const route = useRoute();
+  // const route = useRoute();
   const navigation = useNavigation();
   const { memberId } = route.params;
   const queryClient = useQueryClient();
   const [isModalVisible, setIsModalVisible] = useState(false);
+  
+  
   
 
   // API 데이터 가져오기
@@ -34,11 +36,15 @@ const UserManagementScreen = () => {
     queryKey: ['memberBoards', memberId],
     queryFn: () => instance.get(`/admin/members/${memberId}/boards?page=1&size=5`),
   });
+  console.log('boardsData>>>>', boardsData);
 
   const { data: commentsData, isError: commentsError, error: commentsErrorData } = useQuery({
     queryKey: ['memberComments', memberId],
     queryFn: () => instance.get(`/admin/members/${memberId}/comments?page=1&size=3`),
   });
+
+  console.log('commentsData', commentsData)
+
 
   // 에러 발생시 콘솔에 로그 출력
   React.useEffect(() => {
@@ -53,14 +59,6 @@ const UserManagementScreen = () => {
       await instance.delete(`/members/${memberId}`);
       // 삭제 성공 후 users 쿼리 무효화
       await queryClient.invalidateQueries(['users']);
-      // Alert.alert('성공', '회원이 성공적으로 탈퇴되었습니다.', [
-      //   { 
-      //     text: '확인', 
-      //     onPress: () => {
-      //       navigation.goBack();
-      //     }
-      //   }
-      // ]);
       Toast.show({
         type: 'success',
         text1: '회원이 성공적으로 탈퇴되었습니다.',
@@ -69,15 +67,12 @@ const UserManagementScreen = () => {
       navigation.goBack();
     } catch (error) {
       if (error.response?.status === 400) {
-        // Alert.alert('실패', '모임장은 회원 탈퇴할 수 없습니다.');
         Toast.show({
           type: 'error',
-          text1: '모임장인 회원을 탈퇴할 수 없습니다.',
           position: 'bottom'
         })
         setIsModalVisible(false);
       } else {
-        // Alert.alert('오류', '회원 탈퇴 처리 중 오류가 발생했습니다.');
         Toast.show({
           type: 'error',
           text1: '회원 탈퇴 처리 중 오류가 발생했습니다.',
@@ -88,10 +83,6 @@ const UserManagementScreen = () => {
     }
   };
 
-  // const confirmDelete = () => {
-  //   setIsModalVisible()
-  // };
-
   const renderTabContent = () => {
     switch (activeTab) {
       case '모임':
@@ -100,7 +91,12 @@ const UserManagementScreen = () => {
             <View style={styles.gridContainer}>
               {(groupsData?.data?.data ?? []).length > 0 ?
               groupsData?.data?.data?.map((group, index) => (
-                <View key={index} style={styles.gridItem}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.gridItem}
+                  onPress={() => navigation.navigate('GroupDetail', { groupId: group.groupId })}
+                >
+                {/* <View key={index} style={styles.gridItem}> */}
                   <View style={[styles.imageWrapper, commonShadow.mainShadow]}>
                     <View style={styles.imageContainer}>
                       <Image 
@@ -114,7 +110,8 @@ const UserManagementScreen = () => {
                     </View>
                     <Text style={styles.gridTitle}>{group.groupName}</Text>
                   </View>
-                </View>
+                {/* </View> */}
+                </TouchableOpacity>
               )) : 
                 <View style={styles.emptyTextBox}>
                   <Text style={styles.emptyText}>가입한 모임이 없습니다.</Text>
@@ -127,33 +124,42 @@ const UserManagementScreen = () => {
           <ScrollView style={styles.tabContent}>
             <View style={styles.postContainer}>
               {(boardsData?.data?.data ?? []).length > 0 ?
-              boardsData?.data?.data?.map((post, index) => (
-                <View key={index} style={[styles.postBox, commonShadow.mainShadow]}>
-                  <Text style={styles.postLabel}>{post.groupName}</Text>
-                  <Text style={styles.postTitle}>{post.title}</Text>
-                  <View style={styles.postImageBox}>
-                    {post.image && (
-                      <Image 
-                        source={{ 
-                          uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${post.image}`
-                        }}
-                        style={styles.postImage}
-                      />
-                    )}
-                  </View>
-                  <Text style={styles.postContent}>{post.contentPreview}</Text>
-                  <View style={styles.postFooter}>
-                    <View style={styles.commentContainer}>
-                      <Image 
-                        source={require('../../../assets/images/comment.png')}
-                        style={styles.commentIcon}
-                      />
-                      <Text style={[styles.commentCount, { fontWeight: 'bold' }]}>{post.commentCount}</Text>
+              boardsData?.data?.data?.map((board, index) => {
+                const matchedGroup = groupsData?.data?.data.find(
+                  (group) => group.groupName === board.groupName
+                );
+                return(
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.postBox, commonShadow.mainShadow]}
+                  onPress={() => navigation.navigate('BoardDetailsScreen', { boardId: board.boardId, groupId: matchedGroup?.groupId })}
+                >
+                    <Text style={styles.postLabel}>{board.groupName}</Text>
+                    <Text style={styles.postTitle}>{board.title}</Text>
+                    <View style={styles.postImageBox}>
+                      {board.image && (
+                        <Image 
+                          source={{ 
+                            uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${board.image}`
+                          }}
+                          style={styles.postImage}
+                        />
+                      )}
                     </View>
-                    <Text style={styles.dateText}>{post.createdAt}</Text>
-                  </View>
-                </View>
-              )) :
+                    <Text style={styles.postContent}>{board.contentPreview}</Text>
+                    <View style={styles.postFooter}>
+                      <View style={styles.commentContainer}>
+                        <Image 
+                          source={require('../../../assets/images/comment.png')}
+                          style={styles.commentIcon}
+                        />
+                        <Text style={[styles.commentCount, { fontWeight: 'bold' }]}>{board.commentCount}</Text>
+                      </View>
+                      <Text style={styles.dateText}>{board.createdAt}</Text>
+                    </View>
+                </TouchableOpacity>
+                )
+              }) :
                 <View style={styles.emptyTextBox}>
                   <Text style={styles.emptyText}>작성한 게시글이 없습니다.</Text>
                 </View>}
@@ -161,16 +167,28 @@ const UserManagementScreen = () => {
           </ScrollView>
         );
       case '댓글':
-        return (
+        return (  
           <ScrollView style={[styles.tabContent, {padding: 10}]}>
             {(commentsData?.data?.data ?? []).length > 0 ?
-            commentsData?.data?.data?.map((comment, index) => (
-              <View key={index} style={[styles.commentBox, commonShadow.mainShadow]}>
-                <Text style={styles.commentLabel}>{comment.groupName}</Text>
-                <Text style={[styles.commentText, { fontWeight: 'bold' }]}>{comment.postTitle}</Text>
-                <Text style={styles.commentText}>{comment.content}</Text>
-              </View>
-            )) : 
+              commentsData?.data?.data?.map((comment, index) => {
+                const matchedBoard = boardsData?.data?.data.find(
+                  (b) => b.groupName === comment.groupName && b.title === comment.postTitle
+                );
+                const matchedGroup = groupsData?.data?.data.find(
+                  g => g.groupName === comment.groupName
+                );
+                return(
+                <TouchableOpacity
+                    key={index}
+                    style={[styles.commentBox, commonShadow.mainShadow]}
+                    onPress={() => navigation.navigate('BoardDetailsScreen', { boardId: matchedBoard.boardId, groupId: matchedGroup?.groupId })}
+                  >
+                  <Text style={styles.commentLabel}>{comment.groupName}</Text>
+                  <Text style={[styles.commentText, { fontWeight: 'bold' }]}>{comment.postTitle}</Text>
+                  <Text style={styles.commentText}>{comment.content}</Text>
+                </TouchableOpacity>
+                )
+              }) : 
               <View style={styles.emptyTextBox}>
                 <Text style={styles.emptyText}>작성한 댓글이 없습니다.</Text>
               </View>}
