@@ -11,11 +11,11 @@ const TAB_ICONS = {
     on: require('../../assets/images/tab/groupList_on.png'),
     off: require('../../assets/images/tab/groupList_off.png'),
   },
-  Chat: {
+  '채팅': {
     on: require('../../assets/images/tab/chat_on.png'),
     off: require('../../assets/images/tab/chat_off.png'),
   },
-  MyPage: {
+  '마이 페이지': {
     on: require('../../assets/images/tab/mypage_on.png'),
     off: require('../../assets/images/tab/mypage_off.png'),
   },

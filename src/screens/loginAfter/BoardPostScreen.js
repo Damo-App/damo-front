@@ -87,7 +87,7 @@ const BoardPostScreen = ({ route, navigation }) => {
           text1: '게시글이 작성되었습니다.',
           position: 'bottom'
         });
-        navigation.navigate('BoardScreen', { 
+        navigation.replace('BoardScreen', { 
           groupId: groupId,
           refresh: Date.now()
         });

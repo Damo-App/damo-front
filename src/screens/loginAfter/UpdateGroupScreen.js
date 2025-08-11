@@ -283,12 +283,37 @@ const UpdateGroupScreen = ({ navigation }) => {
       maxMemberCount: parseInt(maxMembers, 10),
     };
 
-    console.log("groupData================", groupData, groupId);
+    /// 수정중 ----------- //////
+    const formData = new FormData();
 
-    console.log("profileImage :", profileImage);
+    if (profileImage) {
+      const uriParts = profileImage.split('/');
+      const fileName = uriParts[uriParts.length - 1];
+      const fileType = fileName.split('.').pop().toLowerCase() === 'png'
+        ? 'image/png'
+        : 'image/jpeg';
 
-    // 3. axios로 전송
-    const response = await groupService.updateGroup(groupId, groupData);
+        console.log("uriParts : ",uriParts);
+        console.log("fileName : ",fileName);
+        console.log("fileType : ",fileType);
+
+      formData.append('groupImage', {
+        uri: profileImage,
+        name: fileName,
+        type: fileType,
+      });
+    }
+
+    formData.append(
+      'groupPatchDto',
+      JSON.stringify(groupData)
+    );
+
+    const response = await instance.patch(`/groups/${groupId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
     const location = response.headers.location;
     
@@ -302,12 +327,11 @@ const UpdateGroupScreen = ({ navigation }) => {
       Alert.alert("성공", "모임이 성공적으로 수정되었습니다.", [
         {
           text: "확인",
-          onPress: () => navigation.navigate('GroupDetail', { groupId })
+          onPress: () => navigation.replace('GroupDetail', { groupId })
         }
       ]);
 
     // 이후 로직 (성공 처리 등)
-    // ...
   } catch (error) {
     // 에러 처리
     console.error('Error details:', error.toJSON ? error.toJSON() : error);
@@ -321,8 +345,6 @@ const UpdateGroupScreen = ({ navigation }) => {
     setIsLoading(false);
   }
 };
-
-console.log('selectedTags', sectionsTag)
 
   return (
     <View style={[commonStyles.container, styles.container]}>
@@ -402,7 +424,7 @@ console.log('selectedTags', sectionsTag)
                 groupStyle={{display:'flex', flexDirection:'column'}}
               />
             </View>
-              <View>
+            <View>
               <Text style={styles.label}>모임 연령</Text>
               <CommonRadio
                 disabled={true}
@@ -454,7 +476,7 @@ console.log('selectedTags', sectionsTag)
                     />
                   </View>
                 )};
-                </View>
+            </View>
 
             {/* 태그 선택 */}
             <Text style={styles.subHeader}>선택 한 태그</Text>
@@ -505,7 +527,7 @@ console.log('selectedTags', sectionsTag)
                   />
                 )}
               )}
-                )
+                
             </View>
           </>
         }

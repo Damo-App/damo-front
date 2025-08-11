@@ -89,7 +89,7 @@ const BoardUpdateScreen = ({ route, navigation }) => {
           text1: '게시글이 수정되었습니다.',
           position: 'bottom'
         });
-        navigation.navigate('BoardScreen', {
+        navigation.replace('BoardScreen', {
           groupId: groupId,
           refresh: Date.now()
         });
