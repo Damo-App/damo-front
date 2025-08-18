@@ -197,7 +197,7 @@ export const RegisterScreen = () => {
       gender,
       memberCategories: [], 
     };
-    navigation.navigate('SelectCategories', { initialData });
+    navigation.navigate('카테고리 선택', { initialData });
   };
   
   // 비밀번호 입력 핸들러

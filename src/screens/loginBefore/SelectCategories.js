@@ -101,21 +101,8 @@ const SelectCategories = () => {
   
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, commonStyles.container]}>
+    <ScrollView contentContainerStyle={[styles.container, commonStyles.container, commonStyles.paddingX]}>
       <View style={commonStyles.boxContainer}>
-        {/* 안내사항 */}
-        <View style={styles.noticeContainer}>
-          <View style={commonCircle.outer}>
-            <View style={commonCircle.inner}></View>
-          </View>
-          <Text style={styles.noticeText}>
-            안내사항{'\n'}
-            - 관심사는 최소 1개 최대 3개 선택 가능합니다.{'\n'}
-            - 처음 선택한 관심사가 1순위로 지정됩니다.{'\n'}
-            - 카테고리는 마이페이지에서 수정이 가능합니다.
-          </Text>
-        </View>
-
         {/* 카테고리 리스트 */}
         <View style={styles.categoryGrid}>
           {categories.map((category, index) => (
@@ -137,6 +124,19 @@ const SelectCategories = () => {
               buttonWidth={BUTTON_WIDTH}
             />
           ))}
+        </View>
+
+        {/* 안내사항 */}
+        <View style={styles.noticeContainer}>
+          <View style={commonCircle.outer}>
+            <View style={commonCircle.inner}></View>
+          </View>
+          <Text style={styles.noticeText}>
+            안내사항{'\n'}
+            - 관심사는 최소 1개 최대 3개 선택 가능합니다.{'\n'}
+            - 처음 선택한 관심사가 1순위로 지정됩니다.{'\n'}
+            - 카테고리는 마이페이지에서 수정이 가능합니다.
+          </Text>
         </View>
 
         {/* 버튼 */}

@@ -22,13 +22,13 @@ const toastConfig = {
   success: (props) => (
     <View style={[commonStyles.toastBox, commonShadow.mainShadow, {backgroundColor:WHITE_COLOR}] }>
       <Text style={commonStyles.toastText}>{props.text1}</Text>
-      <IconButton name='close' size={20} color={BLACK_COLOR} onPress={() => Toast.hide()}/>
+      <IconButton name='close' size={20} color={BLACK_COLOR} onPress={() => props.hide()}/>
     </View>
   ),
   error: (props) => (
     <View style={[commonStyles.toastBox, commonShadow.mainShadow]}>
       <Text style={commonStyles.toastText}>{props.text1}</Text>
-      <IconButton name='close' size={20} color={BLACK_COLOR} onPress={() => Toast.hide()}/>
+      <IconButton name='close' size={20} color={BLACK_COLOR} onPress={() => props.hide()}/>
     </View>
   ),
 };
