@@ -256,7 +256,7 @@ const Stack = createStackNavigator();
                 <Stack.Screen name="아이디 찾기" component={FindIdScreen} />
                 <Stack.Screen name="SuccessFindId" component={SuccessFindIdScreen} />
                 <Stack.Screen name="Login" component={LoginScreen} />
-                <Stack.Screen name="SelectCategories" component={SelectCategories} />
+                <Stack.Screen name="카테고리 선택" component={SelectCategories} />
               </>
             ) : (
               <>
