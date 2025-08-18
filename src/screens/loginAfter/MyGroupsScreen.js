@@ -107,7 +107,8 @@ const MyGroupsScreen = ({ memberId, token }) => {
                     isLeader={item.role === 'GROUP_LEADER'}
                     currentCount={item.memberCount}
                     maxCount={item.maxMemberCount}
-                    onPress={() => console.log(`Group ${item.groupId} clicked!`)}
+                    onPress={() => {console.log(`Group ${item.groupId} clicked!`), 
+                  navigation.navigate('GroupDetail', {groupId :item.groupId})}}
                   />
                 )}
                 showsVerticalScrollIndicator={false}
@@ -115,7 +116,7 @@ const MyGroupsScreen = ({ memberId, token }) => {
               />
               ) : (<View style={styles.emptyTextBox}>
                       <Text style={styles.emptyText}>모임장인 모임이 없습니다.</Text>
-                   </View>)
+                  </View>)
             ) : (
               groups.length > 0 ? (
               <FlatList
