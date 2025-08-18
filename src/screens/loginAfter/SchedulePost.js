@@ -13,10 +13,14 @@ import AddressInput from '../../components/schedule/AddressInput';
 // API 서비스 임포트
 import { createSchedule, getScheduleStatus, convertDaysOfWeek, formatDateTime } from '../../api/mutations/scheduleService';
 import { CustomButton } from "../../components/CustomButton";
+import { instance } from "../../api/axiosInstance";
+import Toast from "react-native-toast-message";
 
 const SchedulePost = ({ navigation, route }) => {
 
   const [isFormValid, setIsFormValid] = useState(false);
+  const [groupData, setGroupData] = useState(null);
+  
 
   useEffect(() => {
       console.log('입력값:', {
@@ -164,47 +168,94 @@ const SchedulePost = ({ navigation, route }) => {
   // 유효성 검사 함수
   const validateForm = () => {
     if (!title.trim()) {
-      Alert.alert('알림', '일정 이름을 입력해주세요.');
+      Toast.show({
+        type: 'error',
+        text1: '일정 이름을 입력해주세요',
+        position: 'bottom'
+      })
       return false;
     }
     
     if (!description.trim()) {
-      Alert.alert('알림', '일정 소개글을 입력해주세요.');
+      Toast.show({
+        type: 'error',
+        text1: '일정 소개글을 입력해주세요.',
+        position: 'bottom'
+      })
       return false;
     }
     
     if (startMonth === 'MM' || startDay === 'DD' || startHour === 'hh' || startMinute === 'mm') {
-      Alert.alert('알림', '시작 날짜와 시간을 선택해주세요.');
+      Toast.show({
+        type: 'error',
+        text1: '시작 날짜와 시간을 선택해주세요.',
+        position: 'bottom'
+      })
       return false;
     }
     
     if (selectedOption !== '단일일정' && (endMonth === 'MM' || endDay === 'DD')) {
-      Alert.alert('알림', '종료 날짜를 선택해주세요.');
+      Toast.show({
+        type: 'error',
+        text1: '종료 날짜를 선택해주세요.',
+        position: 'bottom'
+      })
       return false;
     }
     
     if (endHour === 'hh' || endMinute === 'mm') {
-      Alert.alert('알림', '종료 시간을 선택해주세요.');
+      Toast.show({
+        type: 'error',
+        text1: '종료 시간을 선택해주세요.',
+        position: 'bottom'
+      })
       return false;
     }
     
     if (selectedOption === '정기일정' && selectedDays.length === 0) {
-      Alert.alert('알림', '요일을 하나 이상 선택해주세요.');
+      Toast.show({
+        type: 'error',
+        text1: '요일을 하나 이상 선택해주세요.',
+        position: 'bottom'
+      })
       return false;
     }
     
     if (!maxMembers || isNaN(parseInt(maxMembers))) {
-      Alert.alert('알림', '유효한 모집 인원 수를 입력해주세요.');
+      Toast.show({
+        type: 'error',
+        text1: '유효한 모집 인원 수를 입력해주세요.',
+        position: 'bottom'
+      })
       return false;
     }
     
     if (!address.trim()) {
-      Alert.alert('알림', '장소를 선택해주세요.');
+      Toast.show({
+        type: 'error',
+        text1: '장소를 선택해주세요.',
+        position: 'bottom'
+      })
       return false;
     }
     
     return true;
   };
+
+  useEffect(() => {
+    const fetchGroupDetail = async () => {
+      try {
+        const response = await instance.get(`/groups/${groupId}`);
+        setGroupData(response.data.data);
+      } catch (error) {
+        console.error('Group details error:', error);
+      }
+    };
+    
+    fetchGroupDetail();
+    console.log('groupData>>>>>>>>>>>', groupData)
+  }, []);
+
 
   const handleSubmit = async () => {
     // 유효성 검사
@@ -254,22 +305,50 @@ const SchedulePost = ({ navigation, route }) => {
       if (scheduleStatus === 'RECURRING') {
         requestData.daysOfWeek = daysOfWeek;
       }
+
+      const startDateTime = new Date(`${currentYear}-${startMonth}-${startDay}T${startHour}:${startMinute}:00`);
+      const endDateTime = new Date(`${currentYear}-${endMonth}-${endDay}T${endHour}:${endMinute}:00`);
+      
+      const today = new Date();
+
+      if(startDateTime < today) {
+        Toast.show({
+          type: 'error',
+          text1: '금일 기준 과거 일정은 생성할 수 없습니다.',
+          position: 'bottom'
+        });
+        return;
+      }
+
+      if(groupData.maxMemberCount < maxMembers) {
+        Toast.show({
+          type: 'error',
+          text1: '일정 인원수는 모임 최대 인원수를 초과할 수 없습니다.',
+          position: 'bottom'
+        });
+        return;
+      }
+
+      if (startDateTime > endDateTime) {
+        Toast.show({
+          type: 'error',
+          text1: '종료 시간이 시작 시간보다 빠를 수 없습니다.',
+          position: 'bottom'
+        });
+        return;
+      }
       
       console.log('일정 생성 요청:', requestData);
       
       // API 호출
       const result = await createSchedule(groupId, requestData);
+      
       console.log('일정 생성 성공:', result);
       
       Alert.alert('성공', '일정이 생성되었습니다.', [
         { 
           text: '확인', 
           onPress: () => {
-            // 해당 모임의 일정 페이지로 이동
-            // navigation.replace('GroupDetailScreen', {
-            //   groupId: groupId,
-            //   initialTab: 'schedule' // 일정 탭으로 바로 이동하도록 파라미터 추가
-            // });
             setTimeout(() => {
               navigation.navigate('GroupDetail', {groupId: groupId});
             }, 500);
@@ -278,8 +357,8 @@ const SchedulePost = ({ navigation, route }) => {
       ]);
       
     } catch (error) {
-      console.error('일정 생성 오류:', error);
-      Alert.alert('오류', '일정 생성 중 오류가 발생했습니다.');
+      // console.error('일정 생성 오류:', error);
+      // Alert.alert('오류', '일정 생성 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }
