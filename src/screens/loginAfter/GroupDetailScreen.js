@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { CustomButton } from '../../components/CustomButton';
 import CommonTag from '../../components/CommonTag';
 import { BLACK_COLOR, BORDER_COLOR, G_DARK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
+import { useUser } from '../../hooks/useUser';
+import { AuthContext } from '../../contexts/AuthProvider';
 
 const GroupDetailScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
+  const { user } = useUser();
+  const [joinedStatus, setJoinedStatus] = useState([]);
   const [groupData, setGroupData] = useState(null);
-  const [participationData, setParticipationData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showMemberList, setShowMemberList] = useState(false);
   const [memberList, setMemberList] = useState([]);
@@ -46,7 +49,66 @@ const GroupDetailScreen = ({ route, navigation }) => {
     fetchGroupDetail();
   }, [groupId]);
 
-  console.log("groupData ============", groupData)
+
+  const activeSchedules = useMemo(() => {
+    if (!groupData?.schedules) return [];
+    return groupData.schedules.filter(s => s.state === 'SCHEDULE_ACTIVE');
+  }, [groupData]);
+
+  console.log("activeSchedules test", activeSchedules.length);
+
+  // 2. activeSchedules 변경 시, 내가 참여 중인지 여부 계산
+  useEffect(() => {
+    if (!user?.memberId) return;
+
+    const statusArray = activeSchedules.map(schedule => {
+      const isJoined = schedule.members?.some(m => m.memberId === user.memberId);
+      return {
+        scheduleId: schedule.scheduleId,
+        isJoined
+      };
+    });
+
+    setJoinedStatus(statusArray);
+  }, [activeSchedules, user]);
+
+  // 확인용 콘솔
+  useEffect(() => {
+    console.log('참여 여부 상태 ===', joinedStatus);
+    // 예) [ { scheduleId: 99, isJoined: true }, { scheduleId: 100, isJoined: false } ]
+  }, [joinedStatus]);
+
+  const toggleJoinStatus = async (scheduleId, isCurrentlyJoined) => {
+    try {
+      // setLoading(scheduleId); // 버튼 로딩 표시
+
+      //참여 했으면 됬다고 아래 토스트 메세지 띄우기
+      if (isCurrentlyJoined) {
+        // 취소 API 호출
+        await instance.delete(`/schedules/${scheduleId}/participation`);
+      } else {
+        // 참여 API 호출
+        await instance.post(`/schedules/${scheduleId}/participation`);
+      }
+
+      // 상태 토글
+      setJoinedStatus(prev =>
+        prev.map(item =>
+          item.scheduleId === scheduleId
+            ? { ...item, isJoined: !isCurrentlyJoined }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error('참여/취소 API 오류:', error);
+    } finally {
+      setLoading(null);
+    }
+  };
+  
+
+
+
 
   const handleWithdraw = () => {
     Alert.alert(
@@ -158,21 +220,6 @@ const GroupDetailScreen = ({ route, navigation }) => {
     navigation.navigate('ScheduleDetails', { scheduleId, groupId });
   }
 
-  const handleParticipation = async (scheduleId) => {
-    // /schedules/{schedules-id}/participation
-    try {
-        const response = await instance.get(`/schedules/${scheduleId}/participation`);
-        
-        console.log('setParticipationData ::::::>>>>>>', response.data.data);
-        setParticipationData(response.data.data);
-      } catch (error) {
-        console.error('Error setParticipationData', error);
-      } finally {
-        setLoading(false);
-      }
-
-  }
-
   const handleCancelSchedule = (scheduleId) => {
     Alert.alert(
       "일정 취소",
@@ -253,16 +300,13 @@ const GroupDetailScreen = ({ route, navigation }) => {
 
   console.log('Schedules:', groupData.schedules);
   
-  const activeSchedules = groupData.schedules?.filter(
-    schedule => schedule.state === 'SCHEDULE_ACTIVE'
-  ) || [];
+  // const activeSchedules = groupData.schedules?.filter(
+  //   schedule => schedule.state === 'SCHEDULE_ACTIVE'
+  // ) || [];
 
   const pastSchedules = groupData.schedules?.filter(
     schedule => schedule.state === 'SCHEDULE_COMPLETED'
   ) || [];
-
-  console.log('Active Schedules:', activeSchedules); //scheduleId
-  console.log('Past Schedules:', pastSchedules);
 
   const renderActionButton = () => {
     if(isAdmin) return null;
@@ -454,7 +498,10 @@ const GroupDetailScreen = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>모임 일정</Text>
           <Text style={styles.subTitle}>일정 예정</Text>
           {activeSchedules.length > 0 ? (
-            activeSchedules.map((schedule, index) => (
+            activeSchedules.map((schedule, index) => {
+              const status = joinedStatus.find(j => j.scheduleId === schedule.scheduleId);
+              const isJoined = status?.isJoined || false;
+              return (
               <View key={index} style={[styles.scheduleCard, styles.sectionboard]}>
                 <View style={styles.scheduleHeader}>
                   <View style={styles.titleWrapper}>
@@ -481,14 +528,14 @@ const GroupDetailScreen = ({ route, navigation }) => {
                   :
                   (
                     <View style={styles.scheduleActions}>
-                      <TouchableOpacity style={[styles.smallButton, commonShadow.mainShadow]} onPress={() => handleParticipation(schedule.scheduleId)}>
-                        <Text style={styles.smallButtonText}>참여</Text>
+                      <TouchableOpacity style={[styles.smallButton, commonShadow.mainShadow, {backgroundColor : isJoined ? '#FFA79D' : '#FFC27E' }]} onPress={() => toggleJoinStatus(schedule.scheduleId, isJoined)}>
+                        <Text style={styles.smallButtonText}>{isJoined ? '취소' : '참여' }</Text>
                       </TouchableOpacity>
                       <TouchableOpacity 
-                        style={[styles.smallButton, { backgroundColor: '#FFE5E5' }, commonShadow.mainShadow]}
+                        style={[styles.smallButton, { backgroundColor: '#fff' }, commonShadow.mainShadow]}
                         onPress={() => handleCancelSchedule(schedule.scheduleId)}
                       >
-                        <Text style={styles.smallButtonText}>취소</Text>
+                        <Text style={styles.smallButtonText}>상세</Text>
                       </TouchableOpacity>
                     </View>
                   )
@@ -527,7 +574,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                   </Text>
                 </View>
               </View>
-            ))
+            )})
           ) : (
               <View style={styles.emptyTextBox}>
                 <Text style={styles.emptyText}>예정된 일정이 없습니다.</Text>

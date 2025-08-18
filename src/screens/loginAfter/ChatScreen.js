@@ -64,6 +64,7 @@ const getCategoryName = (categoryId) => {
 };
 
 function ChatScreen({ navigation }) {
+  
   const [memberCategories, setMemberCategories] = useState([]);
 
   useEffect(() => {

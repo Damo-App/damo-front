@@ -94,8 +94,8 @@ const ScheduleDetails = ({ route }) => {
         return null;
       }
     } catch (error) {
-      console.error('주소 변환 실패:', error);
-      Alert.alert('에러', '주소 좌표 변환 중 오류 발생');
+      // console.error('주소 변환 실패:', error);
+      // Alert.alert('에러', '주소 좌표 변환 중 오류 발생');
       return null;
     }
   };
