@@ -7,6 +7,7 @@ import { CustomButton } from '../../components/CustomButton';
 import ParticipantListModal from '../../components/schedule/ParticipantListModal';
 import { getScheduleDetails } from '../../api/queries/scheduleQueries';
 import { getScheduleParticipants } from '../../api/mutations/scheduleService';
+import KakaoMapView from '../../components/map/KakaoMapView';
 
 const ScheduleDetails = ({ route }) => {
   const groupId = route?.params?.groupId || '1';
@@ -82,20 +83,26 @@ const ScheduleDetails = ({ route }) => {
     try {
       const response = await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`, {
         headers: {
-          Authorization: 'KakaoAK 19546b453ac3c8043f8f8f7696100f59',
+          Authorization: 'KakaoAK 4e29198c7936fbdc8e2a0c2735fcce8e',
         },
       });
       const json = await response.json();
-      if (json.documents && json.documents.length > 0) {
-        const { x, y } = json.documents[0];
-        return { latitude: parseFloat(y), longitude: parseFloat(x) };
+
+      console.log("json map = ", json)
+      console.log("json map = ", json.documents[0].road_address.x)
+      if (json.documents[0].road_address.x && json.documents.length > 0) {
+        const { x, y } = json.documents[0].road_address;
+        console.log("x == ", x);
+        // console.log("x == ", parseFloat(x));
+        return { latitude: parseFloat(json.documents[0].road_address.y), longitude: parseFloat( json.documents[0].road_address.x) };
+        // return { latitude: y, longitude: x };
       } else {
         Alert.alert('위치 오류', '주소를 찾을 수 없습니다.');
         return null;
       }
     } catch (error) {
-      // console.error('주소 변환 실패:', error);
-      // Alert.alert('에러', '주소 좌표 변환 중 오류 발생');
+      console.error('주소 변환 실패:', error);
+      Alert.alert('에러', '주소 좌표 변환 중 오류 발생');
       return null;
     }
   };
@@ -236,19 +243,24 @@ const ScheduleDetails = ({ route }) => {
           ) : null}
 
           {coords && (
-            <MapView
-              style={styles.mapContainer}
-              initialRegion={{
-                latitude: coords.latitude,
-                longitude: coords.longitude,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              }}
-            >
-              <Marker coordinate={coords} />
-            </MapView>
-          )}
-        </View>
+            <View>
+               <KakaoMapView lat={coords.latitude} lng={coords.longitude}/>
+            </View>
+            // <MapView
+            //   style={styles.mapContainer}
+            //   initialRegion={{
+            //     latitude: coords.latitude,
+            //     longitude: coords.longitude,
+            //     latitudeDelta: 0.005,
+            //     longitudeDelta: 0.005,
+            //   }}
+            // >
+            //   <Marker coordinate={coords} />
+            // </MapView>
+           
+            )}
+            
+            </View>
       </View>
 
       <ParticipantListModal 

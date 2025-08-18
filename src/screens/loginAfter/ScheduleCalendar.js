@@ -67,10 +67,11 @@ const ScheduleCalendar = ({ categoryId, token }) => {
   const fetchSchedules = async () => {
     try {
       const response = await instance.get(`/schedules`, {
-        headers: { Authorization: `Bearer ${token}` },
+        // headers: { Authorization: `Bearer ${token}` },
         params: { page: 1, size: 10, categoryId }
       });
       setSchedules(response.data.data);
+      console.log("Schedule 참여 ? = ", schedules);
     } catch (error) {
       console.error('Error fetching schedules:', error.response?.data || error.message);
     }
