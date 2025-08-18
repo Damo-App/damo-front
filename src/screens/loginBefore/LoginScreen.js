@@ -92,10 +92,10 @@ export const LoginScreen = () => {
           disabled={username.length < 1 || password.length < 8 || password.length > 21} // 7 → 8 수정
         />
         <View style={styles.linkBox}>
-        <Text onPress={() => navigation.navigate('Register')} style={styles.linkText}>
+        <Text onPress={() => navigation.navigate('회원가입')} style={styles.linkText}>
           회원가입
         </Text>
-        <Text onPress={() => navigation.navigate('FindId')} style={styles.linkText}>
+        <Text onPress={() => navigation.navigate('아이디 찾기')} style={styles.linkText}>
           아이디 찾기
         </Text>
         </View>

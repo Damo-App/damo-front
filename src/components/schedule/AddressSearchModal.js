@@ -35,7 +35,7 @@ const AddressSearchModal = ({
         
         {/* 주소 검색기: 카카오 우편번호 검색 컴포넌트 */}
         <Postcode
-          style={styles.postcode}
+          style={[styles.postcode, {flex: 1}]}
           jsOptions={{ animation: true }}
           onSelected={(data) => {
             // 선택된 주소 정보 처리

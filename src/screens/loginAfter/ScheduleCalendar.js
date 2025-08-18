@@ -76,6 +76,8 @@ const ScheduleCalendar = ({ categoryId, token }) => {
     }
   };
 
+  console.log("/schedules >> schedules ==========", schedules)
+
   const fetchScheduleDetail = async (groupsId, schedulesId) => {
     try{
       const response = await instance.get(`/groups/${groupsId}/schedules/${schedulesId}`);
@@ -259,7 +261,7 @@ const ScheduleCalendar = ({ categoryId, token }) => {
               borderTopRightRadius: 10,
               paddingHorizontal: 16,
               paddingVertical: 10,
-              width: '109%',
+              width: 'inherit',
               borderStyle: 'solid',
               borderBottomWidth: 1,
               borderColor:BLACK_COLOR,
@@ -268,7 +270,7 @@ const ScheduleCalendar = ({ categoryId, token }) => {
              <TouchableOpacity
                 onPress={() => {
                   const prev = new Date(current);
-                  prev.setMonth(prev.getMonth() - 1);
+                  prev.setMonth(prev.getMonth() - 1, 1);
                   setCurrent(prev.toISOString().slice(0, 10));
                 }}>
                 <Image source={require('../../../assets/images/icon/left_arrow.png')} />
@@ -303,10 +305,12 @@ const ScheduleCalendar = ({ categoryId, token }) => {
           textDayFontWeight: 'bold',
           'stylesheet.calendar.header': {
             arrow: {
-              display: 'none',
+              display: 'fixed',
+              zIndex: 10,
               width: 0,
-              height: 0,
+              // height: 0,
               opacity: 0,
+              
             },
           },
         }}
