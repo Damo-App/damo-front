@@ -283,14 +283,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                 {
                   text: '확인',
                   onPress: () => {
-                    // 삭제된 그룹 ID와 함께 이전 화면으로 돌아가기
-                    // navigation.navigate('GroupList', { 
-                    //   deletedGroupId: groupId,
-                    //   needRefresh: true 
-                    // });
-                    navigation.navigate('GroupList', { 
-                      refresh: Date.now()
-                    });
+                   navigation.replace('MainTabs', { screen: '모임 리스트' })
                   }
                 }
               ]);
