@@ -83,6 +83,7 @@ const ScheduleCalendar = ({ categoryId, token }) => {
     try{
       const response = await instance.get(`/groups/${groupsId}/schedules/${schedulesId}`);
       setScheduleDetail(response.data.data);
+      console.log("scheduleDetail ======= " ,scheduleDetail);
       return response.data.data;
     }catch(error){
       console.error('fetchScheduleDetail Error : ', error.response?.data || error.message);

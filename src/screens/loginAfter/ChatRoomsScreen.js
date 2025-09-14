@@ -10,7 +10,7 @@ import { useUser } from '../../hooks/useUser';
 
 const ChatRoomsScreen = ({ route, navigation }) => {
     console.log(navigation);
-    const { chatroomId, categoryId, categoryName } = route.params || {};
+    const { chatroomId, categoryId, categoryName } = route?.params || {};
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [memberCount, setMemberCount] = useState(0);
@@ -18,7 +18,7 @@ const ChatRoomsScreen = ({ route, navigation }) => {
     const { user } = useUser();
 
     console.log("messages ==========", messages);
-    console.log("user ===========", user.name);
+    console.log("user ===========", user?.name);
 
     const scrollViewRef = useRef();
     const clientRef = useRef();
@@ -66,7 +66,7 @@ const ChatRoomsScreen = ({ route, navigation }) => {
 
             console.log('STOMP 연결 시도...');
             const client = new Client({
-              webSocketFactory: () => new SockJS('http://10.97.118.95:8080/ws-stomp'),
+              webSocketFactory: () => new SockJS('http://10.154.168.95:8080/ws-stomp'),
               // connectHeaders: { Authorization: `Bearer ${token}` },
                 // webSocketFactory: () => new SockJS('ws://172.20.10.5:8080/ws-stomp'),
                 connectHeaders: {

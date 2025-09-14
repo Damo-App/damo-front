@@ -8,10 +8,11 @@ import { CustomButton } from "../../components/CustomButton";
 import * as ImagePicker from 'expo-image-picker';
 import { BEIGE_COLOR, BLACK_COLOR, G_DARKER_COLOR, GREEN_LIGHT_COLOR, NAV_BAR_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, SKY_BLUE, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
 import { instance } from "../../api/axiosInstance";
-import { useRoute } from "@react-navigation/native";
+import { StackActions, useRoute } from "@react-navigation/native";
 import DropDownPicker from "react-native-dropdown-picker";
 import * as groupService from '../../api/queries/groupService';
 import { text } from "framer-motion/client";
+import Toast from "react-native-toast-message";
 
 
 // 유효성 검사 함수
@@ -21,13 +22,12 @@ const isValidGroupName = (name) => {
 };
 
 const categoryColor = {
-  '연령대': PRIMARY_COLOR,
+  'age': PRIMARY_COLOR,
   'MBTI': BEIGE_COLOR,
-  '분위기': NAV_BAR_COLOR,
-  '장소': YELLOW_DARK_COLOR,
-  '지역': SKY_BLUE,
-  '장소': YELLOW_DARK_COLOR,
-  '활동비': PINK_DARK_COLOR,
+  'mood': NAV_BAR_COLOR,
+  'place': YELLOW_DARK_COLOR,
+  'location': SKY_BLUE,
+  'cost': PINK_DARK_COLOR,
 }
 
 const isValidIntroduction = (text) => text.length >= 10 && text.length <= 100;
@@ -324,12 +324,26 @@ const UpdateGroupScreen = ({ navigation }) => {
       }
     }
 
-      Alert.alert("성공", "모임이 성공적으로 수정되었습니다.", [
-        {
-          text: "확인",
-          onPress: () => navigation.replace('GroupDetail', { groupId })
-        }
-      ]);
+      // Alert.alert("성공", "모임이 성공적으로 수정되었습니다.", [
+      //   {
+      //     text: "확인",
+      //     onPress: () => navigation.replace('GroupDetail', { groupId })
+      //   }
+      // ]);
+      console.log("response.status ???? === ", response.status)
+
+      if (response.status === 200) {
+        Toast.show({
+          type: 'success',
+          text1: '모임이 성공적으로 수정되었습니다.',
+          position: 'bottom'
+        });
+        navigation.dispatch(StackActions.pop(1));
+        navigation.replace('GroupDetail', {
+          groupId: groupId,
+          refresh: Date.now()
+        });
+      }
 
     // 이후 로직 (성공 처리 등)
   } catch (error) {
@@ -475,7 +489,7 @@ const UpdateGroupScreen = ({ navigation }) => {
                       disabled={true}
                     />
                   </View>
-                )};
+                )}
             </View>
 
             {/* 태그 선택 */}
@@ -501,7 +515,7 @@ const UpdateGroupScreen = ({ navigation }) => {
                       setMandatoryTags([])
                     }
                   />
-                  );
+                  )
               })}
               {[...selectedTags].map((tag) => {
                 const categoryName = tagToCategory[tag];
