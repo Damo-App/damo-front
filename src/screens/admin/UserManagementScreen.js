@@ -183,9 +183,11 @@ const UserManagementScreen = ({ route }) => {
                     style={[styles.commentBox, commonShadow.mainShadow]}
                     onPress={() => navigation.navigate('BoardDetailsScreen', { boardId: matchedBoard.boardId, groupId: matchedGroup?.groupId })}
                   >
-                  <Text style={styles.commentLabel}>{comment.groupName}</Text>
-                  <Text style={[styles.commentText, { fontWeight: 'bold' }]}>{comment.postTitle}</Text>
-                  <Text style={styles.commentText}>{comment.content}</Text>
+                  <View style={commonStyles.paddingX}>
+                    <Text style={styles.commentLabel}>{comment.groupName}</Text>
+                    <Text style={[styles.commentText, { fontWeight: 'bold' }]}>{comment.postTitle}</Text>
+                    <Text style={styles.commentText}>{comment.content}</Text>
+                  </View>
                 </TouchableOpacity>
                 )
               }) : 
