@@ -351,12 +351,12 @@ const Stack = createStackNavigator();
                 }}
               />
               <Stack.Screen
-                name="GroupList"
+                name="모임 리스트"
                 component={GroupListScreen}
                 // options={{
-                //   headerTitle: '일정 상세',
-                //   headerStyle: commonStyles.header,
-                //   headerTitleAlign: 'center',
+                //   headerTitle: '모임 리스트',
+                //   // headerStyle: commonStyles.header,
+                //   // headerTitleAlign: 'center',
                 // }}
               />
               </>
