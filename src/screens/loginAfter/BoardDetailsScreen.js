@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUser } from "../../hooks/useUser";
 import { useIsFocused } from "@react-navigation/native";
 import { AuthContext } from "../../contexts/AuthProvider";
+import { style } from "framer-motion/client";
 
 function BoardDetailsScreen({ route, navigation }) {
     const { groupId, boardId } = route.params;
@@ -51,7 +52,7 @@ function BoardDetailsScreen({ route, navigation }) {
             const response = await instance.get(`/groups/${groupId}/boards/${boardId}`);
             console.log('게시글 데이터:', response.data.data);
 
-            if(response.data.data.memberId === user.memberId || isAdmin){
+            if(response.data.data.memberId === user.memberId){
                 setIsAuthor(true);
             }
 
@@ -259,7 +260,7 @@ function BoardDetailsScreen({ route, navigation }) {
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                 >
-                    <View style={styles.contentContainer}>
+                    <View style={[styles.contentContainer, {justifyContent: "flex-start", paddingVertical: 16}]}>
                         <BoardCard {...boardData} />
                         
                         {/* 작성자인 경우에만 수정/삭제 버튼 표시 */}
@@ -305,6 +306,7 @@ function BoardDetailsScreen({ route, navigation }) {
                         </View>
 
                         {/* 댓글 입력 */}
+                        {!isAdmin && (
                         <View style={styles.commentSection}>
                         <View style={{ height: 2, backgroundColor: BLACK_COLOR, marginVertical: 10 }} />
                             <Text style={styles.commentTitle}>댓글</Text>
@@ -320,6 +322,8 @@ function BoardDetailsScreen({ route, navigation }) {
                                 disabled={comment.length < 1}
                             />
                         </View>
+
+                        )}
                     </View>
                 </ScrollView>
             </View>
@@ -405,6 +409,11 @@ const styles = StyleSheet.create({
         gap: 16,
         marginTop: 24,
     },
+    checkBox: {
+        borderWidth: 2,
+        borderColor: BLACK_COLOR,
+        borderStyle: 'solid'
+    }
 });
 
 export default BoardDetailsScreen;
