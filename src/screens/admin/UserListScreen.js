@@ -40,6 +40,7 @@ const UserListScreen = () => {
 
     // 관리자와 탈퇴한 회원 필터링
     const filteredUsers = React.useMemo(() => {
+        console.log('data?.data', data?.data);
         if (!data?.data) return [];
         const filtered = data.data.filter(user => 
             // user.email !== 'h4@gmail.com' && 
@@ -71,7 +72,7 @@ const UserListScreen = () => {
                 </View>
                 <TouchableOpacity 
                     style={[styles.detailButton, commonShadow.mainShadow]}         
-                    onPress={() => navigation.navigate('UserManagementScreen', { memberId: item.memberId })}
+                    onPress={() => navigation.navigate('회원 관리', { memberId: item.memberId })}
                 >
                     <Text style={styles.detailButtonText}>상세조회</Text>
                 </TouchableOpacity>

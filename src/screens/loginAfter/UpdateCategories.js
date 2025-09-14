@@ -4,11 +4,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import CategoryTag from '../../components/CategoryTag';
 import { CustomButton } from '../../components/CustomButton';
-import * as userService from '../../api/mutations/userService';
 import * as categoryService from '../../api/queries/categoryService';
 import { commonCircle, commonStyles } from '../../constants/styles';
 import { AuthContext } from '../../contexts/AuthProvider'; 
-import { BLACK_COLOR, G_DARK_COLOR, G_DARKER_COLOR } from '../../constants/colors';
+import { G_DARKER_COLOR } from '../../constants/colors';
 import { instance } from '../../api/axiosInstance';
 
 const UpdateCategories = () => {
@@ -17,14 +16,8 @@ const UpdateCategories = () => {
   const { width } = Dimensions.get('window');
   const BUTTON_WIDTH = (width - 48) / 3 - 8;
 
-  const route = useRoute();
   const navigation = useNavigation();
   const { user, setIsCategorySelected, token } = useContext(AuthContext);
-
-  const initialData = route.params?.initialData || {}; // 회원가입 데이터 (회원가입 시에만 사용)
-
-  // 회원가입 여부를 판단 (initialData가 있는 경우 회원가입)
-  const isRegisteringUser = Object.keys(initialData).length > 0;
 
   // 전체 카테고리 및 유저의 선택된 카테고리 가져오기
   useEffect(() => {
@@ -34,14 +27,10 @@ const UpdateCategories = () => {
         const allCategories = await categoryService.categoriesList();
         setCategories(allCategories);
         // 로그인한 유저의 선택된 카테고리 조회 (회원가입이 아닌 경우에만) 
-        // 현재 uesr Null값 나옴
         const userInfo = await AsyncStorage.getItem('user');
-        console.log('user----', user)
         if (userInfo) {
           const userCategories = await categoryService.fetchCategories();
-          console.log('userCategories=========', userCategories.data)
           setSelectedCategories(userCategories.map((item) => item.categoryName));
-          console.log('selectedCategories}}}}', setIsCategorySelected)
         }
       } catch (error) {
         console.error('Error fetching categories:', error.message);
@@ -49,19 +38,7 @@ const UpdateCategories = () => {
     };
     fetchInitialData();
   }, [user]);
-
-  console.log('userInfoCate', user)
-
   
-  // 카테고리 선택 토글
-  // const toggleCategory = (category) => {
-  //   setSelectedCategories((prev) =>
-  //     prev.includes(category)
-  //       ? prev.filter((item) => item !== category)
-  //       : prev.length < 3 ? [...prev, category] : prev
-  //   );
-  // };
-
   const toggleCategory = async (category) => {
     if (selectedCategories.includes(category)) {
       let categoryId;
@@ -78,7 +55,6 @@ const UpdateCategories = () => {
       }
 
     try {
-      // const res = await instance.get(`/groups?page=1&size=1&categoryId=${categoryId}`);
       const res = await instance.get(`/mypage/groups`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
@@ -87,9 +63,9 @@ const UpdateCategories = () => {
           categoryId: categoryId
         }
       });
-      console.log('res', res)
+
       const myGroups = res.data?.data || [];
-      console.log('모임 조회 함 해보자', myGroups);
+
       if (myGroups.length > 0) {
         Alert.alert('알림', '해당 카테고리에 모임이 존재합니다. 모임 탈퇴 후 수정해주세요.')
         return;
@@ -106,26 +82,6 @@ const UpdateCategories = () => {
   }
     if (selectedCategories.length < 3) {
       setSelectedCategories(prev => [...prev, category]);
-    }
-  };
-
-  // 회원가입 시 선택 완료 처리
-  const handleCompleteSelectionForRegistration = async () => {
-    const memberCategories = selectedCategories.map((categoryName) => {
-      const categoryId = categories.indexOf(categoryName) + 1;
-      return { categoryId };
-    });
-
-    const finalData = { ...initialData, memberCategories };
-
-    try {
-      await userService.registerUser(finalData); // 회원가입 API 호출
-      console.log('회원가입 성공!', finalData);
-
-      navigation.navigate('MainTabs', { screen: 'Login' }); // 로그인 화면으로 이동
-    } catch (error) {
-      console.log("회원가입 실패 할때 데이터 들어오는거 확인", finalData);
-      console.error('회원가입 실패:', error);
     }
   };
 
@@ -195,11 +151,7 @@ const UpdateCategories = () => {
         {/* 버튼 */}
         <CustomButton
           title="선택 완료"
-          onPress={
-            isRegisteringUser
-              ? handleCompleteSelectionForRegistration // 회원가입 처리
-              : handleCompleteSelectionForUpdate // 수정 처리
-          }
+          onPress={ handleCompleteSelectionForUpdate }
           disabled={selectedCategories.length === 0}
         />
       </View>

@@ -41,14 +41,14 @@ const AdminScreen = () => {
           text="회원관리"
           style={[styles.menuBar, commonShadow.btnNoBdShadow]}
           iconWrapperStyle={{ backgroundColor: '#FFE1E1', borderRadius: 10 }}
-          onPress={() => navigation.navigate('UserList')}
+          onPress={() => navigation.navigate('회원 리스트')}
         />
         <MenuBar
           image={require('../../../assets/images/mypage/mypageIcon4.png')}
           text="비밀번호 변경"
           style={[styles.menuBar, commonShadow.btnNoBdShadow]}
           iconWrapperStyle={{ backgroundColor: PRIMARY_BACK_COLOR }}
-          onPress={() => navigation.navigate('AdminChangePWScreen')}
+          onPress={() => navigation.navigate('관리자 비밀번호 변경')}
         />
         <MenuBar
           image={require('../../../assets/images/mypage/mypageIcon6.png')}

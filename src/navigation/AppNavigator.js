@@ -39,6 +39,7 @@ import UpdateCategories from '../screens/loginAfter/UpdateCategories';
 import MyBoardScreen from '../screens/loginAfter/MyBoardScreen';
 import UpdateGroupScreen from '../screens/loginAfter/UpdateGroupScreen';
 import { instance } from '../api/axiosInstance';
+import AdminChangePWScreen from '../screens/admin/AdminChangePWScreen';
 
 // 뒤로가기 버튼을 표시하지 않을 화면들
 const NO_BACK_BUTTON_SCREENS = [
@@ -224,9 +225,9 @@ const Stack = createStackNavigator();
           <>
           {/* <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} /> */}
           <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="UserList" component={UserListScreen} />
-          <Stack.Screen name="UserManagementScreen" component={UserManagementScreen} />
-          <Stack.Screen name="AdminChangePWScreen" component={AdminChangePWScreen} />
+          <Stack.Screen name="회원 리스트" component={UserListScreen} />
+          <Stack.Screen name="회원 관리" component={UserManagementScreen} />
+          <Stack.Screen name="관리자 비밀번호 변경" component={AdminChangePWScreen} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen
             name="GroupDetail"
