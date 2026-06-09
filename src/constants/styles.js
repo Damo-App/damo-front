@@ -10,13 +10,17 @@ export const commonStyles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: PRIMARY_BACK_COLOR,
     paddingVertical: 16,
-    paddingHorizontal:16
+  },
+  paddingX:{
+    width:'100%',
+    paddingHorizontal: 16
+  },
+  paddingY:{
+    paddingVertical: 16
   },
   centerContainer:{
     width:'100%',
     paddingVertical:16,
-    // borderWidth:1,
-    // borderColor:BLACK_COLOR,
     height:'100%',
     display:'flex',
     flexDirection:'column',
@@ -77,6 +81,47 @@ export const commonStyles = StyleSheet.create({
     fontWeight:600
   }
 });
+
+export const borderStyles = StyleSheet.create({
+  border:{
+    borderStyle:'solid',
+    borderColor:BLACK_COLOR,
+    borderWidth:1
+  }
+})
+
+export const flexStyles = StyleSheet.create({
+  center:{
+    display:'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  flexRow:{
+    display:'flex',
+    flexDirection:'row'
+  },
+  flexCol:{
+     display:'flex',
+    flexDirection:'column'
+  },
+  spaceBetweenRow:{
+    width: '100%',
+    display:'flex',
+    flexDirection:'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  spaceBetweenCol:{
+    borderStyle:'solid',
+    borderColor:BLACK_COLOR,
+    borderWidth:1,
+    width: '100%',
+    display:'flex',
+    flexDirection:'column',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  }
+})
 
 export const homeStyles = StyleSheet.create({
   container:{

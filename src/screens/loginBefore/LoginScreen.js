@@ -10,6 +10,7 @@ import { BLACK_COLOR } from '../../constants/colors';
 import { Link, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { ScrollView } from 'react-native-gesture-handler';
+import commons from 'react-native-ui-lib/src/commons';
 
 
 const isValidUsername = (username) => /\S+@\S+\.\S+/.test(username);
@@ -60,7 +61,7 @@ export const LoginScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, commonStyles.container]} keyboardShouldPersistTaps="handled">
+    <ScrollView contentContainerStyle={[styles.container, commonStyles.container, commonStyles.paddingX]} keyboardShouldPersistTaps="handled">
     <View style={[commonStyles.centerContainer, styles.loginBox]}>
     {/* <View style={[commonStyles.container, styles.container]}> */}
       <Image source={require('../../../assets/images/loginLogo.png')} style={styles.image} />
@@ -69,7 +70,7 @@ export const LoginScreen = () => {
         <InputWithLabel
           label="아이디"
           placeholder="이메일 형식으로 입력해주세요."
-          value={username}
+          value={username === '' ? "qwe1@test.co" : username}
           onChangeText={(text) => setUsername(text)}
           error={userError}
           description={userError ? '이메일 형식을 잘못 입력했습니다.' : ''}
@@ -91,10 +92,10 @@ export const LoginScreen = () => {
           disabled={username.length < 1 || password.length < 8 || password.length > 21} // 7 → 8 수정
         />
         <View style={styles.linkBox}>
-        <Text onPress={() => navigation.navigate('Register')} style={styles.linkText}>
+        <Text onPress={() => navigation.navigate('회원가입')} style={styles.linkText}>
           회원가입
         </Text>
-        <Text onPress={() => navigation.navigate('FindId')} style={styles.linkText}>
+        <Text onPress={() => navigation.navigate('아이디 찾기')} style={styles.linkText}>
           아이디 찾기
         </Text>
         </View>

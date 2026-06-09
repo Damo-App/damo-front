@@ -7,22 +7,24 @@ import { G_DARKER_COLOR } from "../../constants/colors";
 import { AuthContext } from "../../contexts/AuthProvider";
 import { useMutation } from "@tanstack/react-query";
 import * as userService from '../../api/mutations/userService';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const isValidPassword = (password) => 
   /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[%,\$,#,@,!].*[%,\$,#,@,!])[A-Za-z\d%,\$,#,@,!]{8,20}$/.test(password);
 
 const ChangePWScreen = ({ navigation }) => {
-  const { token } = useContext(AuthContext); // Assuming token is required for authentication
+  // const { token } = useContext(AuthContext); // Assuming token is required for authentication
   const [oldPassword, setOldPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [passwordError, setPasswordError] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
+  const [token, setToken] = useState(null);
 
   // Mutation for password change
   const mutation = useMutation({
-    mutationFn: userService.patchUserPw,
+    mutationFn: (data, accessToken) => userService.patchUserPw(data, accessToken),
     onSuccess: () => {
       console.log("비밀번호 변경 완료!");
       navigation.goBack(); // Navigate back after successful change
@@ -64,9 +66,10 @@ const ChangePWScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={commonStyles.container}>
+    <View style={[commonStyles.container, commonStyles.paddingX]}>
       <PasswordInput
         label="기존 비밀번호"
+        placeholder="기존 비밀번호를 입력해주세요."
         value={oldPassword}
         onChangeText={(text) => setOldPassword(text)}
         error={errors.oldPassword}
@@ -75,6 +78,7 @@ const ChangePWScreen = ({ navigation }) => {
 
       <PasswordInput
         label="새 비밀번호"
+        placeholder="새 비밀번호를 입력해주세요."
         value={password}
         onChangeText={(text) => setPassword(text)}
         error={errors.password}
@@ -89,6 +93,7 @@ const ChangePWScreen = ({ navigation }) => {
 
       <PasswordInput
         label="새 비밀번호 확인"
+        placeholder="새 비밀번호를 다시 입력해주세요."
         value={confirmPassword}
         onChangeText={(text) => setConfirmPassword(text)}
         error={passwordError}

@@ -20,19 +20,27 @@ export const AuthProvider = ({ children }) => {
         const refreshToken = await AsyncStorage.getItem('refreshToken');
         console.log("AuthProvider refreshToken == ",refreshToken);
         if (refreshToken) {
+          
           // Refresh 토큰을 사용하여 새로운 Access 토큰 발급
           const response = await instance.post('/auth/token/refresh', null, {
-            headers: { Refresh: refreshToken },
+            headers: { Refresh: `Bearer ${refreshToken}` },
           });
-  
-          const newAccessToken = response.data.accessToken;
+
+          const newAccessToken =
+            response.headers['authorization']
+            ? response.headers['authorization'].replace('Bearer ', '').trim()
+            : null;
+          // const newAccessToken = response.data.accessToken;
           if (newAccessToken) {
+            console.log("newAccessToken true >>>>>>");
+
             await AsyncStorage.setItem('accessToken', newAccessToken);
             instance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
   
             const userDataString = await AsyncStorage.getItem('user');
             const userData = userDataString ? JSON.parse(userDataString) : null;
-  
+            console.log("userDataString , userData",userDataString , ">>>>>" , userData );
+
             if (userData) {
               setUser(userData);
               setIsLoggedIn(true);

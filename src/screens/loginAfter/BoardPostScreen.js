@@ -7,6 +7,7 @@ import { BLACK_COLOR, PRIMARY_BTN_COLOR, WHITE_COLOR } from '../../constants/col
 import InputWithLabel from '../../components/InputWithLabel';
 import Toast from 'react-native-toast-message';
 import { Alert } from 'react-native';
+import { Modal } from 'react-native-ui-lib';
 
 const BoardPostScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
@@ -51,8 +52,9 @@ const BoardPostScreen = ({ route, navigation }) => {
       if (!title.trim() || !content.trim()) {
         Toast.show({
           type: 'error',
-          text1: '입력 오류',
-          text2: '제목과 내용을 모두 입력해주세요.'
+          // text1: '입력 오류',
+          text1: '제목과 내용을 모두 입력해주세요.',
+          position:'bottom'
         });
         return;
       }
@@ -85,7 +87,7 @@ const BoardPostScreen = ({ route, navigation }) => {
           text1: '게시글이 작성되었습니다.',
           position: 'bottom'
         });
-        navigation.navigate('BoardScreen', { 
+        navigation.replace('BoardScreen', { 
           groupId: groupId,
           refresh: Date.now()
         });
@@ -95,7 +97,9 @@ const BoardPostScreen = ({ route, navigation }) => {
       Toast.show({
         type: 'error',
         text1: '게시글 작성 실패',
-        text2: error.response?.data?.message || '다시 시도해주세요.'
+        text2: error.response?.data?.message || '다시 시도해주세요.',
+        position:'bottom'
+      
       });
     } finally {
       setLoading(false);
@@ -158,6 +162,7 @@ const BoardPostScreen = ({ route, navigation }) => {
             {loading ? '작성 중...' : '작성하기'}
           </Text>
         </TouchableOpacity>
+        <Modal visible={loading} transparent />
       </ScrollView>
     </View>
   );

@@ -1,5 +1,5 @@
 import React, { useContext, useState , useEffect} from 'react';
-import { TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity, Text, Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from '../screens/loginBefore/HomeScreen';
@@ -23,6 +23,7 @@ import ChangePWScreen from '../screens/loginAfter/ChangePWScreen';
 import AdminScreen from '../screens/admin/AdminScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserListScreen from '../screens/admin/UserListScreen';
+import UserManagementScreen from '../screens/admin/UserManagementScreen';
 import GroupListScreen from '../screens/loginAfter/GroupListScreen';
 import CreateGroupScreen from '../screens/loginAfter/CreateGroupScreen';
 import GroupDetailScreen from '../screens/loginAfter/GroupDetailScreen';
@@ -31,6 +32,30 @@ import QuitMemberScreen from '../screens/loginAfter/QuitMemberScreen';
 import BoardScreen from '../screens/loginAfter/BoardScreen';
 import BoardPostScreen from '../screens/loginAfter/BoardPostScreen';
 import SchedulePost from '../screens/loginAfter/SchedulePost';
+import BoardDetailsScreen from '../screens/loginAfter/BoardDetailsScreen';
+import ScheduleDetails from '../screens/loginAfter/ScheduleDetails';
+import BoardUpdateScreen from '../screens/loginAfter/BoardUpdateScreen';
+import UpdateCategories from '../screens/loginAfter/UpdateCategories';
+import MyBoardScreen from '../screens/loginAfter/MyBoardScreen';
+import UpdateGroupScreen from '../screens/loginAfter/UpdateGroupScreen';
+import { instance } from '../api/axiosInstance';
+import AdminChangePWScreen from '../screens/admin/AdminChangePWScreen';
+
+// 뒤로가기 버튼을 표시하지 않을 화면들
+const NO_BACK_BUTTON_SCREENS = [
+  'MainTabs', 
+  'Home', 
+  'Main',
+  'Admin',
+  'SelectCategories',
+  '모임 리스트',
+  'Chat',
+  'MyPage'
+];
+
+const shouldShowBackButton = (routeName) => {
+  return !NO_BACK_BUTTON_SCREENS.includes(routeName);
+};
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -39,7 +64,59 @@ const Stack = createStackNavigator();
   // isLoggedIn 값이 false 면 로그인 전 화면 -> loginBefore
   function TabNavigator() {
     // const {navigation} = useNavigation();
-    const { isLoggedIn } = useContext(AuthContext);
+    // const { isLoggedIn } = useContext(AuthContext);
+    const { isLoggedIn, setIsLoggedIn, setUser } = useContext(AuthContext);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+      const checkedAutoLogin = async () => {
+        try {
+          const refreshToken = await AsyncStorage.getItem('refreshToken');
+          const email = await AsyncStorage.getItem('email');
+
+          console.log('refreshToken 확인', refreshToken);
+          console.log('email 확인', email);
+  
+          if(email && refreshToken) {
+            const res = await instance.post(
+            '/auth/token/refresh',
+            null,
+            {
+              headers: {
+                Refresh: `Bearer ${refreshToken}`,
+              },
+            }
+          );
+          const newAccessToken =
+            res.headers['authorization']
+            ? res.headers['authorization'].replace('Bearer ', '').trim()
+            : null;
+
+            console.log('확인 newAccessToken', newAccessToken)
+            if (!newAccessToken) throw new Error('No access token in refresh response');
+            if(newAccessToken) {
+              await AsyncStorage.setItem('accessToken', newAccessToken);
+              instance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+              setIsLoggedIn(true);
+              setUser({ refreshToken, email, accessToken: newAccessToken })
+            }
+          } else {
+            setIsLoggedIn(false);
+            setUser(null);
+          }
+        } catch(error) {
+          await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'email']);
+          setUser(null);
+          setIsLoggedIn(false);
+          console.log('자동 로그인 실패', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      checkedAutoLogin();
+    }, [setIsLoggedIn, setUser]);
+
+    if(isLoading) return null;
   
     return (
       <Tab.Navigator
@@ -52,27 +129,42 @@ const Stack = createStackNavigator();
           headerTitle: () => (
             <Text style={commonStyles.headerTitle}>{route.name}</Text>
           ),
-          headerLeft: () => (
-            <>
-              {/* <Text style={styles.backButtonText}>뒤로</Text> */}
-              <IconButton onPress={() => navigation.goBack()} name={"arrow-back"} size={30} color={BORDER_COLOR}/>
-            </>
-          ),
+          headerLeft: () => {
+            // route가 undefined인 경우 처리
+            if (!route || !route.name) {
+              return null;
+            }
+            
+            // 뒤로가기 버튼을 표시하지 않을 화면들
+            if (!shouldShowBackButton(route.name)) {
+              return null;
+            }
+            
+            return (
+              <IconButton 
+                onPress={() => navigation.goBack()} 
+                name={"arrow-back"} 
+                size={30} 
+                color={BORDER_COLOR}
+              />
+            );
+          },
+          tabBarShowLabel: false, // 레이블(텍스트) 숨기고 이미지만!
         })}
       >
         {isLoggedIn ? (
           <>
           {/* options={{ headerShown: false }}  */}
-            <Tab.Screen name="Main" component={MainScreen} />
+            <Tab.Screen name="Main" component={MainScreen} options={{ headerShown: false }}/>
             <Tab.Screen name="모임 리스트" component={GroupListScreen} />
-            <Tab.Screen name="Chat" component={ChatScreen} />
-            <Tab.Screen name="MyPage" component={MyPageScreen} />
+            <Tab.Screen name="채팅" component={ChatScreen} />
+            <Tab.Screen name="마이 페이지" component={MyPageScreen} />
           </>
         ) : (
           <>
             <Tab.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-            <Tab.Screen name="Login" component={LoginScreen} />
-            <Tab.Screen name="Register" component={RegisterScreen} />
+            <Tab.Screen name="로그인" component={LoginScreen} />
+            <Tab.Screen name="회원가입" component={RegisterScreen} />
           </>
         )}
       </Tab.Navigator>
@@ -86,7 +178,7 @@ const Stack = createStackNavigator();
     useEffect(() => {
       const checkAdmin = async () => {
         const email = await AsyncStorage.getItem('email');
-        if (email === 'h4@gmail.com') {
+        if (email === 'admin123@gmail.com') {
           setIsAdmin(true);
         } else {
           setIsAdmin(false); // Reset admin state if email does not match
@@ -107,37 +199,72 @@ const Stack = createStackNavigator();
           headerTitle: () => (
             <Text style={commonStyles.headerTitle}>{route.name}</Text>
           ),
-          headerLeft: () => (
-            <>
-              {/* <Text style={styles.backButtonText}>뒤로</Text> */}
-              <IconButton onPress={() => navigation.goBack()} name={"arrow-back"} size={30} color={BORDER_COLOR}/>
-            </>
-          ),
+          headerLeft: () => {
+            // route가 undefined인 경우 처리
+            if (!route || !route.name) {
+              return null;
+            }
+            
+            // 뒤로가기 버튼을 표시하지 않을 화면들
+            if (!shouldShowBackButton(route.name)) {
+              return null;
+            }
+            
+            return (
+              <IconButton 
+                onPress={() => navigation.goBack()} 
+                name={"arrow-back"} 
+                size={30} 
+                color={BORDER_COLOR}
+              />
+            );
+          },
         })}
       >
         {isAdmin ? (
           <>
           {/* <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} /> */}
           <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="UserList" component={UserListScreen} />
+          <Stack.Screen name="회원 리스트" component={UserListScreen} />
+          <Stack.Screen name="회원 관리" component={UserManagementScreen} />
+          <Stack.Screen name="관리자 비밀번호 변경" component={AdminChangePWScreen} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen
+            name="GroupDetail"
+            component={GroupDetailScreen}
+            options={{
+              headerTitle: '모임 상세',
+              headerStyle: commonStyles.header,
+              headerTitleAlign: 'center',
+            }}
+          />
+          <Stack.Screen
+            name="BoardDetailsScreen"
+            component={BoardDetailsScreen}
+            options={{
+              headerTitle: '게시물 상세',
+              headerStyle: commonStyles.header,
+              headerTitleAlign: 'center',
+            }}
+          />
           </>
         ) : (
           <>
             {!isLoggedIn ? (
               <>
                 <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} />
-                <Stack.Screen name="Register" component={RegisterScreen} />
-                <Stack.Screen name="FindId" component={FindIdScreen} />
+                <Stack.Screen name="회원가입" component={RegisterScreen} />
+                <Stack.Screen name="아이디 찾기" component={FindIdScreen} />
                 <Stack.Screen name="SuccessFindId" component={SuccessFindIdScreen} />
                 <Stack.Screen name="Login" component={LoginScreen} />
-                <Stack.Screen name="SelectCategories" component={SelectCategories} />
+                <Stack.Screen name="카테고리 선택" component={SelectCategories} />
               </>
             ) : (
               <>
-                <Stack.Screen name="카테고리 수정" component={SelectCategories} />
+                <Stack.Screen name="카테고리 수정" component={UpdateCategories} />
+                <Stack.Screen name="내 게시글 조회" component={MyBoardScreen} />
                 <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} />
-                <Stack.Screen name="Chat" component={ChatScreen} />
+                <Stack.Screen name="채팅" component={ChatScreen} />
                 <Stack.Screen name="ChatRooms" component={ChatRoomsScreen} />
                 <Stack.Screen name="내 모임 조회" component={MyGroupsScreen} />
                 <Stack.Screen name="비밀번호 변경" component={ChangePWScreen} />
@@ -173,7 +300,16 @@ const Stack = createStackNavigator();
                 name="CreateGroupScreen"
                 component={CreateGroupScreen}
                 options={{
-                  headerTitle: '모임 상세',
+                  headerTitle: '모임 생성',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
+              <Stack.Screen
+                name="UpdateGroupScreen"
+                component={UpdateGroupScreen}
+                options={{
+                  headerTitle: '모임 수정',
                   headerStyle: commonStyles.header,
                   headerTitleAlign: 'center',
                 }}
@@ -187,6 +323,42 @@ const Stack = createStackNavigator();
                   headerTitleAlign: 'center',
                 }}
               />
+              <Stack.Screen
+                name="BoardDetailsScreen"
+                component={BoardDetailsScreen}
+                options={{
+                  headerTitle: '게시물 상세',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
+              <Stack.Screen
+                name="BoardUpdateScreen"
+                component={BoardUpdateScreen}
+                options={{
+                  headerTitle: '게시물 수정',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
+              <Stack.Screen
+                name="ScheduleDetails"
+                component={ScheduleDetails}
+                options={{
+                  headerTitle: '일정 상세',
+                  headerStyle: commonStyles.header,
+                  headerTitleAlign: 'center',
+                }}
+              />
+              <Stack.Screen
+                name="모임 리스트"
+                component={GroupListScreen}
+                // options={{
+                //   headerTitle: '모임 리스트',
+                //   // headerStyle: commonStyles.header,
+                //   // headerTitleAlign: 'center',
+                // }}
+              />
               </>
             )}
           </>
@@ -194,64 +366,4 @@ const Stack = createStackNavigator();
       </Stack.Navigator>
     );
   }
-  
-  // 로그인 후에 카테고리 선택 창이 자꾸 뜨는거 방지 하기 위해 만듬
-  // 로그인 후에 카테고리 선택 했는지 여부에 따라서 카테고리 창 뜨고 안뜨고 근데 로그인 후에 뜨는게 말이 안되긴함
-  // 위에를 해결 못해서 일단 수동으로 막음
-
-  //isLoggedIn = 로그인 상태
-  //isCategorySelected = 로그인 후 유저가 카테고리를 선택했는지 여부
-  // export default function AppNavigator() {
-  //   const { isLoggedIn, isCategorySelected } = useContext(AuthContext);
-  
-  //   return (
-  //     <Stack.Navigator
-  //       initialRouteName={
-  //         !isLoggedIn ? 'MainTabs' : isCategorySelected ? 'MainTabs' : 'SelectCategories'
-  //       }
-  //       screenOptions={({ navigation }) => ({
-  //         headerShown: true,
-  //         headerStyle: commonStyles.header,
-  //         headerTitleAlign: 'center',
-  //         headerTitle: ({ children }) => (
-  //           <Text style={commonStyles.headerTitle}>{children}</Text>
-  //         ),
-  //         headerLeft: () =>
-  //           navigation.canGoBack() ? (
-  //             <TouchableOpacity style={commonStyles.backButton}>
-  //               <IconButton
-  //                 onPress={() => navigation.goBack()}
-  //                 name="arrow-back"
-  //                 size={30}
-  //                 color={BORDER_COLOR}
-  //               />
-  //             </TouchableOpacity>
-  //           ) : null,
-  //       })}
-  //     >
-  //       {/* 로그인 전 */}
-  //       {!isLoggedIn ? (
-  //         <>
-  //           <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} />
-  //           <Stack.Screen name="Register" component={RegisterScreen} />
-  //           <Stack.Screen name="FindId" component={FindIdScreen} />
-  //           <Stack.Screen name="SuccessFindId" component={SuccessFindIdScreen} />
-  //           <Stack.Screen name="Login" component={LoginScreen} />
-  //           <Stack.Screen name="SelectCategories" component={SelectCategories} />
-  //         </>
-  //       ) : (
-  //         <>
-  //           {/* 로그인 후 + 카테고리 선택 안 했을 때는 SelectCategories로 이동 */}
-  //           <Stack.Screen name="카테고리 수정" component={SelectCategories} />
-  //           {/* options={{ headerShown: false }}  */}
-  //           <Stack.Screen name="MainTabs" component={TabNavigator}  options={{ headerShown: false }}/>
-  //           <Stack.Screen name="Chat" component={ChatScreen} />
-  //           <Stack.Screen name="ChatRooms" component={ChatRoomsScreen} />
-  //           <Stack.Screen name="내 모임 조회" component={MyGroupsScreen} />
-  //           <Stack.Screen name="비밀번호 변경" component={ChangePWScreen} />
-  //         </>
-  //       )}
-  //     </Stack.Navigator>
-  //   );
-  // }
   

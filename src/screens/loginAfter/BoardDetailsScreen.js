@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from "react-native";
 import { PRIMARY_BACK_COLOR, BLACK_COLOR, WHITE_COLOR, PRIMARY_BTN_COLOR, ERROR_COLOR, YELLOW_DARK_COLOR, YELLOW_LIGHT_COLOR, INPUT_BACK_COLOR, PINK_DARK_COLOR } from "../../constants/colors";
 import { commonStyles } from "../../constants/styles";
@@ -9,53 +9,72 @@ import { CustomButton } from "../../components/CustomButton";
 import CommentItem from "../../components/CommentItem";
 import Toast from "react-native-toast-message";
 import { instance } from "../../api/axiosInstance";
-import { jwtDecode } from "jwt-decode";
+// import { jwtDecode } from "jwt-decode";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useUser } from "../../hooks/useUser";
+import { useIsFocused } from "@react-navigation/native";
+import { AuthContext } from "../../contexts/AuthProvider";
+import { style } from "framer-motion/client";
 
 function BoardDetailsScreen({ route, navigation }) {
     const { groupId, boardId } = route.params;
+    const isFocused = useIsFocused();
     const [comment, setComment] = useState("");
     const [post, setPost] = useState(null);
     const [comments, setComments] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [memberName, setMemberName] = useState("");
     const [isAuthor, setIsAuthor] = useState(false);
+    const { user } = useUser();
+    const { isLoggedIn, isCategorySelected } = useContext(AuthContext);
+    const [isAdmin, setIsAdmin] = useState(false);
+  
+    useEffect(() => {
+        console.log(boardId, groupId)
+      const checkAdmin = async () => {
+        const email = await AsyncStorage.getItem('email');
+        if (email === 'admin123@gmail.com') {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      };
+      checkAdmin();
+    }, [isLoggedIn]);
+
+    console.log(user.memberId);
 
     // 게시글 상세 조회
     const fetchPostDetails = async () => {
         try {
+            console.log(isAdmin)
+            console.log('groupId, boardId', groupId, boardId)
             const response = await instance.get(`/groups/${groupId}/boards/${boardId}`);
             console.log('게시글 데이터:', response.data.data);
-            setPost(response.data.data);
 
-            // AsyncStorage에서 토큰 가져오기
-            const token = await AsyncStorage.getItem('accessToken');
-
-            if (token) {
-                const decodedToken = jwtDecode(token);
-                console.log('디코딩된 토큰:', decodedToken);
-                console.log('토큰의 memberId:', decodedToken.memberId);
-                console.log('게시글 작성자 memberId:', response.data.data.memberId);
-                
-                // memberId 비교
-                const isPostAuthor = Number(decodedToken.memberId) === response.data.data.memberId;
-                console.log('작성자 일치 여부:', isPostAuthor);
-                setIsAuthor(isPostAuthor);
+            if(response.data.data.memberId === user.memberId){
+                setIsAuthor(true);
             }
+
+            setPost(response.data.data);
         } catch (error) {
             console.error('에러 발생:', error);
             Toast.show({
                 type: 'error',
-                text1: '게시글을 불러오는데 실패했습니다.'
+                text1: '게시글을 불러오는데 실패했습니다.',
+                position:'bottom'
             });
         }
     };
 
+
     // 댓글 목록 조회
     const fetchComments = async (page = 1) => {
+        console.log('boardId', boardId)
         try {
             const response = await instance.get(`/boards/${boardId}/comments?page=${page}&size=10`);
             setComments(response.data.data);
+            console.log("댓글 목록 정보 조회", comments);
             setCurrentPage(page);
         } catch (error) {
             console.error('댓글 조회 실패:', error);
@@ -64,10 +83,12 @@ function BoardDetailsScreen({ route, navigation }) {
 
     // 현재 사용자 정보 가져오기
     const fetchMyInfo = async () => {
+        
         try {
-            const response = await instance.get('/mypage');
-            console.log('내 정보:', response.data.data);
+           const response = await instance.get(`/members/${user.memberId}`);
+            console.log("게시글 들어온 유저 정보", response.data.data);
             setMemberName(response.data.data.name);  // 사용자 이름 설정
+            
         } catch (error) {
             console.error('사용자 정보 조회 실패:', error);
         }
@@ -76,30 +97,39 @@ function BoardDetailsScreen({ route, navigation }) {
     // 댓글 작성
     const handleSubmit = async () => {
         if (!comment.trim()) return;
-        
         try {
             await instance.post(`/boards/${boardId}/comments`, {
                 content: comment.trim()
             });
             setComment('');
+            // console.log("댓글 배열",comments);
             fetchComments(1);
+            fetchPostDetails();
             Toast.show({
                 type: 'success',
-                text1: '댓글이 작성되었습니다.'
+                text1: '댓글이 작성되었습니다.',
+                position:'bottom'
             });
         } catch (error) {
             Toast.show({
                 type: 'error',
-                text1: '댓글 작성에 실패했습니다.'
+                text1: '댓글 작성에 실패했습니다.',
+                position:'bottom'
             });
         }
     };
+    
+    useEffect(() => {
+        if (isFocused) {
+        fetchPostDetails();
+        }
+    }, [isFocused]);
 
     useEffect(() => {
         fetchPostDetails();
         fetchComments(1);
         fetchMyInfo();  // 사용자 정보 조회 추가
-    }, [boardId]);
+    }, []);
 
     const handleEdit = () => {
         navigation.navigate('BoardUpdateScreen', { 
@@ -128,7 +158,8 @@ function BoardDetailsScreen({ route, navigation }) {
                             await instance.delete(`/groups/${groupId}/boards/${boardId}`);
                             Toast.show({
                                 type: 'success',
-                                text1: '게시글이 삭제되었습니다.'
+                                text1: '게시글이 삭제되었습니다.',
+                                position:'bottom'
                             });
                             navigation.navigate('BoardScreen', {
                                 groupId: groupId,
@@ -137,7 +168,8 @@ function BoardDetailsScreen({ route, navigation }) {
                         } catch (error) {
                             Toast.show({
                                 type: 'error',
-                                text1: '게시글 삭제에 실패했습니다.'
+                                text1: '게시글 삭제에 실패했습니다.',
+                                position:'bottom'
                             });
                         }
                     }
@@ -150,26 +182,32 @@ function BoardDetailsScreen({ route, navigation }) {
         if (!editedContent || !editedContent.trim()) return;
 
         try {
-            await instance.patch(`/boards/${boardId}/comments/${commentId}`, {
+            const response = await instance.patch(`/boards/${boardId}/comments/${commentId}`, {
                 content: editedContent.trim()
             });
+
+            console.log("댓글 수정", response.config.data)
             
             Toast.show({
                 type: 'success',
-                text1: '댓글이 수정되었습니다.'
+                text1: '댓글이 수정되었습니다.',
+                position:'bottom'
             });
             
             fetchComments(currentPage);
+            fetchPostDetails();
         } catch (error) {
             if (error.response?.data?.message === 'Not authorized to access this resource') {
                 Toast.show({
                     type: 'error',
-                    text1: '댓글 작성자가 아닙니다.'
+                    text1: '댓글 작성자가 아닙니다.',
+                    position:'bottom'
                 });
             } else {
                 Toast.show({
                     type: 'error',
-                    text1: '댓글 수정에 실패했습니다.'
+                    text1: '댓글 수정에 실패했습니다.',
+                    position:'bottom'
                 });
             }
         }
@@ -180,19 +218,23 @@ function BoardDetailsScreen({ route, navigation }) {
             await instance.delete(`/boards/${boardId}/comments/${commentId}`);
             Toast.show({
                 type: 'success',
-                text1: '댓글이 삭제되었습니다.'
+                text1: '댓글이 삭제되었습니다.',
+                position:'bottom'
             });
             fetchComments(currentPage);
+            fetchPostDetails();
         } catch (error) {
             if (error.response?.data?.message === 'Not authorized to access this resource') {
                 Toast.show({
                     type: 'error',
-                    text1: '댓글 작성자가 아닙니다.'
+                    text1: '댓글 작성자가 아닙니다.',
+                    position:'bottom'
                 });
             } else {
                 Toast.show({
                     type: 'error',
-                    text1: '댓글 삭제에 실패했습니다.'
+                    text1: '댓글 삭제에 실패했습니다.',
+                    position:'bottom'
                 });
             }
         }
@@ -218,7 +260,7 @@ function BoardDetailsScreen({ route, navigation }) {
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                 >
-                    <View style={styles.contentContainer}>
+                    <View style={[styles.contentContainer, {justifyContent: "flex-start", paddingVertical: 16}]}>
                         <BoardCard {...boardData} />
                         
                         {/* 작성자인 경우에만 수정/삭제 버튼 표시 */}
@@ -243,7 +285,11 @@ function BoardDetailsScreen({ route, navigation }) {
                         <View style={styles.commentSection}>
                             <Text style={styles.commentTitle}>댓글</Text>
                             <View style={styles.commentList}>
-                                {comments.map((item) => (
+                                {
+                                    post.commentCount === 0 
+                                    ?
+                                   <Text>댓글이 없습니다.</Text>
+                                    : comments.map((item) => (
                                     <CommentItem
                                         key={item.commentId}
                                         username={item.memberName}
@@ -253,11 +299,14 @@ function BoardDetailsScreen({ route, navigation }) {
                                         onEdit={(editedContent) => handleCommentEdit(item.commentId, editedContent)}
                                         onDelete={() => handleCommentDelete(item.commentId)}
                                     />
-                                ))}
+                                    ))
+                                }
+                                
                             </View>
                         </View>
 
                         {/* 댓글 입력 */}
+                        {!isAdmin && (
                         <View style={styles.commentSection}>
                         <View style={{ height: 2, backgroundColor: BLACK_COLOR, marginVertical: 10 }} />
                             <Text style={styles.commentTitle}>댓글</Text>
@@ -273,6 +322,8 @@ function BoardDetailsScreen({ route, navigation }) {
                                 disabled={comment.length < 1}
                             />
                         </View>
+
+                        )}
                     </View>
                 </ScrollView>
             </View>
@@ -358,6 +409,11 @@ const styles = StyleSheet.create({
         gap: 16,
         marginTop: 24,
     },
+    checkBox: {
+        borderWidth: 2,
+        borderColor: BLACK_COLOR,
+        borderStyle: 'solid'
+    }
 });
 
 export default BoardDetailsScreen;

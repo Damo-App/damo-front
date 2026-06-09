@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
   },
   selectedDayButton: {
     backgroundColor: PRIMARY_BTN_COLOR,
-    borderColor: PRIMARY_BTN_COLOR,
+    borderColor: BLACK_COLOR,
   },
   dayText: {
     fontSize: 14,

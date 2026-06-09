@@ -11,7 +11,11 @@ export const YELLOW_LIGHT_COLOR = "#F2E6F7";
 export const GREEN_LIGHT_COLOR = "#CCF5A2";
 //point-y-dark
 export const YELLOW_DARK_COLOR = "#FFC27E";
-
+// tag-beige
+export const BEIGE_COLOR = "#FFEAB1";
+// tag-sky-blue
+export const SKY_BLUE = "#B5E2F7"
+// tag-
 export const ERROR_COLOR = "#EE4A4A";
 
 //point-p-light

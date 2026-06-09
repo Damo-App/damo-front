@@ -1,23 +1,61 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { CustomButton } from '../../components/CustomButton';
 import CommonTag from '../../components/CommonTag';
-import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, WHITE_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
+import { BLACK_COLOR, BORDER_COLOR, G_DARK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
 import { instance, API_BASE_URL } from '../../api/axiosInstance';
+import { useUser } from '../../hooks/useUser';
+import { AuthContext } from '../../contexts/AuthProvider';
+import { getCurrentUser } from '../../api/queries/userService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
 
 const GroupDetailScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
+  const { user } = useUser();
+  const isFocused = useIsFocused();
+  const [joinedStatus, setJoinedStatus] = useState([]);
   const [groupData, setGroupData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showMemberList, setShowMemberList] = useState(false);
   const [memberList, setMemberList] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const { isLoggedIn, isCategorySelected } = useContext(AuthContext);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+    const memberId = await AsyncStorage.getItem("memberId");
+    const token = await AsyncStorage.getItem("accessToken");
+    try {
+      const response = await instance.get(`/members/${memberId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log('response.data.data.email', response.data.data.email);
+
+      const checkEmail = response.data.data.email
+      setEmail(checkEmail);
+      setIsAdmin(checkEmail === 'admin123@gmail.com');
+      return response.data.data;
+    } catch (error) {
+      console.log('error', error);
+    }}
+    checkAdmin();
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    setIsAdmin(email === 'admin123@gmail.com')
+    console.log('isAdmin??', isAdmin);
+  }, [email])
+
 
   useEffect(() => {
     const fetchGroupDetail = async () => {
       try {
         const response = await instance.get(`/groups/${groupId}`);
+        
         console.log('API Response:', response.data.data);
         setGroupData(response.data.data);
       } catch (error) {
@@ -27,8 +65,71 @@ const GroupDetailScreen = ({ route, navigation }) => {
       }
     };
 
-    fetchGroupDetail();
-  }, [groupId]);
+    if (isFocused) {
+          fetchGroupDetail();
+    }
+  }, [groupId, isFocused]);
+
+
+  const activeSchedules = useMemo(() => {
+    if (!groupData?.schedules) return [];
+    return groupData.schedules.filter(s => s.state === 'SCHEDULE_ACTIVE');
+  }, [groupData]);
+
+  console.log("activeSchedules test", activeSchedules.length);
+
+  // 2. activeSchedules 변경 시, 내가 참여 중인지 여부 계산
+  useEffect(() => {
+    if (!user?.memberId) return;
+
+    const statusArray = activeSchedules.map(schedule => {
+      const isJoined = schedule.members?.some(m => m.memberId === user.memberId);
+      return {
+        scheduleId: schedule.scheduleId,
+        isJoined
+      };
+    });
+
+    setJoinedStatus(statusArray);
+  }, [activeSchedules, user]);
+
+  // 확인용 콘솔
+  useEffect(() => {
+    console.log('참여 여부 상태 ===', joinedStatus);
+    // 예) [ { scheduleId: 99, isJoined: true }, { scheduleId: 100, isJoined: false } ]
+  }, [joinedStatus]);
+
+  const toggleJoinStatus = async (scheduleId, isCurrentlyJoined) => {
+    try {
+      // setLoading(scheduleId); // 버튼 로딩 표시
+
+      //참여 했으면 됬다고 아래 토스트 메세지 띄우기
+      if (isCurrentlyJoined) {
+        // 취소 API 호출
+        await instance.delete(`/schedules/${scheduleId}/participation`);
+      } else {
+        // 참여 API 호출
+        await instance.post(`/schedules/${scheduleId}/participation`);
+      }
+
+      // 상태 토글
+      setJoinedStatus(prev =>
+        prev.map(item =>
+          item.scheduleId === scheduleId
+            ? { ...item, isJoined: !isCurrentlyJoined }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error('참여/취소 API 오류:', error);
+    } finally {
+      setLoading(null);
+    }
+  };
+  
+
+
+
 
   const handleWithdraw = () => {
     Alert.alert(
@@ -60,6 +161,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
       ]
     );
   };
+
   const handleJoin = async () => {
     try {
       console.log(`Sending join request to: /groups/${groupId}/join`); // Log the request URL
@@ -135,6 +237,10 @@ const GroupDetailScreen = ({ route, navigation }) => {
     fetchMemberList(text);
   };
 
+  const handleDetailSchedule = (scheduleId) => {
+    navigation.navigate('ScheduleDetails', { scheduleId, groupId });
+  }
+
   const handleCancelSchedule = (scheduleId) => {
     Alert.alert(
       "일정 취소",
@@ -177,11 +283,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                 {
                   text: '확인',
                   onPress: () => {
-                    // 삭제된 그룹 ID와 함께 이전 화면으로 돌아가기
-                    navigation.navigate('GroupList', { 
-                      deletedGroupId: groupId,
-                      needRefresh: true 
-                    });
+                   navigation.replace('MainTabs', { screen: '모임 리스트' })
                   }
                 }
               ]);
@@ -195,24 +297,34 @@ const GroupDetailScreen = ({ route, navigation }) => {
     );
   };
 
+  const handleUpdateGroup = async () => {
+      console.log('[디버깅] groupData:', groupData); // 🔍 groupData 확인
+  console.log('[디버깅] groupId:', groupData?.groupId); // 🔍 groupId 확인
+    
+    if(!groupData?.groupId) {
+      Alert.alert("모임정보가 없습니다.")
+      return;
+    }
+    navigation.navigate('UpdateGroupScreen', { groupId: groupData.groupId, selectedCategoryId: groupData.categoryId })
+  }
+
   if (loading || !groupData) {
     return <View style={commonStyles.container}><Text>Loading...</Text></View>;
   }
 
   console.log('Schedules:', groupData.schedules);
   
-  const activeSchedules = groupData.schedules?.filter(
-    schedule => schedule.state === 'SCHEDULE_ACTIVE'
-  ) || [];
+  // const activeSchedules = groupData.schedules?.filter(
+  //   schedule => schedule.state === 'SCHEDULE_ACTIVE'
+  // ) || [];
 
   const pastSchedules = groupData.schedules?.filter(
     schedule => schedule.state === 'SCHEDULE_COMPLETED'
   ) || [];
 
-  console.log('Active Schedules:', activeSchedules);
-  console.log('Past Schedules:', pastSchedules);
-
   const renderActionButton = () => {
+    if(isAdmin) return null;
+    console.log('isAdmin', isAdmin)
     if (groupData.myRole === 'GROUP_LEADER') {
       return (
         <>
@@ -220,7 +332,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
           title="게시판"
           style={{
             ...styles.button,
-            backgroundColor: PINK_DARK_COLOR,
+            backgroundColor: PRIMARY_COLOR,
             borderColor: BLACK_COLOR,
             paddingVertical: 4,
             paddingHorizontal: 16,
@@ -231,7 +343,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
           title="일정 생성"
           style={{
             ...styles.button,
-            backgroundColor: PINK_DARK_COLOR,
+            backgroundColor: PINK_LIGHT_COLOR,
             borderColor: BLACK_COLOR,
             paddingVertical: 4,
             paddingHorizontal: 16,
@@ -246,7 +358,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
           title="게시판"
           style={{
             ...styles.button,
-            backgroundColor: PINK_DARK_COLOR,
+            backgroundColor: PRIMARY_COLOR,
             borderColor: BLACK_COLOR,
             paddingVertical: 4,
             paddingHorizontal: 16,
@@ -273,27 +385,43 @@ const GroupDetailScreen = ({ route, navigation }) => {
 
   const renderBottomButton = () => {
     if (!groupData) return null;
+    if(isAdmin) return null;
 
     return (
       <View style={styles.bottomButtonContainer}>
         {groupData.myRole === 'GROUP_LEADER' ? (
-          <CustomButton
-            title="삭제하기"
-            style={{
-              ...styles.button,
-              backgroundColor: 'red',
-              borderColor: BLACK_COLOR,
-              paddingVertical: 4,
-              paddingHorizontal: 16,
-            }}
-            onPress={handleDeleteGroup}
-          />
+          <View style={{flexDirection:'row', justifyContent: 'space-between'}}>
+            <CustomButton
+              title="삭제하기"
+              style={{
+                ...styles.button,
+                width: '48%',
+                backgroundColor: PINK_DARK_COLOR,
+                borderColor: BLACK_COLOR,
+                paddingVertical: 4,
+                paddingHorizontal: 16,
+              }}
+              onPress={handleDeleteGroup}
+            />
+            <CustomButton 
+              title="수정하기"
+              style={{
+                ...styles.button,
+                width: '48%',
+                backgroundColor: PINK_LIGHT_COLOR,
+                borderColor: BLACK_COLOR,
+                paddingVertical: 4,
+                paddingHorizontal: 16,
+              }}
+              onPress={handleUpdateGroup}
+            />
+          </View>
         ) : groupData.myRole === 'GROUP_MEMBER' ? (
           <CustomButton
             title="탈퇴하기"
             style={{
               ...styles.button,
-              backgroundColor: 'red',
+              backgroundColor: PINK_DARK_COLOR,
               borderColor: BLACK_COLOR,
               paddingVertical: 4,
               paddingHorizontal: 16,
@@ -306,13 +434,12 @@ const GroupDetailScreen = ({ route, navigation }) => {
   };
 
   return (
-    <View style={[commonStyles.container, { flex: 1 }]}>
+    <View style={[commonStyles.container]}>
       <ScrollView 
         style={{ width: '100%', flex: 1 }}
         contentContainerStyle={{ 
-          flexGrow: 1,
-          paddingBottom: 150,
-          paddingHorizontal: 15,
+          paddingHorizontal:16,
+          paddingBottom: 50,
         }}
       >
         {/* 모임 기본 정보 */}
@@ -327,7 +454,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
             <Text style={styles.groupTitle}>{groupData.name}</Text>
             <Text style={styles.memberCount}>{groupData.memberCount}/{groupData.maxMemberCount}</Text>
           </View>
-          <Text style={styles.description}>{groupData.introduction}</Text>
+          {/* <Text style={styles.description}>{groupData.introduction}</Text> */}
           <View style={styles.bottomContainer}>
             <View style={styles.tagContainer}>
               <CommonTag
@@ -338,7 +465,12 @@ const GroupDetailScreen = ({ route, navigation }) => {
                 showCloseButton={false}
                 containerStyle={{ backgroundColor: '#EEE333', borderColor: BLACK_COLOR, borderWidth: 0.6, marginRight: -1 }}
               />
-              {[...(groupData.tags.mood || []), ...(groupData.tags.MBTI || [])].map((tag, index) => (
+              {[...(groupData.tags.age || []),
+               ...(groupData.tags.MBTI || []),
+               ...(groupData.tags.mood || []),
+               ...(groupData.tags.place || []),
+               ...(groupData.tags.location || []),
+               ...(groupData.tags.cost || [])].map((tag, index) => (
                 <CommonTag
                   key={index}
                   name={tag}
@@ -381,7 +513,10 @@ const GroupDetailScreen = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>모임 일정</Text>
           <Text style={styles.subTitle}>일정 예정</Text>
           {activeSchedules.length > 0 ? (
-            activeSchedules.map((schedule, index) => (
+            activeSchedules.map((schedule, index) => {
+              const status = joinedStatus.find(j => j.scheduleId === schedule.scheduleId);
+              const isJoined = status?.isJoined || false;
+              return (
               <View key={index} style={[styles.scheduleCard, styles.sectionboard]}>
                 <View style={styles.scheduleHeader}>
                   <View style={styles.titleWrapper}>
@@ -392,9 +527,9 @@ const GroupDetailScreen = ({ route, navigation }) => {
                         : YELLOW_LIGHT_COLOR
                     }]} />
                   </View>
-                  {groupData.myRole === 'GROUP_LEADER' && (
+                  {groupData.myRole === 'GROUP_LEADER' ? (
                     <View style={styles.scheduleActions}>
-                      <TouchableOpacity style={[styles.smallButton, commonShadow.mainShadow]}>
+                      <TouchableOpacity style={[styles.smallButton, commonShadow.mainShadow]} onPress={() => handleDetailSchedule(schedule.scheduleId)}>
                         <Text style={styles.smallButtonText}>상세</Text>
                       </TouchableOpacity>
                       <TouchableOpacity 
@@ -404,7 +539,22 @@ const GroupDetailScreen = ({ route, navigation }) => {
                         <Text style={styles.smallButtonText}>취소</Text>
                       </TouchableOpacity>
                     </View>
-                  )}
+                  )
+                  :
+                  (
+                    <View style={styles.scheduleActions}>
+                      <TouchableOpacity style={[styles.smallButton, commonShadow.mainShadow, {backgroundColor : isJoined ? '#FFA79D' : '#FFC27E' }]} onPress={() => toggleJoinStatus(schedule.scheduleId, isJoined)}>
+                        <Text style={styles.smallButtonText}>{isJoined ? '취소' : '참여' }</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.smallButton, { backgroundColor: '#fff' }, commonShadow.mainShadow]}
+                        onPress={() => handleCancelSchedule(schedule.scheduleId)}
+                      >
+                        <Text style={styles.smallButtonText}>상세</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )
+                }
                 </View>
                 {schedule.scheduleStatus === 'CONTINUOUS' ? (
                   <View style={styles.timeContainer}>
@@ -439,11 +589,11 @@ const GroupDetailScreen = ({ route, navigation }) => {
                   </Text>
                 </View>
               </View>
-            ))
+            )})
           ) : (
-            <View style={[styles.scheduleBox, styles.sectionboard]}>
-              <Text style={styles.noSchedule}>예정된 일정이 없습니다.</Text>
-            </View>
+              <View style={styles.emptyTextBox}>
+                <Text style={styles.emptyText}>예정된 일정이 없습니다.</Text>
+              </View>
           )}
           
           <Text style={styles.subTitle}>일정 내역</Text>
@@ -473,8 +623,8 @@ const GroupDetailScreen = ({ route, navigation }) => {
               </View>
             ))
           ) : (
-            <View style={[styles.scheduleBox, styles.sectionboard]}>
-              <Text style={styles.noSchedule}>일정 내역이 없습니다.</Text>
+            <View style={styles.emptyTextBox}>
+              <Text style={styles.emptyText}>일정 내역이 없습니다.</Text>
             </View>
           )}
         </View>
@@ -514,7 +664,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                 {memberList.map((member, index) => (
                   <View key={index} style={styles.memberItem}>
                     <Image
-                      source={{ uri: `${API_BASE_URL}${member.image}` }}
+                      source={{ uri: member.image }}
                       style={styles.memberImage}
                     />
                     <Text style={styles.memberName}>닉네임 : {member.name}</Text>
@@ -532,6 +682,8 @@ const GroupDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // paddingRight:10,
+    paddingHorizontal:16,
     width: '100%',
   },
   sectionboard: {
@@ -540,7 +692,8 @@ const styles = StyleSheet.create({
   },
   groupInfoCard: {
     backgroundColor: WHITE_COLOR,
-    padding: 10,
+    paddingTop: 10,
+    paddingHorizontal:10,
     marginBottom: 12,
     borderRadius: 10,
     width: '100%',
@@ -573,6 +726,12 @@ const styles = StyleSheet.create({
     color: BLACK_COLOR,
   },
   description: {
+    backgroundColor: WHITE_COLOR,
+    padding:10,
+    borderRadius: 10,
+    borderStyle: "solid",
+    borderWidth:1,
+    borderColor: BORDER_COLOR,
     fontSize: 12,
     color: BLACK_COLOR,
     lineHeight: 18,
@@ -608,17 +767,17 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginBottom: 8,
   },
-  scheduleBox: {
-    backgroundColor: WHITE_COLOR,
-    padding: 50,
-    marginBottom: 15,
-    borderRadius: 10,
-  },
-  noSchedule: {
-    textAlign: 'center',
-    color: '#999999',
-    fontSize: 10,
-  },
+  // scheduleBox: {
+  //   backgroundColor: WHITE_COLOR,
+  //   padding: 50,
+  //   marginBottom: 15,
+  //   borderRadius: 10,
+  // },
+  // noSchedule: {
+  //   textAlign: 'center',
+  //   color: '#999999',
+  //   fontSize: 10,
+  // },
   scheduleCard: {
     backgroundColor: WHITE_COLOR,
     padding: 12,
@@ -808,6 +967,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: WHITE_COLOR,
+    textAlign: 'center',
+  },
+  emptyTextBox:{
+    marginTop:5,
+    height:'auto',
+    paddingVertical:50,
+    borderWidth:1,
+    borderColor:G_DARK_COLOR,
+    borderRadius:12,
+    backgroundColor:WHITE_COLOR
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: G_DARK_COLOR,
     textAlign: 'center',
   },
 });

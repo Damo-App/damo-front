@@ -57,7 +57,7 @@ function HomeScreen() {
     transform: [{ translateX: offsetRight.value }],
   }));
 
-  const initialOffset = useMemo(() => ({ transform: { translateX: -totalWidth } }), [totalWidth]);
+  const initialOffset = useMemo(() => ({ transform: [{ translateX: -totalWidth }] }), [totalWidth]);
 
   return (
     <View style={homeStyles.container}>

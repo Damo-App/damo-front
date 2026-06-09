@@ -9,6 +9,7 @@ import { commonShadow, commonStyles } from './src/constants/styles';
 import IconButton from './src/components/IconButton';
 import close from 'react-native-vector-icons/MaterialIcons';
 import { BLACK_COLOR, WHITE_COLOR } from './src/constants/colors';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 
 // defaultProps 관련 경고 메시지 무시
@@ -21,13 +22,13 @@ const toastConfig = {
   success: (props) => (
     <View style={[commonStyles.toastBox, commonShadow.mainShadow, {backgroundColor:WHITE_COLOR}] }>
       <Text style={commonStyles.toastText}>{props.text1}</Text>
-      <IconButton name='close' size={20} color={BLACK_COLOR} />
+      <IconButton name='close' size={20} color={BLACK_COLOR} onPress={() => props.hide()}/>
     </View>
   ),
   error: (props) => (
     <View style={[commonStyles.toastBox, commonShadow.mainShadow]}>
       <Text style={commonStyles.toastText}>{props.text1}</Text>
-      <IconButton name='close' size={20} color={BLACK_COLOR} />
+      <IconButton name='close' size={20} color={BLACK_COLOR} onPress={() => props.hide()}/>
     </View>
   ),
 };
@@ -58,22 +59,26 @@ function App() {
   // };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <NavigationContainer>
-          <AppNavigator />
-            
-          
-          
-          {/* <View onLayout={handleLayout} style={{ flex: 1 }}>
-            <Text>Width: {layout.width}</Text>
-            <Text>Height: {layout.height}</Text>
-          </View> */}
-          {/* <Stack.Screen name="Register" component={RegisterScreen} /> */}
-        </NavigationContainer>
-        <Toast config={toastConfig}/>
-      </AuthProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <SafeAreaView style={{ flex: 1 }}>
+            <NavigationContainer>
+              <AppNavigator />
+            </NavigationContainer>
+            <Toast config={toastConfig} />
+          </SafeAreaView>
+        </AuthProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
+    // <QueryClientProvider client={queryClient}>
+    //   <AuthProvider>
+    //     <NavigationContainer>
+    //       <AppNavigator />         
+    //     </NavigationContainer>
+    //     <Toast config={toastConfig}/>
+    //   </AuthProvider>
+    // </QueryClientProvider>
   );
 }
 

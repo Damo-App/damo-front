@@ -21,6 +21,14 @@ export const getCurrentUser = async () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    const user = {
+      token,
+      memberId,
+      ...response.data.data
+    };
+
+    await AsyncStorage.setItem('user', JSON.stringify(user));
+
     console.log("Current User Data:", response.data.data);
     return response.data.data;
   } catch (error) {
@@ -37,4 +45,15 @@ export const getCurrentUser = async () => {
     }
   }
 };
+
+// 현재 사용자 name, email, phoneNumber, image 가져오기
+export const memberInfo = async () => {
+  try {
+    const response = await instance.get(`/mypage`);
+    console.log("현재 회원정보임####", response.data.data)
+    return response.data.data
+  } catch(error) {
+    console.log('회원 정보 불러오기 실패', error)
+  }
+}
 

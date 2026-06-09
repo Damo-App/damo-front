@@ -64,6 +64,7 @@ const getCategoryName = (categoryId) => {
 };
 
 function ChatScreen({ navigation }) {
+  
   const [memberCategories, setMemberCategories] = useState([]);
 
   useEffect(() => {
@@ -78,6 +79,8 @@ function ChatScreen({ navigation }) {
       try {
         const res = await instance.get('/chatrooms'); 
         setMemberCategories(res.data.data); 
+        console.log("Res =======", res.data.data)
+        console.log("memberCategories ===",memberCategories)
       } catch (err) {
         console.error('채팅방 접속 에러(카테고리 불러오기 실패):', err);
       }
@@ -86,17 +89,17 @@ function ChatScreen({ navigation }) {
   }, []);
 
   return (
-    <View style={commonStyles.container}>
+    <View style={[commonStyles.container, commonStyles.paddingX]}>
       {memberCategories.map((category, index) => (
         <MenuBar
           key={category.chatroomId || index} // Ensure unique keys
           image={getCategoryImage(category.categoryId)}
           text={getCategoryName(category.categoryId)}
-          style={[styles.menuBar, commonShadow.btnNoBdShadow]}
+          style={[styles.menuBar, commonShadow.btnNoBdShadow,  commonStyles.paddingX]}
           iconWrapperStyle={{ backgroundColor: YELLOW_DARK_COLOR }}
           onPress={() =>
             navigation.navigate('ChatRooms', {
-              chatroomId: category.categoryId,
+              chatroomId: category.chatRoomId,
               categoryId: category.categoryId,
               categoryName: getCategoryName(category.categoryId),
             })
@@ -108,12 +111,12 @@ function ChatScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-  },
-  menuBar: {
-    width: '100%',
-  },
+  // container: {
+  //   width: '100%',
+  // },
+  // menuBar: {
+  //   width: '100%',
+  // },
 });
 
 export default ChatScreen;

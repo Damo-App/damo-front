@@ -7,7 +7,9 @@ import GroupListBox from '../../components/GroupListBox';
 import { CategoryIcon } from '../../components/CategoryIcon';
 import { commonShadow } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
-import { BLACK_COLOR, ERROR_COLOR, G_DARK_COLOR, G_LIGHT_COLOR, PRIMARY_COLOR, WHITE_COLOR } from '../../constants/colors';
+import { BLACK_COLOR, ERROR_COLOR, G_DARK_COLOR, G_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR } from '../../constants/colors';
+import { useIsFocused } from '@react-navigation/native';
+// import { red } from 'react-native-reanimated/lib/typescript/Colors';
 
 // 카테고리 ID에 따른 이미지 매핑
 const categoryImages = {
@@ -31,6 +33,7 @@ const getCategoryImage = (categoryId) => {
 };
 
 function GroupListScreen({navigation}) {
+  const isFocused = useIsFocused();
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 10;
@@ -40,26 +43,16 @@ function GroupListScreen({navigation}) {
     queryKey: ['memberCategories'],
     queryFn: async () => {
       const response = await instance.get('/members/categories');
-      console.log('Categories response:', response.data);
+      // console.log('Categories response:', response.data);
       return response.data;
     },
   });
 
-  // console.log("categoriesData ==", memberCategories);
-
   // 첫 번째 카테고리 자동 선택
-  // useEffect(() => {
-  //   if (categoriesData?.data?.length > 0 && !selectedCategoryId) {
-  //     const firstCategory = categoriesData.data[0];
-  //     console.log('Initial category set:', firstCategory);
-  //     setSelectedCategoryId(firstCategory.categoryId);
-  //     setCurrentPage(1);
-  //   }
-  // }, [categoriesData]);
   useEffect(() => {
     if (categoriesData?.data?.length > 0 && !selectedCategoryId) {
       const firstCategory = categoriesData.data[0];
-      console.log('Initial category set:', firstCategory);
+      // console.log('Initial category set:', firstCategory);
       setSelectedCategoryId(firstCategory.categoryId); // 첫 번째 카테고리 ID 설정
       setCurrentPage(1);
     }
@@ -72,11 +65,17 @@ function GroupListScreen({navigation}) {
       if (!selectedCategoryId) return null;
       console.log('Fetching groups for categoryId:', selectedCategoryId, 'page:', currentPage);
       const response = await instance.get(`/groups?page=${currentPage}&size=${PAGE_SIZE}&categoryId=${selectedCategoryId}`);
-      console.log('Groups API Response:', response.data);
+
       return response.data;
     },
     enabled: !!selectedCategoryId,
   });
+
+  useEffect(() => {
+    if (isFocused && selectedCategoryId) {
+      refetch();
+    }
+  }, [isFocused, selectedCategoryId, currentPage]);
 
   // 카테고리 변경시 페이지 초기화
   useEffect(() => {
@@ -226,15 +225,16 @@ function GroupListScreen({navigation}) {
   };
 
   return (
-    <View style={[commonStyles.container, { flex: 1 }]}>
+    <View style={[commonStyles.container, { flex: 1, paddingBottom: 30}]}>
       {/* 카테고리 아이콘 */}
       <View style={styles.categoryContainer}>
         {renderCategoryIcons()}
       </View>
     
       {/* 모임 생성 버튼 */}
-      <CustomButton 
-        style={{ marginTop: 20 }}
+      <View style={[commonStyles.paddingX ]}>
+        <CustomButton 
+        style={{ marginTop: 10 }}
         textStyle={{ fontSize: 16 }}
         title="모임 생성하기"
         onPress={() => {
@@ -246,17 +246,18 @@ function GroupListScreen({navigation}) {
         }}
         // onPress={() => navigation.navigate('CreateGroupScreen', { selectedCategoryId: selectedCategoryId })}
       />
+      </View>
+      
 
       {/* 그룹 리스트 */}
-
       {groupsData?.data.length > 0 ? 
       <FlatList
-      style={styles.flatList}
-      data={groupsData?.data || []}
-      keyExtractor={(item) => item.groupId.toString()}
-      renderItem={({ item }) => (
+        style={[styles.flatList, commonStyles.paddingX]}
+        data={groupsData?.data || []}
+        keyExtractor={(item) => item.groupId.toString()}
+        renderItem={({ item }) => (
         <GroupListBox
-          style={styles.groupCard}
+          style={[styles.groupCard, commonShadow.mainShadow]}
           image={{ uri: item.image }}
           title={item.name}
           text={item.introduction}
@@ -264,8 +265,12 @@ function GroupListScreen({navigation}) {
           maxCount={item.maxMemberCount}
           subCategory={item.subCategoryName}
           tags={[
-            ...(item.tags?.mood || []), 
-            ...(item.tags?.MBTI || [])
+            ...(item.tags?.age || []), 
+            ...(item.tags?.MBTI || []),
+            ...(item.tags?.mood || []),
+            ...(item.tags?.place || []),
+            ...(item.tags?.location || []),
+            ...(item.tags?.cost || [])
           ]}
           onPress={() => navigation.navigate('GroupDetail', { groupId: item.groupId })}
         />
@@ -283,25 +288,27 @@ function GroupListScreen({navigation}) {
           <View style={{ height: 20 }}/>
         </View>
       )}
-    />
+      />
       : 
-      <View style={styles.emptyTextBox}>
-      <Text style={styles.emptyText}>해당 카테고리의 모임이 없습니다.</Text>
+      <View style={{width: '100%'}}>
+        <View style={styles.emptyTextBox}>
+          <Text style={styles.emptyText}>해당 카테고리의 모임이 없습니다.</Text>
+        </View>
       </View>
       }
-      
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   categoryContainer: {
+    height: 'auto',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
     marginBottom: 5,
-    gap: 30
+    gap: 30,
   },
   categoryIcon: {
     backgroundColor: '#FFFFFF',
@@ -322,12 +329,9 @@ const styles = StyleSheet.create({
   flatList: {
     flex: 1,
     width: '100%',
-  },
+  }, 
   listContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 10,
     paddingBottom: 40,
-    minHeight: '100%',
   },
   groupCard: {
     marginVertical: 5,
@@ -335,15 +339,14 @@ const styles = StyleSheet.create({
   },
   createButton: {
     marginBottom: 5,
-    width: '95%',
+    // width: '95%',
     alignSelf: 'center',
     paddingVertical: 10,
   },
   emptyTextBox:{
-    marginTop:50,
+    marginHorizontal: 16,
+    marginTop: 8,
     height:'auto',
-    width:'100%',
-    paddingHorizontal:20,
     paddingVertical:50,
     borderWidth:1,
     borderColor:G_DARK_COLOR,

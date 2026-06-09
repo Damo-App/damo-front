@@ -15,9 +15,16 @@ export const findUserId = async (userData) => {
   return response.data;
 };
 
+
+
+
 // 로그dls
+// 아이디, 비밀번호 : credentials
 export const loginUser = async (credentials) => {
   try {
+    await AsyncStorage.setItem("loginInfo", JSON.stringify(credentials))
+    const userData =  await AsyncStorage.getItem('loginInfo')
+    console.log('loginInfo>>>>>', userData);
     console.log("📤 Sending Login Request:", credentials);
 
     // 로그인 요청
@@ -71,18 +78,26 @@ export const loginUser = async (credentials) => {
 
 //비밀번호 변경
 // 비밀번호 변경 API 호출
-export const patchUserPw = async (data) => {
+export const patchUserPw = async (data, accessToken) => {
   try {
-    const response = await instance.patch('/members/password', data);
+    const accessToken = await AsyncStorage.getItem('accessToken')
+    console.log('newToken', accessToken)
+    console.log('data>>', data, accessToken)
+    const response = await instance.patch('/members/password', data, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
     console.log("비밀번호 변경 완료:", response.data);
     return response.data;
   } catch (error) {
-    console.error("비밀번호 변경 실패:", error.message);
+    console.error("비밀번호 변경 실패(Service):", error.message);
     
     Toast.show({
       type: 'error',
       text1: '비밀번호 변경 실패!',
       text2: error.message,
+      position:'bottom'
     });
 
     throw error; // Re-throw error for handling in mutation
@@ -90,9 +105,12 @@ export const patchUserPw = async (data) => {
 };
 
 // 회원 탈퇴 API 호출
-export const deleteUser = async (email, password) => {
-  const response = await instance.delete('/members', {
-    data: { email, password }, // axios는 DELETE도 data에 담을 수 있음
+export const deleteUser = async (email, password, token) => {
+ const response = await instance.delete('/members', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: { email, password },
   });
   return response.data;
 };

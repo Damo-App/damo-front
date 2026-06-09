@@ -404,19 +404,30 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, Platf
 import InputWithLabel from "../../components/InputWithLabel";
 import { CommonRadio } from "../../components/CommonRadio";
 import CommonTag from "../../components/CommonTag";
-import { commonStyles } from "../../constants/styles";
+import { commonShadow, commonStyles } from "../../constants/styles";
 import { CustomButton } from "../../components/CustomButton";
 import RNPickerSelect from 'react-native-picker-select';
 import * as ImagePicker from 'expo-image-picker';
-import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
+import { BEIGE_COLOR, BLACK_COLOR, G_DARKER_COLOR, GREEN_LIGHT_COLOR, NAV_BAR_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, SKY_BLUE, WHITE_COLOR, YELLOW_DARK_COLOR } from "../../constants/colors";
 import { instance } from "../../api/axiosInstance";
 import { useRoute } from "@react-navigation/native";
+import DropDownPicker from "react-native-dropdown-picker";
 
 // 유효성 검사 함수
 const isValidGroupName = (name) => {
   const regex = /^[a-zA-Z0-9가-힣\s]+$/; // 특수문자 불가
   return regex.test(name) && name.length >= 1 && name.length <= 15;
 };
+
+const categoryColor = {
+  '연령대': PRIMARY_COLOR,
+  'MBTI': BEIGE_COLOR,
+  '분위기': NAV_BAR_COLOR,
+  '장소': YELLOW_DARK_COLOR,
+  '지역': SKY_BLUE,
+  '장소': YELLOW_DARK_COLOR,
+  '활동비': PINK_DARK_COLOR,
+}
 
 const isValidIntroduction = (text) => text.length >= 10 && text.length <= 100;
 const isValidMemberCount = (count) => count >= 2 && count <= 100;
@@ -430,6 +441,7 @@ const CreateGroupScreen = ({ navigation }) => {
   const [startYear, setStartYear] = useState('');
   const [endYear, setEndYear] = useState('');
   const [mandatoryTags, setMandatoryTags] = useState([]);
+  const [mandatoryTagsId, setMandatoryTagsId] = useState(null);
   const [selectedTags, setSelectedTags] = useState([]);
   const [isMandatoryExpanded, setIsMandatoryExpanded] = useState(true);
   const [errors, setErrors] = useState({});
@@ -441,7 +453,25 @@ const CreateGroupScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const route = useRoute();
   const { selectedCategoryId } = route.params || {};
-  
+  const [openStart, setOpenStart] = useState(false);
+  const [openEnd, setOpenEnd] = useState(false);
+  const yearItems = [...Array(50)].map((_, i) => ({
+    label: String(1970 + i)+"년",
+    value: String(1970 + i),
+  }));
+
+
+  const tagToCategory = {};
+    sectionsTag.forEach(section => {
+      section.tags.forEach(tag => {
+        tagToCategory[tag] = section.title;
+      });
+  });
+
+  const matchedSubCategoryIds = sections
+  .filter(section => mandatoryTags.includes(section.subCategoryName))
+  .map(section => section.subCategoryId);
+
   useEffect(() => {
     console.log(`Received Category ID in CreateGroupScreen: ${selectedCategoryId}`);
 
@@ -465,7 +495,7 @@ const CreateGroupScreen = ({ navigation }) => {
         const response = await instance.get(`/categories/${selectedCategoryId}/subcategories`);
         const responseTag = await instance.get(`/tags`);
         
-        console.log("response 카테고리 서브카테고리", response.data.data);
+        console.log("response 카테고리 서브카테고리 }}}}}}", response.data.data);
         console.log("responseTag 카테고리 서브카테고리", responseTag.data.data.tags);
         if (response.data?.data?.length === 0) {
           console.warn("No tags found for this category");
@@ -567,11 +597,13 @@ const CreateGroupScreen = ({ navigation }) => {
   
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedImage = result.assets[0];
-        setImage({
-          uri: selectedImage.uri,
-          type: 'image/jpeg',
-          name: 'image.jpg'
-        });
+        console.log("이미지 선택 관련 result 결과",result.assets[0].uri);
+        // setImage({
+        //   uri: selectedImage.uri,
+        //   type: 'image/jpeg',
+        //   name: 'image.jpg'
+        // });
+        setProfileImage(result.assets[0].uri); //이미지 등록 useState 함수 활욘
       } else {
         console.log("이미지 선택이 취소되었습니다.");
       }
@@ -621,6 +653,10 @@ const CreateGroupScreen = ({ navigation }) => {
         ? 'image/png' 
         : 'image/jpeg';
 
+        console.log("uriParts============ ",uriParts);
+        console.log("fileName========== ",fileName);
+        console.log("fileType========== ",fileType);
+
       // FormData 생성
       const formData = new FormData();
       formData.append('file', {
@@ -628,6 +664,8 @@ const CreateGroupScreen = ({ navigation }) => {
         name: fileName,
         type: fileType,
       });
+
+      console.log("formData=========== ",formData);
 
       console.log("Uploading image for group:", groupId);
       
@@ -647,80 +685,142 @@ const CreateGroupScreen = ({ navigation }) => {
   };
 
   // 모임 생성 요청
+
   const handleSubmit = async () => {
-    if (!isFormValid) {
-      Alert.alert("입력 오류", "모든 필수 정보를 올바르게 입력해주세요.");
-      return;
+  if (!isFormValid) {
+    Alert.alert("입력 오류", "모든 필수 정보를 올바르게 입력해주세요.");
+    return;
+  }
+
+  if (!selectedCategoryId) {
+    Alert.alert("오류", "카테고리 정보가 없습니다.");
+    return;
+  }
+
+  try {
+    setIsLoading(true);
+
+    console.log("mandatoryTags",mandatoryTags);
+
+    // 1. groupData 준비
+    const groupData = {
+      // categoryId: selectedCategoryId,
+      groupName: groupName,
+      introduction: introduction,
+      maxMemberCount: parseInt(maxMembers, 10),
+      gender: gender === "무관" ? "NONE" : gender === "여성" ? "FEMALE" : "MALE",
+      minBirth: ageRestriction === "제한" ? startYear : null,
+      maxBirth: ageRestriction === "제한" ? endYear : null,
+      // subCategoryId : [...mandatoryTags.map(tag => (tag))],
+      subCategoryId : matchedSubCategoryIds[0],
+      tags: [
+        ...selectedTags.map(tag => ({ tagName: tag }))
+      ],
+    };
+
+    console.log("groupData================", groupData);
+    //groupData 콘솔 결과
+    // {"gender": "FEMALE", "groupName": "고양이 심리 모임", "introduction": "고양이 심리 모임입니다~", "maxBirth": null, "maxMemberCount": 10, "minBirth": null, "subCategoryId": 72, "tags": [{"tagName": "ENFP"}]}
+
+    ///---------- 일단 여기까진 된듯? ------------- /////
+
+    // 2. FormData 생성
+    const formData = new FormData();
+
+    console.log("formData :", formData);
+    console.log("profileImage :", profileImage);
+
+    // 2-1. 파일 추가
+    if (profileImage) {
+      const uriParts = profileImage.split('/');
+      const fileName = uriParts[uriParts.length - 1];
+      const fileType = fileName.split('.').pop().toLowerCase() === 'png'
+        ? 'image/png'
+        : 'image/jpeg';
+
+        console.log("uriParts : ",uriParts);
+        console.log("fileName : ",fileName);
+        console.log("fileType : ",fileType);
+
+      formData.append('groupImage', {
+        uri: profileImage,
+        name: fileName,
+        type: fileType,
+      });
     }
 
-    if (!selectedCategoryId) {
-      Alert.alert("오류", "카테고리 정보가 없습니다.");
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
+    // 2-2. JSON 추가
+    formData.append(
+      'groupPostDto',
+      JSON.stringify(groupData)
+    );
+    // console.log("blob???? ====", new Blob([JSON.stringify(groupData)]));
+    // console.log("formData ==========", formData);
 
-      // 모임 생성 데이터 준비
-      const groupData = {
-        categoryId: selectedCategoryId, // 카테고리 ID 추가
-        name: groupName,
-        introduction: introduction,
-        maxMemberCount: parseInt(maxMembers, 10),
-        gender: gender,
-        minBirth: ageRestriction === "제한" ? startYear : null,
-        maxBirth: ageRestriction === "제한" ? endYear : null,
-        tags: [
-          ...mandatoryTags.map(tag => ({ tagName: tag })),
-          ...selectedTags.map(tag => ({ tagName: tag }))
-        ],
-      };
+    // 3. axios로 전송
+    const response = await instance.post('/groups', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-      console.log('모임 생성 요청 데이터:', groupData);
+    // console.log("response===========", response);
 
-      // 모임 생성 API 호출
-      const response = await instance.post('/groups', groupData);
-      console.log('모임 생성 응답:', response.data);
-      
-      const groupId = response.data.data.groupId;
-      
-      // 이미지가 있으면 업로드
-      if (profileImage) {
-        try {
-          await uploadImage(groupId);
-          console.log("이미지 업로드 완료");
-        } catch (imageError) {
-          console.error("이미지 업로드 실패:", imageError);
-          Alert.alert(
-            "일부 완료", 
-            "모임은 생성되었지만 이미지 업로드에 실패했습니다. 나중에 모임 설정에서 이미지를 추가해주세요."
-          );
-          setIsLoading(false);
-          navigation.navigate('GroupDetail', { groupId });
-          return;
-        }
+    const location = response.headers.location;
+    let groupId = null;
+
+    if (location) {
+      const match = location.match(/\/groups\/(\d+)/);
+      if (match && match[1]) {
+        groupId = Number(match[1]);
+        // groupId로 이후 로직 처리
+        // navigation.navigate('GroupDetail', { groupId });
       }
+    }
+      
+    //   // 이미지가 있으면 업로드
+    //   if (profileImage) {
+    //     try {
+    //       await uploadImage(groupId);
+    //       console.log("이미지 업로드 완료");
+    //     } catch (imageError) {
+    //       console.error("이미지 업로드 실패:", imageError);
+    //       Alert.alert(
+    //         "일부 완료", 
+    //         "모임은 생성되었지만 이미지 업로드에 실패했습니다. 나중에 모임 설정에서 이미지를 추가해주세요."
+    //       );
+    //       setIsLoading(false);
+    //       navigation.navigate('GroupDetail', { groupId });
+    //       return;
+    //     }
+    //   }
 
       Alert.alert("성공", "모임이 성공적으로 생성되었습니다.", [
         {
           text: "확인",
-          onPress: () => navigation.navigate('GroupDetail', { groupId })
+          onPress: () => navigation.replace('GroupDetail', { groupId })
         }
       ]);
-    } catch (error) {
-      console.error('모임 생성 오류:', error.response?.data || error.message);
+
+    // 이후 로직 (성공 처리 등)
+    // ...
+  } catch (error) {
+    // 에러 처리
+     console.error('모임 생성 오류:', error);
+     console.error('모임 생성 오류:', error.response?.data || error.message);
       Alert.alert(
         "오류", 
         error.response?.data?.message || "모임 생성 중 오류가 발생했습니다. 다시 시도해주세요."
       );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <View style={[commonStyles.container, styles.container]}>
-      <FlatList style={styles.flatContainer}
+      <FlatList style={[styles.flatContainer, commonStyles.paddingX]}
         ListHeaderComponent={
           <>
             {/* 모임 대표 이미지 */}
@@ -795,52 +895,124 @@ const CreateGroupScreen = ({ navigation }) => {
                 groupStyle={{display:'flex', flexDirection:'column'}}
               />
             </View>
-  
-            {/* 모임 연령 */}
             <View>
-              <Text style={styles.label}>모임 연령</Text>
-              <CommonRadio
-                value={ageRestriction}
-                onChange={setAgeRestriction}
-                options={[
-                  { label: "무관", value: "무관" },
-                  { label: "제한", value: "제한" },
-                ]}
-                containerStyle={{ paddingBottom: 8 }}
-                groupStyle={{ flexDirection: 'column' }}
-              />
+            <Text style={styles.label}>모임 연령</Text>
+            <CommonRadio
+              value={ageRestriction}
+              onChange={setAgeRestriction}
+              options={[
+                { label: "무관", value: "무관" },
+                { label: "제한", value: "제한" },
+              ]}
+              containerStyle={{ paddingBottom: 8 }}
+              groupStyle={{ flexDirection: 'column' }}
+            />
 
               {ageRestriction === "제한" && (
                 <View style={styles.ageRange}>
-                  <RNPickerSelect
-                    onValueChange={(value) => setStartYear(value)}
+                  {/* 시작연도 드롭다운 */}
+                  <DropDownPicker
+                    open={openStart}
                     value={startYear}
-                    items={[...Array(50)].map((_, i) => {
-                      const year = 1970 + i;
-                      return { label: String(year), value: String(year) };
-                    })}
-                    style={pickerStyle}
-                    placeholder={{ label: "시작 연도", value: null }}
+                    items={yearItems}
+                    setOpen={setOpenStart}
+                    setValue={setStartYear}
+                    setItems={() => {}}
+                    placeholder="시작연도"
+                    style={styles.pickerBox}   // 커스텀 박스 스타일
+                    containerStyle={{ width: 140 }}
+                    textStyle={styles.pickerText}
+                    dropDownContainerStyle={styles.pickerDropDown}
+                    arrowIconStyle={styles.arrowIcon}
+                    listMode="SCROLLVIEW"
+                    zIndex={2000}
+                    onClose={() => setOpenEnd(false)}
+                    tickIconStyle={{ width: 0, height: 0, opacity: 0 }}
                   />
+
+                  {/* ~ 텍스트 */}
                   <Text style={styles.rangeSeparator}>~</Text>
-                  <RNPickerSelect
-                    onValueChange={(value) => setEndYear(value)}
+
+                  {/* 종료연도 드롭다운 */}
+                  <DropDownPicker
+                    open={openEnd}
                     value={endYear}
-                    items={[...Array(50)].map((_, i) => {
-                      const year = 1970 + i;
-                      return { label: String(year), value: String(year) };
-                    })}
-                    style={pickerStyle}
-                    placeholder={{ label: "종료 연도", value: null }}
+                    items={yearItems}
+                    setOpen={setOpenEnd}
+                    setValue={setEndYear}
+                    setItems={() => {}}
+                    placeholder="종료연도"
+                    style={styles.pickerBox}
+                    containerStyle={{ width: 140 }}
+                    textStyle={styles.pickerText}
+                    dropDownContainerStyle={styles.pickerDropDown}
+                    arrowIconStyle={styles.arrowIcon}
+                    listMode="SCROLLVIEW"
+                    zIndex={1000}
+                    onClose={() => setOpenStart(false)}
+                    tickIconStyle={{ width: 0, height: 0, opacity: 0 }}
                   />
                 </View>
               )}
             </View>
 
+  
+        
+
             {/* 태그 선택 */}
             <Text style={styles.subHeader}>태그 선택</Text>
             <View style={styles.selectedTagsContainer}>
-              {[...mandatoryTags, ...selectedTags].map((tag) => (
+              {[...mandatoryTags].map((tag) => {
+                return(
+                  <CommonTag
+                    key={tag}
+                    name={tag}
+                    size={14}
+                    color="#000"
+                    showCloseButton={true}
+                    containerStyle={{
+                      borderWidth:1, 
+                      borderColor:BLACK_COLOR,
+                      backgroundColor: PINK_LIGHT_COLOR
+                    }}
+                    closeButtonStyle={{
+                      backgroundColor: PINK_LIGHT_COLOR
+                    }}
+                    onPress={() =>{
+                      setMandatoryTags([])
+                    }
+                     
+                    }
+                  />
+                  );
+              })}
+              {[...selectedTags].map((tag) => {
+                const categoryName = tagToCategory[tag];
+                const color = categoryColor[categoryName];
+                return (
+                  <CommonTag
+                    key={tag}
+                    name={tag}
+                    size={14}
+                    color="#000"
+                    showCloseButton={true}
+                    containerStyle={{
+                      borderWidth:1, 
+                      borderColor:BLACK_COLOR,
+                      backgroundColor: color
+                    }}
+                    closeButtonStyle={{
+                      backgroundColor: color  
+                    }}
+                    onPress={() =>
+                      setSelectedTags(selectedTags.filter((t) => t !== tag))
+                    }
+                  />
+                )}
+              )}
+            </View>
+            {/* <View style={styles.selectedTagsContainer}>
+              {[...sectionsTag].map((tag) => (
                 <CommonTag
                   key={tag}
                   name={tag}
@@ -850,10 +1022,10 @@ const CreateGroupScreen = ({ navigation }) => {
                   containerStyle={{
                     borderWidth:1, 
                     borderColor:BLACK_COLOR,
-                    backgroundColor: YELLOW_DARK_COLOR,
+                    backgroundColor:PINK_LIGHT_COLOR,
                   }}
                   closeButtonStyle={{
-                    backgroundColor: YELLOW_DARK_COLOR
+                    backgroundColor: PINK_LIGHT_COLOR
                   }}
                   onPress={() =>
                     mandatoryTags.includes(tag)
@@ -862,7 +1034,7 @@ const CreateGroupScreen = ({ navigation }) => {
                   }
                 />
               ))}
-            </View>
+            </View> */}
 
             {/* 필수 태그 */}
             <Text style={styles.subTagStyle}>필수</Text>
@@ -908,79 +1080,86 @@ const CreateGroupScreen = ({ navigation }) => {
             )} */}
 
 {sections.length > 0 ? (
-  <View style={styles.tagContainer}>
-    {sections.map((tag, index) => (
-      <TouchableOpacity
-        key={index}
-        onPress={() => {
-          if (mandatoryTags.includes(tag.subCategoryId)) {
-            setMandatoryTags([]);
-          } else {
-            setMandatoryTags([tag.subCategoryId]);
-          }
-        }}
-      >
-        <CommonTag
-          name={tag.subCategoryName} // 객체의 subCategoryName 속성을 사용
-          size={14}
-          color="#000"
-          showCloseButton={false}
-          containerStyle={{
-            borderColor: mandatoryTags.includes(tag.subCategoryId) ? BLACK_COLOR : "#CCE5E5",
-            borderWidth: mandatoryTags.includes(tag.subCategoryId) ? 2 : 0,
-            backgroundColor: WHITE_COLOR,
+  <View style={[styles.tagContainer, { backgroundColor: PINK_LIGHT_COLOR }, commonShadow.mainShadow]  }>
+    <View style={styles.tagBox}>
+      {sections.map((tag, index) => (
+        <TouchableOpacity
+          key={index}
+          onPress={() => {
+            if (mandatoryTags.includes(tag.subCategoryId)) {
+              setMandatoryTags([tag.subCategoryName]);
+            } else {
+              setMandatoryTags([tag.subCategoryName]);
+            }
           }}
-        />
-      </TouchableOpacity>
-    ))}
+        >
+          <CommonTag
+            name={tag.subCategoryName} // 객체의 subCategoryName 속성을 사용
+            size={14}
+            color="#000"
+            showCloseButton={false}
+            containerStyle={{
+              borderColor: mandatoryTags.includes(tag.subCategoryName) ? BLACK_COLOR : "#CCE5E5",
+              borderWidth: mandatoryTags.includes(tag.subCategoryName) ? 2 : 0,
+              backgroundColor: WHITE_COLOR,
+            }}
+          />
+        </TouchableOpacity>
+      ))}
+    </View>
   </View>
 ) : (
   <Text>태그 정보를 불러올 수 없습니다.</Text>
 )}
 
 
-            {/* 선택 태그 */}
-            <Text style={styles.subTagStyle}>선택</Text>
-           {sectionsTag.map((section, index) => (
-  <View key={section.title || index} style={[styles.sectionContainer, { backgroundColor: GREEN_LIGHT_COLOR }]}>
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{section.title}</Text>
-      <TouchableOpacity onPress={() => toggleSection(index)} style={styles.toggleButton}>
-        <Text style={styles.toggleButtonText}>{expandedSections[index] ? '-' : '+'}</Text>
-      </TouchableOpacity>
-    </View>
-    {expandedSections[index] && (
-      <View style={styles.tagContainer}>
-        {section.tags.map((tag) => (
-          <TouchableOpacity
-            key={tag}
-            onPress={() => {
-              if (selectedTags.includes(tag)) {
-                setSelectedTags(selectedTags.filter((t) => t !== tag));
-              } else if (selectedTags.length < 3) {
-                setSelectedTags([...selectedTags, tag]);
-              }
-            }}
-            disabled={!selectedTags.includes(tag) && selectedTags.length >= 3}
-          >
-            <CommonTag
-              name={tag}
-              size={14}
-              color="#000"
-              showCloseButton={false}
-              containerStyle={{
-                borderColor: selectedTags.includes(tag) ? BLACK_COLOR : "#CCE5E5",
-                borderWidth: selectedTags.includes(tag) ? 2 : 0,
-                backgroundColor: WHITE_COLOR,
-                opacity: (!selectedTags.includes(tag) && selectedTags.length >= 3) ? 0.5 : 1
-              }}
-            />
-          </TouchableOpacity>
-        ))}
+  {/* 선택 태그 */}
+    <Text style={styles.subTagStyle}>선택</Text>
+    {sectionsTag.map((section, index) => {
+      const categoryName = section.title;
+      const bgColor = categoryColor[categoryName];
+      return (
+    <View key={section.title || index} style={[styles.sectionContainer, {backgroundColor: bgColor}, commonShadow.mainShadow]}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{section.title}</Text>
+        <TouchableOpacity onPress={() => toggleSection(index)} style={styles.toggleButton}>
+          <Text style={styles.toggleButtonText}>{expandedSections[index] ? '-' : '+'}</Text>
+        </TouchableOpacity>
       </View>
-    )}
-  </View>
-))}
+      {expandedSections[index] && (
+        <View style={styles.tagContainer}>
+          {section.tags.map((tag) => {
+            return(
+              <TouchableOpacity
+                key={tag} 
+                onPress={() => {
+                  if (selectedTags.includes(tag)) {
+                    setSelectedTags(selectedTags.filter((t) => t !== tag));
+                  } else if (selectedTags.length < 3) {
+                    setSelectedTags([...selectedTags, tag]);
+                  }
+                }}
+                disabled={!selectedTags.includes(tag) && selectedTags.length >= 3}
+              >
+              <CommonTag
+                name={tag}
+                size={14}
+                color={BLACK_COLOR}
+                showCloseButton={false}
+                containerStyle={{
+                  borderColor: selectedTags.includes(tag) ? BLACK_COLOR : "#CCE5E5",
+                  borderWidth: selectedTags.includes(tag) ? 2 : 0,
+                  backgroundColor: WHITE_COLOR,
+                  opacity: (!selectedTags.includes(tag) && selectedTags.length >= 3) ? 0.5 : 1
+                }}
+              />
+            </TouchableOpacity>
+            );
+        })}
+        </View>
+      )}
+  </View>);
+        })}
           </>
         }
         data={[]}
@@ -1005,7 +1184,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 25,
-    paddingHorizontal: 16,
     backgroundColor: '#fce7fc',
     width: '100%',
     height: '100%'
@@ -1020,6 +1198,7 @@ const styles = StyleSheet.create({
     alignItems: "center", // 가로축 중앙 정렬
   },
   subTagStyle: {
+    marginVertical: 10,
     fontSize: 14,
     fontWeight: 'bold'
   },
@@ -1043,18 +1222,20 @@ const styles = StyleSheet.create({
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: 8,
+  paddingTop: 8,
 },
 toggleButton: {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'start',
   width: 20,
   height: 20,
-  justifyContent: 'center',
-  alignItems: 'center',
 },
 toggleButtonText: {
+  lineHeight: 18,
   fontSize: 20,
   fontWeight: 'bold',
-  color: '#000',
+  color: BLACK_COLOR,
 },
   subHeader: {
     fontSize: 16,
@@ -1065,43 +1246,37 @@ toggleButtonText: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 4,
-    // marginBottom: 10,
   },
   sectionContainer: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    marginBottom:12, 
     borderRadius: 8,
-    marginBottom: 16,
+    paddingHorizontal: 10,
+    // paddingBottom: 12,
   },
   sectionTitle: {
+    marginBottom: 12,
     fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 8,
   },
   tagContainer: {
+    borderRadius: 8,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
+  tagBox: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingTop: 12,
+    paddingHorizontal: 10,
+
+  },
   tag: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 16,
-    backgroundColor: "#CCE5E5",
+    backgroundColor: WHITE_COLOR,
     fontWeight: 'bold',
   },
   flatContainer:{
     width:'100%',
-  },
-  imageContainer: {
-    width: '100%',
-    height: 150,
-    marginBottom: 16,
-  },
-  inputLabelText: {
-    marginBottom: 16,
-    width: '100%',
-    fontSize: 10
   },
   input: {
     marginBottom: 16,
@@ -1137,47 +1312,50 @@ toggleButtonText: {
     color: '#000',
   },
   ageRange: {
-    flexDirection: 'row', // 시작 연도와 종료 연도를 가로로 배치
-    alignItems: 'center', // 세로축 중앙 정렬
-    justifyContent: 'space-between', // 좌우 간격 조정
+    width:'100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: 8,
   },
   rangeSeparator: {
     fontSize: 19,
     fontWeight: 'bold',
-    color: '#000', // "~" 색상 (검은색)
-    marginHorizontal: 8, // "~" 좌우 간격
+    color: BLACK_COLOR, // "~" 색상 (검은색)
+    marginHorizontal: 14
   },
-});
-
-const pickerStyle = StyleSheet.create({
-  viewContainer: {
+  pickerBox: {
+    width: '100%',
+    height: 44,
     borderWidth: 1,
     borderColor: BLACK_COLOR,
-    borderRadius: 12,
-    backgroundColor: 'white',
-    width: 140,
+    borderRadius: 14,
+    backgroundColor: '#fff',
+    marginHorizontal: 0,
+    justifyContent: 'center',
+    padding: 0,
   },
-  inputAndroid: {
-    height: 50,
-    color: '#333',
-    fontSize: 14,
-    paddingLeft: 10,
-    paddingRight: 10,
+  pickerText: {
+    fontSize: 16,
+    color: '#202020',
+    textAlign: 'center',
+    lineHeight: 20,
+    textAlignVertical: 'center',
+    includeFontPadding: false
   },
-  inputIOS: {
-    height: 50,
-    color: '#333',
-    fontSize: 14,
-    paddingLeft: 10,
-    paddingRight: 10,
+  pickerDropDown: {
+    width: '100%',
+    left: 0,
+    alignSelf: 'flex-start',
+    borderColor: '#121212',
+    borderRadius: 14,
+    backgroundColor: '#fff',
   },
-  iconContainer: {
-    top: 12,
-    right: 12,
-  },
-  fontStyle: {
-    fontSize: 12
+  arrowIcon: {
+    tintColor: '#222', // 화살표 컬러 변경
+    width: 20,
+    height: 20,
+    marginRight: 10
   },
 });
 

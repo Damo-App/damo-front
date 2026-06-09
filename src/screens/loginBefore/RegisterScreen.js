@@ -197,7 +197,7 @@ export const RegisterScreen = () => {
       gender,
       memberCategories: [], 
     };
-    navigation.navigate('SelectCategories', { initialData });
+    navigation.navigate('카테고리 선택', { initialData });
   };
   
   // 비밀번호 입력 핸들러
@@ -221,7 +221,7 @@ export const RegisterScreen = () => {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={[styles.container, commonStyles.container]} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.container, commonStyles.container, commonStyles.paddingX]} keyboardShouldPersistTaps="handled">
         <View style={commonStyles.boxContainer}>
         <View style={styles.topBox}>
           <InputWithLabel
@@ -333,8 +333,6 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   botBox:{
-    //  borderWidth:1,
-    // borderColor:BLACK_COLOR,
     display: 'flex', 
     flexDirection: 'column', 
     gap: 16,

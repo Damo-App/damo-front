@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import BoardCard from '../../components/BoardCard';
-import { PRIMARY_BACK_COLOR, PRIMARY_BTN_COLOR, BLACK_COLOR, WHITE_COLOR } from '../../constants/colors';
+import { PRIMARY_BACK_COLOR, PRIMARY_BTN_COLOR, BLACK_COLOR, WHITE_COLOR, G_DARK_COLOR } from '../../constants/colors';
 import { commonBtn, commonShadow, commonStyles } from '../../constants/styles';
 import { instance } from '../../api/axiosInstance';
+import { useIsFocused } from '@react-navigation/native';
 
 const BoardScreen = ({route, navigation}) => {
   const groupId = Number(route.params.groupId);
+  const isFocused = useIsFocused();
   const [posts, setPosts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -30,12 +32,12 @@ const BoardScreen = ({route, navigation}) => {
     }
   }, [groupId, currentPage]);
 
-  useEffect(() => {
-    if (route.params?.refresh) {
-      fetchPosts();
-      navigation.setParams({ refresh: undefined });
-    }
-  }, [route.params?.refresh]);
+  // useEffect(() => {
+  //   if (route.params?.refresh) {
+  //     fetchPosts();
+  //     navigation.setParams({ refresh: undefined });
+  //   }
+  // }, [route.params?.refresh]);
 
   const fetchPosts = async () => {
     try {
@@ -62,6 +64,12 @@ const BoardScreen = ({route, navigation}) => {
       setLoading(false);
     }
   };
+
+   useEffect(() => {
+        if (isFocused) {
+        fetchPosts();
+        }
+    }, [isFocused]);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -113,14 +121,14 @@ const BoardScreen = ({route, navigation}) => {
                 username={post.memberName}
                 title={post.title}
                 content={post.content}
-                postImage={post.image ? { uri: post.image } : defaultImage}
+                postImage={post.image ? { uri: post.image } : null}
                 createdAt={formatDate(post.createdAt)}
                 commentCount={post.commentCount}
               />
             </TouchableOpacity>
           ))
         ) : (
-          <View style={styles.emptyContainer}>
+          <View style={styles.emptyTextBox}>
             <Text style={styles.emptyText}>게시글이 없습니다.</Text>
           </View>
         )}
@@ -205,17 +213,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold'
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 100,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
-  },
   cardContainer: {
     width: '100%',
     marginBottom: 15,
@@ -256,6 +253,22 @@ const styles = StyleSheet.create({
   pageButtonTextActive: {
     color: BLACK_COLOR,
     fontWeight: 'bold',
+  },
+  emptyTextBox:{
+    // marginHorizontal: 16,
+    marginTop:5,
+    height:'auto',
+    paddingVertical:50,
+    borderWidth:1,
+    borderColor:G_DARK_COLOR,
+    borderRadius:12,
+    backgroundColor:WHITE_COLOR,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: G_DARK_COLOR,
+    textAlign: 'center',
   },
 });
 

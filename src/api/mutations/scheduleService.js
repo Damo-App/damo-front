@@ -22,7 +22,7 @@ export const createSchedule = async (groupId, scheduleData) => {
     const response = await instance.post(`/groups/${groupId}/schedules`, scheduleData);
     return response.data; // API 응답 데이터 반환
   } catch (error) {
-    console.error('일정 생성 오류:', error);
+    // console.error('일정 생성 오류:', error);
     throw error; // 오류 전파
   }
 };
