@@ -1,10 +1,13 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// 백엔드 API 주소. EAS Build / 로컬 실행 시 환경변수(EXPO_PUBLIC_API_BASE_URL)로 주입한다.
+// 미설정 시 로컬 개발용 주소로 폴백.
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL || 'http://192.168.45.174:8080';
+
 export const instance = axios.create({
-  // baseURL: "http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080",
-  // baseURL: "http://192.168.0.5:8080", 이디야
-  baseURL: "http://192.168.45.174:8080", //커피베이
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
