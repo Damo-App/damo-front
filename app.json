@@ -28,10 +28,19 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.huzzang.DamoApp_project"
+      "package": "com.huzzang.DamoApp_project",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "580ae5c8-980e-429f-b0be-0651c0b400bd"
+      }
+    },
+    "owner": "huzzang"
   }
 }
