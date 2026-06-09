@@ -4,7 +4,7 @@ import { CustomButton } from '../../components/CustomButton';
 import CommonTag from '../../components/CommonTag';
 import { BLACK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, WHITE_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
-import { instance } from '../../api/axiosInstance';
+import { instance, API_BASE_URL } from '../../api/axiosInstance';
 
 const GroupDetailScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
@@ -514,7 +514,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                 {memberList.map((member, index) => (
                   <View key={index} style={styles.memberItem}>
                     <Image
-                      source={{ uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${member.image}` }}
+                      source={{ uri: `${API_BASE_URL}${member.image}` }}
                       style={styles.memberImage}
                     />
                     <Text style={styles.memberName}>닉네임 : {member.name}</Text>

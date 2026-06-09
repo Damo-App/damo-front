@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList } from 'react-native';
 import { BLACK_COLOR, WHITE_COLOR } from '../../constants/colors';
 import { commonShadow } from '../../constants/styles';
-import { instance } from '../../api/axiosInstance';
+import { instance, API_BASE_URL } from '../../api/axiosInstance';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -60,7 +60,7 @@ const UserListScreen = () => {
             <View style={[styles.userCard]}>
                 <View style={styles.userInfo}>
                     <Image 
-                        source={{uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${item.image}`}} 
+                        source={{uri: `${API_BASE_URL}${item.image}`}} 
                         style={styles.userImage} 
                     />
                     <View style={styles.nicknameContainer}>

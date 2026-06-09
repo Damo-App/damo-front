@@ -5,7 +5,7 @@ import CommonTag from '../../components/CommonTag';
 import { BLACK_COLOR, WHITE_COLOR } from '../../constants/colors';
 import { commonShadow } from '../../constants/styles';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { instance } from '../../api/axiosInstance';
+import { instance, API_BASE_URL } from '../../api/axiosInstance';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
 const UserManagementScreen = () => {
@@ -91,8 +91,8 @@ const UserManagementScreen = () => {
                       <Image 
                         source={{ 
                           uri: group.image 
-                            ? `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${group.image}`
-                            : `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080/images/noImage.png`
+                            ? `${API_BASE_URL}${group.image}`
+                            : `${API_BASE_URL}/images/noImage.png`
                         }}
                         style={styles.gridImage} 
                       />
@@ -116,7 +116,7 @@ const UserManagementScreen = () => {
                     {post.image && (
                       <Image 
                         source={{ 
-                          uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${post.image}`
+                          uri: `${API_BASE_URL}${post.image}`
                         }}
                         style={styles.postImage}
                       />
@@ -163,8 +163,8 @@ const UserManagementScreen = () => {
           <Image 
             source={{ 
               uri: memberData?.data?.data?.image 
-                ? `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${memberData.data.data.image}`
-                : `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080/images/noImage.png`
+                ? `${API_BASE_URL}${memberData.data.data.image}`
+                : `${API_BASE_URL}/images/noImage.png`
             }}
             style={styles.profileImage} 
           />

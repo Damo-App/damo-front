@@ -6,7 +6,7 @@ import { commonStyles } from '../../constants/styles';
 import GroupListBox from '../../components/GroupListBox';
 import { CategoryIcon } from '../../components/CategoryIcon';
 import { commonShadow } from '../../constants/styles';
-import { instance } from '../../api/axiosInstance';
+import { instance, API_BASE_URL } from '../../api/axiosInstance';
 import { BLACK_COLOR } from '../../constants/colors';
 
 // 카테고리 ID에 따른 이미지 매핑
@@ -238,7 +238,7 @@ function GroupListScreen({navigation}) {
         renderItem={({ item }) => (
         <GroupListBox
             style={styles.groupCard}
-            image={{ uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${item.image}` }}
+            image={{ uri: `${API_BASE_URL}${item.image}` }}
             title={item.name}
             text={item.introduction}
             currentCount={item.memberCount}

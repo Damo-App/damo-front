@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { API_BASE_URL } from '../../api/axiosInstance';
 
 function Chat() {
   const [client, setClient] = useState(null);
@@ -23,7 +24,7 @@ function Chat() {
 
     const fetchChatRooms = async () => {
       try {
-        const response = await fetch('http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080/chatrooms', {
+        const response = await fetch(`${API_BASE_URL}/chatrooms`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
@@ -39,7 +40,7 @@ function Chat() {
     fetchChatRooms();
 
     const stompClient = new Client({
-      webSocketFactory: () => new SockJS('http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080/ws-stomp'),
+      webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws-stomp`),
       connectHeaders: { Authorization: `Bearer ${token}` },
       debug: (str) => console.log(new Date(), str),
       reconnectDelay: 5000,
@@ -94,7 +95,7 @@ function Chat() {
 
     // 3. 채팅방 메시지 API 요청
     try {
-      const res = await fetch(`http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080/chatrooms/${roomId}`, {
+      const res = await fetch(`${API_BASE_URL}/chatrooms/${roomId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
