@@ -85,10 +85,11 @@ const ChatRoomsScreen = ({ route, navigation }) => {
                     console.log("✅ STOMP connected");
                     setIsConnected(true);
 
-                     // 초기 메시지 로딩
-                    await fetchInitialMessages(token);
-
-                    
+                    // ⚡ 입장 체감속도 개선:
+                    // 예전에는 onConnect 에서 초기 메시지 HTTP(GET /chatrooms/{id})를 먼저 await 한 뒤
+                    // 구독/입장 발행을 했기 때문에, 서버 응답이 느리면 "입장" 메시지와 인원수가
+                    // 그만큼(5초 이상) 늦게 떴음.
+                    // → 구독과 입장 발행을 먼저 수행하고, 초기 메시지 로딩은 비동기로 뒤따르게 함.
 
                     // 채팅방 메시지 구독
                     console.log('채팅방 구독 시도:', `/sub/chat/${chatroomId}`);
@@ -138,7 +139,7 @@ const ChatRoomsScreen = ({ route, navigation }) => {
                         }
                     };
 
-                   // 입장 메시지 전송
+                   // 입장 메시지 전송 (구독 직후 즉시 발행 → 입장/인원수가 바로 반영됨)
                     client.publish({
                         destination: `/pub/chat/${chatroomId}/enter`,
                         body: JSON.stringify({
@@ -146,6 +147,9 @@ const ChatRoomsScreen = ({ route, navigation }) => {
                             chatRoomId: chatroomId
                         }),
                     });
+
+                    // 초기 메시지(히스토리) 로딩은 입장 처리를 막지 않도록 비동기로 뒤따르게 함
+                    fetchInitialMessages(token);
 
                 },
             });
@@ -176,7 +180,10 @@ const ChatRoomsScreen = ({ route, navigation }) => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.data?.data?.messages) {
-                setMessages(response.data.data.messages);
+                // 구독 이후에 호출되므로, 그 사이 도착한 실시간 메시지(입장 등)를 잃지 않도록
+                // 히스토리를 앞에 붙이는 방식으로 병합한다.
+                const history = response.data.data.messages;
+                setMessages(prev => [...history, ...prev]);
             }
         } catch (error) {
             console.error('초기 메시지 로딩 실패:', error);
