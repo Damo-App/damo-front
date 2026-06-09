@@ -6,7 +6,7 @@ import { commonStyles } from '../../constants/styles';
 import GroupListBox from '../../components/GroupListBox';
 import { CategoryIcon } from '../../components/CategoryIcon';
 import { commonShadow } from '../../constants/styles';
-import { instance } from '../../api/axiosInstance';
+import { instance, getImageUrl } from '../../api/axiosInstance';
 import { BLACK_COLOR, ERROR_COLOR, G_DARK_COLOR, G_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR } from '../../constants/colors';
 import { useIsFocused } from '@react-navigation/native';
 // import { red } from 'react-native-reanimated/lib/typescript/Colors';
@@ -258,7 +258,7 @@ function GroupListScreen({navigation}) {
         renderItem={({ item }) => (
         <GroupListBox
           style={[styles.groupCard, commonShadow.mainShadow]}
-          image={{ uri: item.image }}
+          image={{ uri: getImageUrl(item.image) }}
           title={item.name}
           text={item.introduction}
           currentCount={item.memberCount}

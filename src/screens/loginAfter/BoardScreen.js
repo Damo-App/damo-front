@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-nati
 import BoardCard from '../../components/BoardCard';
 import { PRIMARY_BACK_COLOR, PRIMARY_BTN_COLOR, BLACK_COLOR, WHITE_COLOR, G_DARK_COLOR } from '../../constants/colors';
 import { commonBtn, commonShadow, commonStyles } from '../../constants/styles';
-import { instance } from '../../api/axiosInstance';
+import { instance, getImageUrl } from '../../api/axiosInstance';
 import { useIsFocused } from '@react-navigation/native';
 
 const BoardScreen = ({route, navigation}) => {
@@ -117,11 +117,11 @@ const BoardScreen = ({route, navigation}) => {
               style={styles.cardContainer}
             >
               <BoardCard
-                profileImage={post.memberProfile ? { uri: post.memberProfile } : null}
+                profileImage={post.memberProfile ? { uri: getImageUrl(post.memberProfile) } : null}
                 username={post.memberName}
                 title={post.title}
                 content={post.content}
-                postImage={post.image ? { uri: post.image } : null}
+                postImage={post.image ? { uri: getImageUrl(post.image) } : null}
                 createdAt={formatDate(post.createdAt)}
                 commentCount={post.commentCount}
               />

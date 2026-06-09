@@ -5,7 +5,7 @@ import CommonTag from '../../components/CommonTag';
 import { BLACK_COLOR, G_DARK_COLOR, WHITE_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { instance } from '../../api/axiosInstance';
+import { instance, getImageUrl } from '../../api/axiosInstance';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useUser } from '../../hooks/useUser';
 import { useCategories } from '../../hooks/useCategories';
@@ -80,8 +80,7 @@ const MyBoardScreen = () => {
                       {post.image && (
                         <Image 
                           source={{ 
-                            // uri: `http://ec2-3-39-190-50.ap-northeast-2.compute.amazonaws.com:8080${post.image}`
-                            uri: post.image
+                            uri: getImageUrl(post.image)
                           }}
                           style={styles.postImage}
                         />

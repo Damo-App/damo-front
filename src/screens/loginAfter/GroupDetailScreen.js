@@ -4,7 +4,7 @@ import { CustomButton } from '../../components/CustomButton';
 import CommonTag from '../../components/CommonTag';
 import { BLACK_COLOR, BORDER_COLOR, G_DARK_COLOR, GREEN_LIGHT_COLOR, PINK_DARK_COLOR, PINK_LIGHT_COLOR, PRIMARY_BTN_COLOR, PRIMARY_COLOR, WHITE_COLOR, YELLOW_DARK_COLOR, YELLOW_LIGHT_COLOR } from '../../constants/colors';
 import { commonShadow, commonStyles } from '../../constants/styles';
-import { instance, API_BASE_URL } from '../../api/axiosInstance';
+import { instance, API_BASE_URL, getImageUrl } from '../../api/axiosInstance';
 import { useUser } from '../../hooks/useUser';
 import { AuthContext } from '../../contexts/AuthProvider';
 import { getCurrentUser } from '../../api/queries/userService';
@@ -445,8 +445,8 @@ const GroupDetailScreen = ({ route, navigation }) => {
         {/* 모임 기본 정보 */}
         <View style={[styles.groupInfoCard, commonShadow.mainShadow]}>
           <View style={styles.imageContainer}>
-            <Image 
-              source={{ uri: groupData.image}}
+            <Image
+              source={{ uri: getImageUrl(groupData.image) }}
               style={styles.groupImage}
             />
           </View>
@@ -488,7 +488,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
               {groupData.members.slice(0, 5).map((member, i) => (
                 <View key={i} style={styles.participantIcon}>
                   <Image 
-                    source={{ uri: member.image }}
+                    source={{ uri: getImageUrl(member.image) }}
                     style={styles.participantImage}
                   />
                 </View>
@@ -576,7 +576,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                     {schedule.members.slice(0, 5).map((member, i) => (
                       <View key={i} style={styles.participantIcon}>
                         <Image 
-                          source={{ uri: member.image }}
+                          source={{ uri: getImageUrl(member.image) }}
                           style={styles.participantImage}
                         />
                       </View>
@@ -608,7 +608,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                     {schedule.members.slice(0, 5).map((member, i) => (
                       <View key={i} style={styles.participantIcon}>
                         <Image 
-                          source={{ uri: member.image }}
+                          source={{ uri: getImageUrl(member.image) }}
                           style={styles.participantImage}
                         />
                       </View>
@@ -664,7 +664,7 @@ const GroupDetailScreen = ({ route, navigation }) => {
                 {memberList.map((member, index) => (
                   <View key={index} style={styles.memberItem}>
                     <Image
-                      source={{ uri: member.image }}
+                      source={{ uri: getImageUrl(member.image) }}
                       style={styles.memberImage}
                     />
                     <Text style={styles.memberName}>닉네임 : {member.name}</Text>

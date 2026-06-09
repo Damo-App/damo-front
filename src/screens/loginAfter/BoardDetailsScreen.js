@@ -8,7 +8,7 @@ import InputWithLabel from "../../components/InputWithLabel";
 import { CustomButton } from "../../components/CustomButton";
 import CommentItem from "../../components/CommentItem";
 import Toast from "react-native-toast-message";
-import { instance } from "../../api/axiosInstance";
+import { instance, getImageUrl } from "../../api/axiosInstance";
 // import { jwtDecode } from "jwt-decode";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUser } from "../../hooks/useUser";
@@ -243,11 +243,11 @@ function BoardDetailsScreen({ route, navigation }) {
     if (!post) return null;
 
     const boardData = {
-        profileImage: post.memberProfile ? { uri: post.memberProfile } : null,
+        profileImage: post.memberProfile ? { uri: getImageUrl(post.memberProfile) } : null,
         username: post.memberName,
         title: post.title,
         content: post.content,
-        postImage: post.image ? { uri: post.image } : null,
+        postImage: post.image ? { uri: getImageUrl(post.image) } : null,
         createdAt: new Date(post.createdAt).toLocaleDateString(),
         commentCount: post.commentCount,
     };

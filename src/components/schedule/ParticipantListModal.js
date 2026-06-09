@@ -3,12 +3,13 @@ import { View, Text, Modal, StyleSheet, TouchableOpacity, FlatList, Image, TextI
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { BLACK_COLOR, WHITE_COLOR, PRIMARY_BTN_COLOR } from '../../constants/colors';
 import { getScheduleParticipants } from '../../api/mutations/scheduleService';
+import { getImageUrl } from '../../api/axiosInstance';
 
 const ParticipantItem = ({ participant }) => {
   return (
     <View style={styles.participantItem}>
       <Image 
-        source={participant.image ? { uri: participant.image } : require('../../../assets/images/mypage/user.png')} 
+        source={participant.image ? { uri: getImageUrl(participant.image) } : require('../../../assets/images/mypage/user.png')} 
         style={styles.profileImage} 
       />
       <View style={styles.participantInfo}>

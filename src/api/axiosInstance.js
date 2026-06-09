@@ -12,6 +12,16 @@ export const instance = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// 서버가 반환하는 이미지 경로는 "/images/..." 같은 상대경로다.
+// React Native <Image> 는 절대 URL(https://...)이 필요하므로 항상 이 헬퍼로 변환한다.
+// - 값이 없으면 기본 이미지로 폴백
+// - 이미 http(s) 절대 URL이면 그대로 사용
+export const getImageUrl = (path) => {
+  if (!path) return `${API_BASE_URL}/images/noImage.png`;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+};
+
 // instance.interceptors.request.use(async (config) => {
 //   const token = await AsyncStorage.getItem("accessToken");
 //   if (token) {

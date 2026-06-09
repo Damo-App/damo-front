@@ -5,7 +5,7 @@ import { commonShadow } from '../../constants/styles';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { instance, API_BASE_URL } from '../../api/axiosInstance';
+import { instance, API_BASE_URL, getImageUrl } from '../../api/axiosInstance';
 import { useUser } from '../../hooks/useUser';
 
 const ChatRoomsScreen = ({ route, navigation }) => {
@@ -65,22 +65,19 @@ const ChatRoomsScreen = ({ route, navigation }) => {
             }
 
             console.log('STOMP 연결 시도...');
+            // 네이티브 WebSocket(wss) URL. SockJS 협상 오버헤드(~5초)를 제거하여 입장 속도 개선.
+            const wsUrl = `${API_BASE_URL.replace(/^http/i, 'ws')}/ws-stomp`;
             const client = new Client({
-              webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws-stomp`),
-              // connectHeaders: { Authorization: `Bearer ${token}` },
-                // webSocketFactory: () => new SockJS('ws://172.20.10.5:8080/ws-stomp'),
+                brokerURL: wsUrl,
                 connectHeaders: {
                     'Authorization': `Bearer ${token}`,
-                    'heart-beat': '0,0'
                 },
                 debug: (str) => {
                     console.log('STOMP Debug:', str);
                 },
-                // reconnectDelay: 5000,
-                // heartbeatIncoming: 0,
-                // heartbeatOutgoing: 0,
-                // forceBinaryWSFrames: true,
-                // appendMissingNULLonIncoming: true,
+                reconnectDelay: 3000,
+                heartbeatIncoming: 10000,
+                heartbeatOutgoing: 10000,
                 onConnect: async () => {
                     console.log("✅ STOMP connected");
                     setIsConnected(true);
@@ -281,7 +278,7 @@ function groupMessagesByDate(messages) {
                               {message.writer !== user.name && (
                                 <View style={styles.profileContainer}>
                                   <Image
-                                    source={{ uri: message.writerProfileImage }}
+                                    source={{ uri: getImageUrl(message.writerProfileImage) }}
                                     style={styles.profileImage}
                                   />
                                   <Text style={styles.username}>{message.writer}</Text>
