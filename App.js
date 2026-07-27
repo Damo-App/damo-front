@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AppNavigator from './src/navigation/AppNavigator';
 import {  AuthProvider } from './src/contexts/AuthProvider';
-import { View, Text, LogBox } from 'react-native';
+import { View, Text, LogBox, Platform, StyleSheet } from 'react-native';
 import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 import { commonShadow, commonStyles } from './src/constants/styles';
 import IconButton from './src/components/IconButton';
@@ -49,6 +49,47 @@ const toastConfig = {
 
 const queryClient = new QueryClient();
 
+// 이 앱은 모바일 기준으로 만들어졌기 때문에, 웹에서 열면 화면이 넓게 늘어나 깨진다.
+// 웹에서는 화면 가운데에 360px 고정 폭의 "모바일 프레임"으로 렌더링한다.
+const isWeb = Platform.OS === 'web';
+const MOBILE_WIDTH = 360;
+
+const frameStyles = StyleSheet.create({
+  outer: {
+    flex: 1,
+    ...(isWeb
+      ? {
+          alignItems: 'center',
+          backgroundColor: '#e5e5e5', // 프레임 양옆 여백 배경
+        }
+      : {}),
+  },
+  frame: {
+    flex: 1,
+    width: '100%',
+    ...(isWeb
+      ? {
+          width: MOBILE_WIDTH,
+          maxWidth: '100%',
+          backgroundColor: '#ffffff',
+          overflow: 'hidden',
+          // 양옆 경계선 살짝
+          borderLeftWidth: 1,
+          borderRightWidth: 1,
+          borderColor: '#d0d0d0',
+        }
+      : {}),
+  },
+});
+
+function AppFrame({ children }) {
+  return (
+    <View style={frameStyles.outer}>
+      <View style={frameStyles.frame}>{children}</View>
+    </View>
+  );
+}
+
 function App() {
 
   // const [layout, setLayout] = useState({ width: 0, height: 0 });
@@ -62,12 +103,14 @@ function App() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <SafeAreaView style={{ flex: 1 }}>
-            <NavigationContainer>
-              <AppNavigator />
-            </NavigationContainer>
-            <Toast config={toastConfig} />
-          </SafeAreaView>
+          <AppFrame>
+            <SafeAreaView style={{ flex: 1 }}>
+              <NavigationContainer>
+                <AppNavigator />
+              </NavigationContainer>
+              <Toast config={toastConfig} />
+            </SafeAreaView>
+          </AppFrame>
         </AuthProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
